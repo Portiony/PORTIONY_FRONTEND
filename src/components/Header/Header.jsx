@@ -24,6 +24,10 @@ function Header({isLoggedIn}) {
         <Link to="/mypage" className={location.pathname.startsWith('/mypage') ? styles.active : ''}>
           마이페이지
         </Link>
+        <Link to="/chat-test" className={location.pathname.startsWith('/chat-test') ? styles.active : ''}>
+        채팅 테스트
+      </Link>
+      {/* 채팅 테스트 후 지울예정입니다.. */}
       </nav>
 
       {isLoggedIn ? (
