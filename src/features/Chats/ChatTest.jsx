@@ -72,8 +72,8 @@ const ChatTest = () => {
       {!connected && (
         <>
           <button onClick={() => connect(1)}>🔵 사용자 1 (ID: 1) 접속</button>
-          <button onClick={() => connect(6)} style={{ marginLeft: '10px' }}>
-            🟢 사용자 6 (ID: 6) 접속
+          <button onClick={() => connect(2)} style={{ marginLeft: '10px' }}>
+            🟢 사용자 2 (ID: 2) 접속
           </button>
         </>
       )}
