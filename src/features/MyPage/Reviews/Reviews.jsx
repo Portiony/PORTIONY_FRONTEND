@@ -18,9 +18,7 @@ export default function ReviewsHistory() {
   const [modalInfo, setModalInfo] = useState({ open: false, productName: '', mode: 'write', received: false });
   const perPage = 9;
 
-  const token = localStorage.getItem('access_token');
-  const decoded = token ? jwtDecode(token) : null;
-  const userId = decoded?.userId;
+  const userId = Number(localStorage.getItem('userId'));
 
   useEffect(() => {
     if (!viewType) return;
@@ -32,21 +30,31 @@ export default function ReviewsHistory() {
   }, [viewType]);
 
   useEffect(() => {
-    if (!viewType || !userId) return;
+    console.log('🟡 useEffect 진입!');
+    console.log('viewType:', viewType);
+    console.log('userId:', userId);
+
+    if (!viewType || !userId) {
+      console.log('⛔️ 조건 불충족으로 요청 생략');
+      return;
+    }
+
+    console.log('✅ 조건 충족, 요청 시작!');
+
     const fetchReviews = async () => {
       const params = {
-        type: transactionType === '판매 후기' ? 'sales' : transactionType === '구매 후기' ? 'purchase' : undefined,
-        sort: dateSort === '최신 순' ? 'recent' : dateSort === '오래된 순' ? 'oldest' : undefined,
+        type: transactionType === '판매 후기' ? 'sales' : 'purchase',
+        sort: dateSort === '오래된 순' ? 'oldest' : 'recent',
+        status: writeStatus === '작성됨' ? 'written' : 'not_written',
         page: currentPage,
         size: perPage,
       };
 
+      console.log('📦 요청 params:', params);
+
       try {
         let response;
         if (viewType === '내가 남긴 후기') {
-          if (writeStatus !== '작성 상태') {
-            params.status = writeStatus === '작성됨' ? 'written' : 'not_written';
-          }
           response = await instance.get('/api/users/me/reviews', { params });
         } else {
           if (ratingSort !== '별점') {
@@ -55,12 +63,14 @@ export default function ReviewsHistory() {
           response = await instance.get(`/api/users/reviews/${userId}`, { params });
         }
 
+        console.log('✅ 응답 data:', response.data);
         setReviewData(response.data.reviews || []);
         setTotalCount(response.data.total);
       } catch (error) {
-        console.error('리뷰 불러오기 실패:', error);
+        console.error('❌ 리뷰 불러오기 실패:', error);
       }
     };
+
     fetchReviews();
   }, [viewType, transactionType, dateSort, writeStatus, ratingSort, currentPage, userId]);
 
