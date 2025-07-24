@@ -151,12 +151,16 @@
   border-radius: 10px;
   background: #E7E7E7;
   padding-left: 12px;
-  color: #949494;
+  color: #000;
   font-family: Inter;
   font-size: 13px;
   font-style: normal;
   font-weight: 500;
   line-height: 16px;
+}
+
+.input::placeholder {
+  color: #949494;
 }
 
 /* 로그인 완료 */

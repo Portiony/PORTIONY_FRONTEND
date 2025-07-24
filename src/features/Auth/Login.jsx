@@ -19,7 +19,7 @@ function Login({ setIsLoggedIn }) {
   const handleKakaoLogin = () => {
     const REST_API_KEY = '1905cc0f6daf870b0f4eb756b47ac06f';
     const REDIRECT_URI = 'http://localhost:3000/login/oauth/kakao';
-    const kakaoAuthURL = 'https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}&response_type=code';
+    const kakaoAuthURL = `https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}&response_type=code`;
 
     window.location.href = kakaoAuthURL;
   };
@@ -39,8 +39,8 @@ function Login({ setIsLoggedIn }) {
 
       // 토큰 저장
       const saveTokens = (accessToken, refreshToken) => {
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('refreshToken', refreshToken);
+        localStorage.setItem('access_token', accessToken);
+        localStorage.setItem('refresh_token', refreshToken);
       };
       saveTokens(accessToken, refreshToken);
 
@@ -89,21 +89,30 @@ function Login({ setIsLoggedIn }) {
           </div>
           <img src={character} alt="캐릭터 로고" className={styles.logoTop}/>
 
-          <div className={styles.formGroup}>
-            <input type="email" placeholder="이메일을 입력해주세요." 
-              className={styles.input} onChange={(e) => setUserEmail(e.target.value)}/>
+          <form
+            onsubmit={(e) => {
+              e.preventDefault();
+              if (userEmail && userPassword) {
+                handleFinalLogin();
+              }
+            }}
+          >
+            <div className={styles.formGroup}>
+              <input type="email" placeholder="이메일을 입력해주세요." 
+                className={styles.input} onChange={(e) => setUserEmail(e.target.value)}/>
 
-            <input type="password" placeholder="비밀번호를 입력해주세요." 
-              className={styles.input} onChange={(e) => setUserPassword(e.target.value)}/>
-          </div>
+              <input type="password" placeholder="비밀번호를 입력해주세요." 
+                className={styles.input} onChange={(e) => setUserPassword(e.target.value)}/>
+            </div>
 
-          <button 
-            type='button'
-            className={styles.loginButton} 
-            onClick={handleFinalLogin}
-            disabled={!userEmail || !userPassword}>
-            로그인
-          </button>
+            <button 
+              type='button'
+              className={styles.loginButton} 
+              onClick={handleFinalLogin}
+              disabled={!userEmail || !userPassword}>
+              로그인
+            </button>
+          </form>
           <p className={styles.signupText}>
             첫 방문이신가요? <a href="/signup" className={styles.signupLink}>회원가입</a>
           </p>
