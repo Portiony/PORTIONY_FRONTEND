@@ -2,7 +2,7 @@
   "name": "portiony",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://localhost:8080",
+  "proxy": "https://port-0-portiony-backend-md4272k5c4648749.sel5.cloudtype.app/",
   "dependencies": {
     "@stomp/stompjs": "^7.1.1",
     "@testing-library/dom": "^10.4.0",
