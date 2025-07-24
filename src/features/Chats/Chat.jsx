@@ -21,47 +21,24 @@ function Chat() {
   const [chatRooms, setChatRooms] = useState([]); //안에 더미값 넣었었음
   const [myUserId, setMyUserId] = useState(null);
 
-const token = localStorage.getItem("accessToken");
-const client = useRef(null);
-const [selectedRoom, setSelectedRoom] = useState(null);
+  const token = localStorage.getItem("accessToken");
+  const client = useRef(null);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const selectedRoomRef = useRef(null); // ✅ 추가
 
-//소켓 연결
+
 useEffect(() => {
   const socket = new SockJS(`${BASE_URL}/ws-chat-sockjs`);
   client.current = new Client({
     webSocketFactory: () => socket,
     onConnect: () => {
-      console.log('WebSocket connected');
-      if (selectedRoom) {
-        client.current.subscribe(
-          `/sub/chat/room/${selectedRoom.id}`,
-          (message) => {
-            const payload = JSON.parse(message.body);
-            console.log('📩 New message:', payload);
-
-            const newMsg = {
-              content: payload.content,
-              image: payload.imageUrls?.[0] || null,
-              time: payload.createdAt,
-              isMine: payload.senderId === myUserId,
-              isSystem: payload.senderId === 0,
-              systemType: payload.senderId === 0 ? payload.systemType : null,
-            };
-
-            setSelectedRoom((prevRoom) => ({
-              ...prevRoom,
-              messages: [...prevRoom.messages, newMsg],
-            }));
-
-            setTimeout(scrollToBottom, 0);
-          }
-        );
-      }
+      console.log('✅ WebSocket connected');
     },
     onStompError: (frame) => {
       console.error('WebSocket error:', frame);
     },
   });
+
 
   client.current.activate();
 
@@ -70,7 +47,12 @@ useEffect(() => {
       client.current.deactivate();
     }
   };
-}, [selectedRoom?.id]);
+}, []);
+
+useEffect(() => {
+  selectedRoomRef.current = selectedRoom;
+}, [selectedRoom]);
+
 
 
 //사용자 정보
@@ -137,34 +119,72 @@ useEffect(() => {
   fetchChatRooms();
 }, [dateSort]);
 
-//  1. Chat 컴포넌트 안에서
-// const handleEnterRoom = async (room) => {
-//   const lastSenderId = room.lastSenderId;
-//   setSelectedRoom(room);
-  
-//   if (lastSenderId && lastSenderId !== myUserId) {
-//   try {
-//     //  읽음 처리 API 호출
-//     await fetch(`${BASE_URL}/api/chats/${room.id}/read`, {
-//       method: 'PATCH',
-//       headers: {
-//         'Content-Type': 'application/json',
-//         Authorization: `Bearer ${token}`,
-//       },
-//     });
 
-//     //  읽음 상태 업데이트 (빨간 점 제거)
-//     const updatedRooms = chatRooms.map((r) =>
-//       r.id === room.id ? { ...r, isRead: true } : r
-//     );
+// 모든 채팅방 구독 처리 > 목록에서도 실시간 반영을 위함
+useEffect(() => {
+  if (!client.current || !client.current.connected) return;
 
-//     setChatRooms(updatedRooms);
-//     setSelectedRoom({ ...room, isRead: true }); // 오른쪽 상세 패널도 반영
-//   } catch (err) {
-//     console.error('읽음 처리 실패:', err);
-//   }
-// }
-// };
+  if (!client.current.subscriptions) {
+    client.current.subscriptions = {};
+  }
+
+  const subscribeAllRooms = () => {
+    chatRooms.forEach((room) => {
+      const subId = `chat-room-${room.id}`;
+
+      // ❗ 정확하게 key로 확인
+      if (client.current.subscriptions[subId]) return;
+
+      client.current.subscribe(
+        `/sub/chat/room/${room.id}`,
+        (message) => {
+          const payload = JSON.parse(message.body);
+          if (payload.senderId === myUserId) return;
+
+          const newMsg = {
+            content: payload.content,
+            image: payload.imageUrls?.[0] || null,
+            time: payload.createdAt,
+            isMine: false,
+            isSystem: payload.senderId === 0,
+            systemType: payload.senderId === 0 ? payload.systemType : null,
+          };
+
+          setChatRooms((prevRooms) =>
+            prevRooms.map((r) =>
+              r.id === room.id
+                ? {
+                    ...r,
+                    lastMessage: payload.content,
+                    time: new Date(payload.createdAt).toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    }),
+                    isRead: selectedRoom?.id === r.id,
+                    lastSenderId: payload.senderId,
+                  }
+                : r
+            )
+          );
+
+          // 선택된 방이면 메시지 추가
+          if (selectedRoomRef.current?.id === room.id) {
+  setSelectedRoom((prevRoom) => ({
+    ...prevRoom,
+    messages: [...prevRoom.messages, newMsg],
+  }));
+  setTimeout(scrollToBottom, 0);
+}
+
+        },
+        { id: subId }
+      );
+    });
+  };
+
+  subscribeAllRooms();
+}, [myUserId, client.current?.connected]); // ✅ chatRooms 빠짐!!
+
 const handleEnterRoom = async (room) => {
   try {
     // 메시지 불러오기
@@ -339,51 +359,58 @@ const handleEnterRoom = async (room) => {
         chatStatus={'active'} // TODO: 상태값에 따라 변경 가능
         onSendMessage={(newMessage) => {
           const payload =
-    typeof newMessage === 'string'
-      ? {
-          chatRoomId: selectedRoom.id,
-          senderId: myUserId,
-          content: newMessage,
-        }
-      : {
-          ...newMessage,
-          chatRoomId: selectedRoom.id,
-          senderId: myUserId,
-        };
+            typeof newMessage === 'string'
+              ? {
+                  chatRoomId: selectedRoom.id,
+                  senderId: myUserId,
+                  content: newMessage,
+                }
+              : {
+                  ...newMessage,
+                  chatRoomId: selectedRoom.id,
+                  senderId: myUserId,
+                };
 
-  // ✅ WebSocket 메시지 전송
-  if (client.current && client.current.connected) {
-    client.current.publish({
-      destination: '/pub/chat/message',
-      body: JSON.stringify(payload),
-    });
-  }
+          // WebSocket 메시지 전송
+          if (client.current && client.current.connected) {
+            client.current.publish({
+              destination: '/pub/chat/message',
+              body: JSON.stringify(payload),
+            });
+          }
 
-  // ✅ optimistic UI 적용
-  const messageObj = {
-    content: payload.content,
-    image: payload.image || null,
-    time: new Date().toISOString(),
-    isMine: true,
-    isSystem: payload.isSystem || false,
-    systemType: payload.systemType || null,
-  };
+          const messageObj = {
+      content: payload.content,
+      image: payload.image || null,
+      time: new Date().toISOString(),
+      isMine: true,
+      isSystem: false,
+      systemType: null,
+    };
 
-  const updatedRooms = chatRooms.map((room) => {
-    if (room.id === selectedRoom.id) {
-      return {
-        ...room,
-        messages: [...room.messages, messageObj],
-      };
-    }
-    return room;
-  });
+    setSelectedRoom((prevRoom) => ({
+      ...prevRoom,
+      messages: [...prevRoom.messages, messageObj],
+    }));
 
-  setChatRooms(updatedRooms);
-  setSelectedRoom(updatedRooms.find((room) => room.id === selectedRoom.id));
+            // ✅ 2. 채팅 목록에 lastMessage 갱신
+          setChatRooms((prevRooms) =>
+            prevRooms.map((room) =>
+              room.id === selectedRoom.id
+                ? {
+                    ...room,
+                    lastMessage: payload.content,
+                    time: new Date().toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    }),
+                  }
+                : room
+            )
+          );
 
-  setTimeout(scrollToBottom, 0);
-}}
+        setTimeout(scrollToBottom, 0);
+      }}
 
       />
     </div>
