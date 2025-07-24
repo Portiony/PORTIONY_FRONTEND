@@ -18,7 +18,9 @@
   border-radius: 50%;
   object-fit: cover;
   margin-right: 24px;
+  background-color: #D9D9D9; 
 }
+
 
 .infoBox {
   display: flex;
