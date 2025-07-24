@@ -52,7 +52,6 @@ function GroupBuyDetail() {
 
   // 이미지 슬라이드 현재 인덱스
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-<<<<<<< Updated upstream
 
   // 이미지 클릭된 상태
   const [selectedImage, setSelectedImage] = useState(null);
@@ -63,8 +62,6 @@ function GroupBuyDetail() {
     setSelectedImage(null);
   };
 
-=======
->>>>>>> Stashed changes
 
   // 댓글 상태 (초기 더미 댓글 43개)
   const dummyComments = Array.from({ length: 43 }, (_, i) => ({

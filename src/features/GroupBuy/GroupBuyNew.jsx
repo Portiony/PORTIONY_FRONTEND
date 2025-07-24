@@ -233,7 +233,6 @@ function GroupBuyNew({ mode = 'create', initialData = null, productId = null }) 
           {/* 카테고리 */}
           <div className={styles['form-group']}>
             <label>카테고리</label>
-<<<<<<< Updated upstream
             <Dropdown
               options={categoryOptions}
               selected={form.category || '카테고리를 선택해주세요.'}
@@ -241,27 +240,6 @@ function GroupBuyNew({ mode = 'create', initialData = null, productId = null }) 
               placeholder="카테고리를 선택해주세요."
               variant="minimal"
             />
-=======
-            <select
-              name="category"
-              value={form.category}
-              onChange={handleChange}
-              className={styles.selectCustom}
-              style={{
-                backgroundImage: `url(${dropdownIcon})`,
-                color: form.category ? 'black' : 'gray',
-              }}
-            >
-              <option value="" hidden>카테고리를 선택해주세요.</option>
-              <option value="생활용품">생활용품</option>
-              <option value="반려동물">반려동물</option>
-              <option value="의류">의류</option>
-              <option value="문구류">문구류</option>
-              <option value="육아용품">육아용품</option>
-              <option value="화장품/뷰티">화장품/뷰티</option>
-              <option value="잡화/기타">잡화/기타</option>
-            </select>
->>>>>>> Stashed changes
           </div>
 
           {/* 상품명 */}
@@ -338,28 +316,6 @@ function GroupBuyNew({ mode = 'create', initialData = null, productId = null }) 
                 value={form.amount}
                 onChange={handleChange}
               />
-<<<<<<< Updated upstream
-=======
-              <select
-                name="unit"
-                value={form.unit}
-                onChange={handleChange}
-                className={styles.selectCustom}
-                style={{
-                  backgroundImage: `url(${dropdownIcon})`,
-                  color: form.unit ? 'black' : 'gray',
-                }}
-              >
-                <option value="" hidden>소분 단위를 선택해주세요.</option>
-                <option value="개">개</option>
-                <option value="kg">kg</option>
-                <option value="g">g</option>
-                <option value="cm">cm</option>
-                <option value="봉지">봉지</option>
-                <option value="장">장</option>
-                <option value="직접 입력">직접 입력</option>
-              </select>
->>>>>>> Stashed changes
               <input
                   type="text"
                   name="unitCustom"
@@ -421,7 +377,6 @@ function GroupBuyNew({ mode = 'create', initialData = null, productId = null }) 
               )}
             </div>
             <input
-<<<<<<< Updated upstream
                 type="date"
                 name="deadline"
                 placeholder="현재일로부터 3개월 이내까지만 입력할 수 있습니다."
@@ -429,15 +384,6 @@ function GroupBuyNew({ mode = 'create', initialData = null, productId = null }) 
                 max={maxDate}
                 value={form.deadline}
                 onChange={handleChange}
-=======
-              type="date"
-              name="deadline"
-              value={form.deadline}
-              onChange={handleChange}
-              min={minDate}
-              max={maxDate}
-              className={`${styles['date-input']} ${form.deadline ? styles['has-value'] : ''}`}
->>>>>>> Stashed changes
             />
           </div>
 
@@ -445,7 +391,6 @@ function GroupBuyNew({ mode = 'create', initialData = null, productId = null }) 
           {/* 거래 방법 */}
           <div className={styles['form-group']}>
             <label>거래 방법</label>
-<<<<<<< Updated upstream
             <Dropdown
                 options={methodOptions}
                 selected={form.method || '거래 방법을 선택해주세요.'}
@@ -453,23 +398,6 @@ function GroupBuyNew({ mode = 'create', initialData = null, productId = null }) 
                 placeholder="거래 방법을 선택해주세요."
                 variant="minimal"
             />
-=======
-            <select
-              name="method"
-              value={form.method}
-              onChange={handleChange}
-              className={styles.selectCustom}
-              style={{
-                backgroundImage: `url(${dropdownIcon})`,
-                color: form.method ? 'black' : 'gray',
-              }}
-            >
-              <option value="" disabled hidden>거래 방법을 선택해주세요.</option>
-              <option value="직거래">직거래</option>
-              <option value="택배 배송">택배 배송</option>
-              <option value="직거래 및 택배 배송">직거래 및 택배 배송</option>
-            </select>
->>>>>>> Stashed changes
           </div>
 
           <div className={styles['info-text']}>
