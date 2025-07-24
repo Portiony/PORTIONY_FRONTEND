@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import SockJS from 'sockjs-client';
+import { Client } from '@stomp/stompjs';
 import boxImage from '../../assets/chat_logo.png';
 import styles from './Chats.module.css';
 import Dropdown from '../../components/DropDown/DropDown';
@@ -19,7 +21,57 @@ function Chat() {
   const [chatRooms, setChatRooms] = useState([]); //안에 더미값 넣었었음
   const [myUserId, setMyUserId] = useState(null);
 
-const token = "";
+const token = localStorage.getItem("accessToken");
+const client = useRef(null);
+const [selectedRoom, setSelectedRoom] = useState(null);
+
+//소켓 연결
+useEffect(() => {
+  const socket = new SockJS(`${BASE_URL}/ws-chat-sockjs`);
+  client.current = new Client({
+    webSocketFactory: () => socket,
+    onConnect: () => {
+      console.log('WebSocket connected');
+      if (selectedRoom) {
+        client.current.subscribe(
+          `/sub/chat/room/${selectedRoom.id}`,
+          (message) => {
+            const payload = JSON.parse(message.body);
+            console.log('📩 New message:', payload);
+
+            const newMsg = {
+              content: payload.content,
+              image: payload.imageUrls?.[0] || null,
+              time: payload.createdAt,
+              isMine: payload.senderId === myUserId,
+              isSystem: payload.senderId === 0,
+              systemType: payload.senderId === 0 ? payload.systemType : null,
+            };
+
+            setSelectedRoom((prevRoom) => ({
+              ...prevRoom,
+              messages: [...prevRoom.messages, newMsg],
+            }));
+
+            setTimeout(scrollToBottom, 0);
+          }
+        );
+      }
+    },
+    onStompError: (frame) => {
+      console.error('WebSocket error:', frame);
+    },
+  });
+
+  client.current.activate();
+
+  return () => {
+    if (client.current) {
+      client.current.deactivate();
+    }
+  };
+}, [selectedRoom?.id]);
+
 
 //사용자 정보
 useEffect(() => {
@@ -168,7 +220,6 @@ const handleEnterRoom = async (room) => {
 
 
 
-  const [selectedRoom, setSelectedRoom] = useState(null);
 
 
   const filteredRooms = chatRooms.filter((room) => {
@@ -287,33 +338,52 @@ const handleEnterRoom = async (room) => {
         completionCount={selectedRoom.completionCount}
         chatStatus={'active'} // TODO: 상태값에 따라 변경 가능
         onSendMessage={(newMessage) => {
-          const messageObj =
-            typeof newMessage === 'string'
-              ? {
-                  content: newMessage,
-                  time: new Date().toISOString(),
-                  isMine: true,
-                }
-              : {
-                  ...newMessage,
-                  time: new Date().toISOString(),
-                };
+          const payload =
+    typeof newMessage === 'string'
+      ? {
+          chatRoomId: selectedRoom.id,
+          senderId: myUserId,
+          content: newMessage,
+        }
+      : {
+          ...newMessage,
+          chatRoomId: selectedRoom.id,
+          senderId: myUserId,
+        };
 
-          const updatedRooms = chatRooms.map((room) => {
-            if (room.id === selectedRoom.id) {
-              return {
-                ...room,
-                messages: [...room.messages, messageObj],
-              };
-            }
-            return room;
-          });
+  // ✅ WebSocket 메시지 전송
+  if (client.current && client.current.connected) {
+    client.current.publish({
+      destination: '/pub/chat/message',
+      body: JSON.stringify(payload),
+    });
+  }
 
-          setChatRooms(updatedRooms);
-          setSelectedRoom(updatedRooms.find((room) => room.id === selectedRoom.id));
+  // ✅ optimistic UI 적용
+  const messageObj = {
+    content: payload.content,
+    image: payload.image || null,
+    time: new Date().toISOString(),
+    isMine: true,
+    isSystem: payload.isSystem || false,
+    systemType: payload.systemType || null,
+  };
 
-          setTimeout(scrollToBottom, 0);
-        }}
+  const updatedRooms = chatRooms.map((room) => {
+    if (room.id === selectedRoom.id) {
+      return {
+        ...room,
+        messages: [...room.messages, messageObj],
+      };
+    }
+    return room;
+  });
+
+  setChatRooms(updatedRooms);
+  setSelectedRoom(updatedRooms.find((room) => room.id === selectedRoom.id));
+
+  setTimeout(scrollToBottom, 0);
+}}
 
       />
     </div>
