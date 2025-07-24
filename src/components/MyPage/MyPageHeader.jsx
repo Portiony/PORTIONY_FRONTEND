@@ -3,31 +3,55 @@ import styles from './MyPageHeader.module.css';
 import profileDefault from '../../assets/Ellipse 23.png';
 import questionIcon from '../../assets/question-icon.svg';
 import ProfileEditModal from './ProfileEditModal';
+import axios from '../../lib/axios';
 
 function MyPageHeader() {
-  //퍼센트 임시 값
-  const potionyPercent = 50;
-  const gradientStyle = {
-    background: `conic-gradient(from 180deg, #fff ${potionyPercent}%, #000 ${potionyPercent}% 100%)`
-  };
-
   const [nickname, setNickname] = useState(''); 
   const [email, setEmail] = useState('');
-  const [profileImg, setProfileImg] = useState(profileDefault);
-
-  // API 연결 전 비밀번호 초기 값 1234으로 설정
-  useEffect(() => {
-    if (!localStorage.getItem('password')) {
-      localStorage.setItem('password', '1234');
-    }
-    setNickname(localStorage.getItem('nickname') || '박지현');
-    setEmail(localStorage.getItem('email') || 'multicampus@naver.com');
-    setProfileImg(localStorage.getItem('profileImg') || profileDefault);
-  }, []);
+  const [profileImg, setProfileImg] = useState(null); 
+  const [purchasesCount, setPurchasesCount] = useState(0);
+  const [salesCount, setSalesCount] = useState(0);
+  const [potionyPercent, setPotionyPercent] = useState(0);
 
   const [showTooltip, setShowTooltip] = useState(false);
   const tooltipRef = useRef();
   const [modalOpen, setModalOpen] = useState(false);
+
+  const gradientStyle = {
+    background: `conic-gradient(from 180deg, #fff ${potionyPercent}%, #000 ${potionyPercent}% 100%)`
+  };
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const token = localStorage.getItem('access_token');
+      try {
+        const response = await axios.get('/api/users/', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        const data = response.data;
+        setNickname(data.nickname || '');
+        setEmail(data.email || '');
+
+        if (!data.profileImage || data.profileImage === 'string') {
+          setProfileImg(null); 
+        } else {
+          setProfileImg(data.profileImage); 
+        }
+
+        setPurchasesCount(data.purchaseCount || 0);
+        setSalesCount(data.salesCount || 0);
+        setPotionyPercent(data.potionyPercent || 0);
+
+      } catch (error) {
+        console.error('❌ 유저 정보 불러오기 실패:', error);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -56,11 +80,14 @@ function MyPageHeader() {
     <>
       <div className={styles.container}>
         <div className={styles.leftBox}>
-          <img src={profileImg} alt="프로필 이미지" className={styles.profile} />
+          <img
+            src={profileImg ? profileImg : undefined}
+            className={styles.profile}
+          />
           <div className={styles.infoBox}>
             <p className={styles.name}>{nickname}</p>
             <p className={styles.history}>
-              누적 거래 횟수 : 12회 (구매 0회 / 판매 5회)
+              누적 거래 횟수 : {purchasesCount + salesCount}회 (구매 {purchasesCount}회 / 판매 {salesCount}회)
             </p>
             <div className={styles.potionyWrapper} style={{ position: "relative" }}>
               <div className={styles.potionyBox}>

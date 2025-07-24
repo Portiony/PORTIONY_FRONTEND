@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const instance = axios.create({
-  baseURL: 'https://port-0-portiony-backend-md4272k5c4648749.sel5.cloudtype.app/',
+  baseURL: 'https://port-0-portiony-backend-md4272k5c4648749.sel5.cloudtype.app',
   withCredentials: true,
   timeout: 5000,
   headers: {

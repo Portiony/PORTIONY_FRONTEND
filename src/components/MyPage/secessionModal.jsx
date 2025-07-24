@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styles from './secessionModal.module.css';
 import warningIcon from '../../assets/alert-triangle.svg';
+import instance from '../../lib/axios';
 
-export default function WithdrawModal({ open, onClose, onWithdraw }) {
+export default function WithdrawModal({ open, onClose }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (open) {
       setPassword('');
       setError('');
@@ -14,6 +18,31 @@ export default function WithdrawModal({ open, onClose, onWithdraw }) {
   }, [open]);
 
   if (!open) return null;
+
+  const handleWithdraw = async () => {
+    if (!password) {
+      setError('비밀번호를 입력해주세요.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await instance.delete('/api/users/me', {
+        data: { password },
+      });
+
+      alert(response.data.message); // "탈퇴가 완료되었습니다."
+      localStorage.clear();
+      navigate('/login');
+    } catch (err) {
+      setLoading(false);
+      if (err.response?.status === 400) {
+        setError('비밀번호가 일치하지 않습니다.');
+      } else {
+        setError('탈퇴 요청 중 오류가 발생했습니다.');
+      }
+    }
+  };
 
   return (
     <div className={styles.overlay}>
@@ -47,19 +76,15 @@ export default function WithdrawModal({ open, onClose, onWithdraw }) {
             className={styles.cancelBtn}
             onClick={onClose}
             type="button"
+            disabled={loading}
           >
             취소하기
           </button>
           <button
             className={styles.continueBtn}
-            onClick={() => {
-              if (!password) {
-                setError('비밀번호를 입력해주세요.');
-                return;
-              }
-              onWithdraw(password);
-            }}
+            onClick={handleWithdraw}
             type="button"
+            disabled={loading}
           >
             탈퇴하기
           </button>
