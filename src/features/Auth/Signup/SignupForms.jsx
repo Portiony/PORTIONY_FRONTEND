@@ -1,18 +1,19 @@
 import React, { useState, useRef } from 'react';
 import styles from './SignupForms.module.css';
 import { useNavigate } from 'react-router-dom';
+import { useSignup } from './SignupContext'; // Context import
+import axios from 'axios';
 
-import defaultProfileImage from '../../../assets/profile-image.svg'
+import defaultProfileImage from '../../../assets/profile-image.svg';
 import back from '../../../assets/chevron-left.svg';
 import requiredIcon from '../../../assets/required.svg';
 import close from '../../../assets/x.svg';
-import arrow from '../../../assets/chevron-down-outline.svg';
 import DropDownForm from '../../../components/DropDown/DropDownForm';
 
-const domainOptions = ['직접 입력', 'gmail.com', 'naver.com', 
-                      'daum.net', 'hanmail.net','test.com(이메일중복문구 확인용 테스트도메인)'];
+const domainOptions = ['직접 입력', 'gmail.com', 'naver.com', 'daum.net', 'hanmail.net','test.com(이메일중복문구 확인용 테스트도메인)'];
 
 function SignupForms({ onNext, onBack }) {
+  const { setSignupData } = useSignup(); // Context setter 불러오기
   const fileInputRef = useRef(null);
 
   const [emailId, setEmailId] = useState('');
@@ -24,7 +25,7 @@ function SignupForms({ onNext, onBack }) {
 
   const [password, setPassword] = useState('');
   const [passwordCheck, setPasswordCheck] = useState('');
-  const [passwordMessage, setPasswordMessage] =useState('');
+  const [passwordMessage, setPasswordMessage] = useState('');
   const [passwordError, setPasswordError] = useState(false);
   const [passwordCheckMessage, setPasswordCheckMessage] = useState('');
   const [passwordCheckError, setPasswordCheckError] = useState(false);
@@ -36,81 +37,79 @@ function SignupForms({ onNext, onBack }) {
 
   const [profileImage, setProfileImage] = useState(null);
 
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if(!file) return;
-
-    //프론트테스트용 미리보기 로컬 URl 설정
-    const previewUrl = URL.createObjectURL(file);
-    setProfileImage(previewUrl);
-
-    // 서버 전송 로직 백엔드 연결 후 다시 활성화 예정
-    // const formData = new FormData();
-    // formData.append('file', file); // key는 백엔드에서 정한대로 추후 수정
-
-    // const res = await fetch('/api/upload-profile-image', { 
-    //   method: 'POST',
-    //   body: formData,
-    // });
-
-    // const data = await res.json();
-    // if (data.url) {
-    //   setProfileImage(data.url); // 서버에서 받은 URL로 이미지 설정
-    // }
-  };
-
-  const removeProfileImage = () => {
-    setProfileImage(null);
-  }
-
   const fullEmail = `${emailId}@${domainType === '직접 입력' ? emailDomain : domainType}`;
 
-  //추후 백엔드와 연동, 예시코드만 작성, 백엔드연동 후 예시코드 지우기 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const previewUrl = URL.createObjectURL(file);
+    setProfileImage(previewUrl);
+    // 서버 연동 시 이미지 업로드 로직 추가 예정
+  };
+
+  const removeProfileImage = () => setProfileImage(null);
+
+  const isValidEmailFormat = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleEmailCheck = async () => {
-    if (fullEmail.includes('test.com')) {
-    setEmailValid(false);
-    setEmailMessage('이미 사용 중인 이메일입니다.');
-    setEmailError(true);
-  } else {
-    setEmailValid(true);
-    setEmailMessage('사용 가능한 이메일입니다.');
-    setEmailError(false);
-  }
-    // const res = await fetch(`/api/users/check-email?email=${fullEmail}`);
-    // const data = await res.json();
-    // if (data.exists) {
-        // setEmailValid(false);
-        // setEmailMessage('이미 사용 중인 이메일입니다.');
-        // setEmailError(true);
-    // } else {
-      // setEmailValid(true);
-      // setEmailMessage('사용 가능한 이메일입니다.');
-      // setEmailError(false);
-    // }
-};
+    const email = `${emailId}@${domainType === '직접 입력' ? emailDomain : domainType}`;
+
+    if (!isValidEmailFormat(email)) {
+        setEmailValid(false);
+        setEmailMessage('이메일 형식이 올바르지 않습니다.');
+        setEmailError(true);
+        return;
+    }
+
+    try {
+        const res = await axios.get(`/api/users/signup/check-email`, {
+          params: { email }
+        });
+
+        if (res.data.exists) {
+          setEmailValid(false);
+          setEmailMessage('이미 사용 중인 이메일입니다.');
+          setEmailError(true);
+        } else {
+          setEmailValid(true);
+          setEmailMessage('사용 가능한 이메일입니다.');
+          setEmailError(false);
+        }
+    } catch (err) {
+        console.error('중복 확인 에러:', err); //
+        setEmailValid(false);
+        setEmailMessage('이메일 중복 확인에 실패했습니다.');
+        setEmailError(true);
+    }
+
+  };
 
   const handleNicknameCheck = async () => {
-    if (nickname === 'taken') {
+    try {
+      const res = await axios.get(`/api/users/signup/check-nickname`, {
+        params: { nickname }
+      });
+
+      if (res.data.exists) {
+        setNicknameValid(false);
+        setNicknameMessage('이미 사용 중인 닉네임입니다.');
+        setNicknameError(true);
+      } else {
+        setNicknameValid(true);
+        setNicknameMessage('사용 가능한 닉네임입니다.');
+        setNicknameError(false);
+      }
+    } catch (err) {
+      console.error('[닉네임 중복 확인 실패]', err);
       setNicknameValid(false);
-      setNicknameMessage('이미 사용 중인 닉네임입니다.');
+      setNicknameMessage('닉네임 중복 확인에 실패했습니다.');
       setNicknameError(true);
-    } else {
-      setNicknameValid(true);
-      setNicknameMessage('사용 가능한 닉네임입니다.');
-      setNicknameError(false);
     }
-    // const res = await fetch(`/api/users/check-nickname?nickname=${nickname}`);
-    // const data = await res.json();
-    // if (data.exists) {
-        // setNicknameValid(false);
-        // setNicknameMessage('이미 사용 중인 닉네임입니다.');
-        // setNicknameError(true);
-    // } else {
-          // setNicknameValid(true);
-          // setNicknameMessage('사용 가능한 닉네임입니다.');
-          // setNicknameError(false);
-    // }
   };
+
 
   const validatePassword = (pw) => {
     const hasLetter = /[a-zA-Z]/.test(pw);
@@ -123,7 +122,7 @@ function SignupForms({ onNext, onBack }) {
       return false;
     }
 
-    if(!isValid) {
+    if (!isValid) {
       setPasswordMessage('비밀번호는 영문과 숫자를 포함한 8자 이상이어야 합니다.');
       setPasswordError(true);
       return false;
@@ -132,7 +131,7 @@ function SignupForms({ onNext, onBack }) {
     setPasswordMessage('사용 가능한 비밀번호입니다.');
     setPasswordError(false);
     return true;
-};
+  };
 
   const isNextValid = () => {
     return (
@@ -148,33 +147,40 @@ function SignupForms({ onNext, onBack }) {
     );
   };
 
+  const handleNext = () => {
+    // 전역 상태 저장
+    setSignupData(prev => ({
+      ...prev,
+      email: fullEmail,
+      password,
+      nickname,
+      profileImage: ""
+    }));
+
+    onNext(); // 다음 단계로 이동
+  };
+
   return (
     <>
       <div className={styles.allContainer}>
-
-      <div className={styles.backWrapper}>
-        <img src={back} onClick={onBack} className={styles.backIcon} alt="뒤로가기" />
-        <span className={styles.signupTitle}>회원가입</span>
-      </div>
-
-      {/* 프로필 사진 */}
-      <div className={styles.profileImageWrapper}>
-        <div className={styles.imageWrapper}>
-          <img src={profileImage || defaultProfileImage} alt="프로필" className={styles.profileImage}/>
-          {profileImage && (
-            <img src={close} alt="삭제" className={styles.xIcon} onClick={removeProfileImage}/>
-          )}
+        <div className={styles.backWrapper}>
+          <img src={back} onClick={onBack} className={styles.backIcon} alt="뒤로가기" />
+          <span className={styles.signupTitle}>회원가입</span>
         </div>
 
-        <div className={styles.uploadButton} onClick={() => fileInputRef.current.click()}>프로필 사진 등록</div>
-
-        <input
-          type="file"
-          accept="image/*"
-          ref={fileInputRef}
-          onChange={handleImageUpload}
-          style={{ display: 'none' }}/>
-      </div>
+        {/* 프로필 사진 */}
+        <div className={styles.profileImageWrapper}>
+          <div className={styles.imageWrapper}>
+            <img src={profileImage || defaultProfileImage} alt="프로필" className={styles.profileImage} />
+            {profileImage && (
+              <img src={close} alt="삭제" className={styles.xIcon} onClick={removeProfileImage} />
+            )}
+          </div>
+          <div className={styles.uploadButton} onClick={() => fileInputRef.current.click()}>
+            프로필 사진 등록
+          </div>
+          <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageUpload} style={{ display: 'none' }} />
+        </div>
 
       <div className={styles.inputFormWrapper}>
         <div className={styles.formGroup}>
@@ -197,7 +203,7 @@ function SignupForms({ onNext, onBack }) {
                     onChange={(e) => setEmailDomain(e.target.value)}
                     placeholder="도메인을 입력해주세요."/>
                 ) : (
-                <input 
+                <input
                   className={`${styles.inputForm} ${styles.domainInputForm} ${emailError ? styles.errorBorder : ''}`}
                   value={domainType} readOnly/>
                 )
@@ -210,7 +216,7 @@ function SignupForms({ onNext, onBack }) {
               />
 
               <button className={styles.validButton} onClick={handleEmailCheck}> <span>중복 확인</span> </button>
-            </div> 
+            </div>
 
             {emailMessage && (
               <span className={emailError ? styles.errorText : styles.successText}>
@@ -222,7 +228,7 @@ function SignupForms({ onNext, onBack }) {
           <div className={styles.formGroup}>
             {/* 비밀번호 */}
             <label className={styles.formLabel}>비밀번호<img src={requiredIcon} className={styles.requiredIcon}/> </label>
-            
+
             <div className={styles.passwordRow}>
               <input
                 className={`${styles.inputForm} ${passwordError ? styles.errorBorder : ''}`}
@@ -234,7 +240,7 @@ function SignupForms({ onNext, onBack }) {
                   setPassword(value);
                   validatePassword(value);
                 }}/>
-              
+
               {passwordMessage && (
               <span className={passwordError ? styles.errorText : styles.successText}>
                 {passwordMessage}
@@ -279,7 +285,7 @@ function SignupForms({ onNext, onBack }) {
                 placeholder="닉네임을 입력해주세요."/>
 
               <button className={styles.validButton} onClick={handleNicknameCheck}><span>중복 확인</span></button>
-            </div>  
+            </div>
 
             {nicknameMessage && (
               <span className={nicknameError ? styles.errorText : styles.successText}>
@@ -290,7 +296,9 @@ function SignupForms({ onNext, onBack }) {
         </div>
 
         {/* 다음 버튼 */}
-        <button type="button" className={styles.nextButton} onClick={onNext} disabled={!isNextValid()}><span>다음</span></button>
+        <button type="button" className={styles.nextButton} onClick={handleNext} disabled={!isNextValid()}>
+            <span>다음</span>
+        </button>
       </div>
     </>
   );

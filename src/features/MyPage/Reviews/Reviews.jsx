@@ -1,41 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { jwtDecode } from 'jwt-decode';
 import styles from './Reviews.module.css';
 import Dropdown from '../../../components/DropDown/DropDown';
 import ReviewsModal from './ReviewsModal';
 import arrowIcon from '../../../assets/chevron-left.svg';
-
-const LOCAL_KEY = 'portiony_reviews';
-function getLocalReviews() {
-  const raw = localStorage.getItem(LOCAL_KEY);
-  return raw ? JSON.parse(raw) : {};
-}
-function setLocalReview(productName, reviewData) {
-  const reviews = getLocalReviews();
-  reviews[productName] = reviewData;
-  localStorage.setItem(LOCAL_KEY, JSON.stringify(reviews));
-}
-function removeLocalReview(productName) {
-  const reviews = getLocalReviews();
-  delete reviews[productName];
-  localStorage.setItem(LOCAL_KEY, JSON.stringify(reviews));
-}
-
-const sampleData = [
-  { id: 1,  name: '치이카와 스티커', type: '구매', date: '2025-06-10', rating: 5 },
-  { id: 2,  name: '짱구 스티커', type: '판매', date: '2025-06-11', rating: 4 },
-  { id: 3,  name: '도라에몽 스티커', type: '판매', date: '2025-06-15', rating: 3 },
-  { id: 4,  name: '치이카와 스티커', type: '판매', date: '2025-06-14', rating: 5 },
-  { id: 5,  name: '치이카와 스티커', type: '구매', date: '2025-06-16', rating: 5 },
-  { id: 6,  name: '치이카와 스티커', type: '판매', date: '2025-06-12', rating: 2 },
-  { id: 7,  name: '치이카와 스티커', type: '판매', date: '2025-06-17', rating: 1 },
-  { id: 8,  name: '치이카와 스티커', type: '구매', date: '2025-06-18', rating: 4 },
-  { id: 9,  name: '치이카와 스티커', type: '판매', date: '2025-06-13', rating: 5 },
-  { id: 10, name: '치이카와 스티커', type: '판매', date: '2025-06-19', rating: 5 },
-  { id: 11, name: '치이카와 스티커', type: '판매', date: '2025-06-10', rating: 3 },
-  { id: 12, name: '치이카와 스티커', type: '구매', date: '2025-06-10', rating: 5 },
-  { id: 13, name: '치이카와 스티커', type: '판매', date: '2025-06-10', rating: 4 },
-  { id: 14, name: '치이카와 스티커', type: '판매', date: '2025-06-10', rating: 5 },
-];
+import instance from '../../../lib/axios';
 
 export default function ReviewsHistory() {
   const [viewType, setViewType] = useState('');
@@ -44,62 +13,68 @@ export default function ReviewsHistory() {
   const [writeStatus, setWriteStatus] = useState('작성 상태');
   const [ratingSort, setRatingSort] = useState('별점');
   const [currentPage, setCurrentPage] = useState(1);
+  const [reviewData, setReviewData] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [modalInfo, setModalInfo] = useState({ open: false, productName: '', mode: 'write', received: false });
-  const [localReviews, setLocalReviews] = useState(getLocalReviews());
-
   const perPage = 9;
 
+  const userId = Number(localStorage.getItem('userId'));
+
   useEffect(() => {
+    if (!viewType) return;
+    setCurrentPage(1);
     setTransactionType('거래 유형');
     setDateSort('거래 일자');
     setWriteStatus('작성 상태');
     setRatingSort('별점');
-    setCurrentPage(1);
   }, [viewType]);
 
-  const syncLocal = () => setLocalReviews(getLocalReviews());
+  useEffect(() => {
+    console.log('🟡 useEffect 진입!');
+    console.log('viewType:', viewType);
+    console.log('userId:', userId);
 
-  const handleRegisterReview = (productName, review) => {
-    setLocalReview(productName, review);
-    syncLocal();
-    setModalInfo({ open: false, productName: '', mode: 'write', received: false });
-  };
-  const handleDeleteReview = (productName) => {
-    removeLocalReview(productName);
-    setLocalReviews(getLocalReviews()); 
-    setModalInfo({ open: false, productName: '', mode: 'write', received: false }); 
-  };
-  
-  const dataWithWriteStatus = sampleData.map(item => ({
-    ...item,
-    writeStatus: localReviews[item.name] ? '작성됨' : '미작성',
-  }));
-
-  const filtered = dataWithWriteStatus.filter(item => {
-    if (transactionType !== '거래 유형') {
-      const want = transactionType.includes('구매') ? '구매' : '판매';
-      if (item.type !== want) return false;
+    if (!viewType || !userId) {
+      console.log('⛔️ 조건 불충족으로 요청 생략');
+      return;
     }
-    if (viewType === '내가 남긴 후기' && writeStatus !== '작성 상태') {
-      if (item.writeStatus !== writeStatus) return false;
-    }
-    return true;
-  });
 
-  const sorted = [...filtered].sort((a, b) => {
-    if (dateSort === '최신 순') return new Date(b.date) - new Date(a.date);
-    if (dateSort === '오래된 순') return new Date(a.date) - new Date(b.date);
-    return 0;
-  });
-  if (viewType === '받은 후기') {
-    sorted.sort((a, b) => {
-      if (ratingSort === '별점 높은 순') return b.rating - a.rating;
-      if (ratingSort === '별점 낮은 순') return a.rating - b.rating;
-      return 0;
-    });
-  }
-  const totalPages = Math.ceil(sorted.length / perPage);
-  const pagedData = sorted.slice((currentPage - 1) * perPage, currentPage * perPage);
+    console.log('✅ 조건 충족, 요청 시작!');
+
+    const fetchReviews = async () => {
+      const params = {
+        type: transactionType === '판매 후기' ? 'sales' : 'purchase',
+        sort: dateSort === '오래된 순' ? 'oldest' : 'recent',
+        status: writeStatus === '작성됨' ? 'written' : 'not_written',
+        page: currentPage,
+        size: perPage,
+      };
+
+      console.log('📦 요청 params:', params);
+
+      try {
+        let response;
+        if (viewType === '내가 남긴 후기') {
+          response = await instance.get('/api/users/me/reviews', { params });
+        } else {
+          if (ratingSort !== '별점') {
+            params.starSort = ratingSort === '별점 높은 순' ? 'high' : 'low';
+          }
+          response = await instance.get(`/api/users/reviews/${userId}`, { params });
+        }
+
+        console.log('✅ 응답 data:', response.data);
+        setReviewData(response.data.reviews || []);
+        setTotalCount(response.data.total);
+      } catch (error) {
+        console.error('❌ 리뷰 불러오기 실패:', error);
+      }
+    };
+
+    fetchReviews();
+  }, [viewType, transactionType, dateSort, writeStatus, ratingSort, currentPage, userId]);
+
+  const totalPages = Math.ceil(totalCount / perPage);
   const prevPage = () => setCurrentPage(p => Math.max(1, p - 1));
   const nextPage = () => setCurrentPage(p => Math.min(totalPages, p + 1));
 
@@ -160,70 +135,44 @@ export default function ReviewsHistory() {
                   <th>상품명</th>
                   <th>거래 유형</th>
                   <th>거래 일자</th>
-                  {viewType === '내가 남긴 후기'
-                    ? <th>작성 상태</th>
-                    : <th>별점</th>}
+                  {viewType === '내가 남긴 후기' ? <th>작성 상태</th> : <th>별점</th>}
                   <th>후기 상태</th>
                 </tr>
               </thead>
               <tbody>
-                {pagedData.map(item => (
-                  <tr key={item.id}>
-                    <td>{item.name}</td>
+                {(reviewData || []).map((item, i) => (
+                  <tr key={item.reviewId || i}>
+                    <td>{item.title}</td>
                     <td>{item.type}</td>
-                    <td>{item.date}</td>
+                    <td>{item.transactionDate}</td>
                     {viewType === '내가 남긴 후기' ? (
-                      <td>{item.writeStatus}</td>
+                      <td>{item.isWritten ? '작성됨' : '미작성'}</td>
                     ) : (
                       <td className={styles.starCell}>
-                        {Array.from({ length: item.rating }).map((_, i) => (
+                        {Array.from({ length: Math.round(item.star) }).map((_, i) => (
                           <span key={i} className={styles.star}>★</span>
                         ))}
                       </td>
                     )}
                     <td>
-                      {viewType === '내가 남긴 후기'
-                        ? (item.writeStatus === '작성됨'
-                          ? <button
-                              className={styles.reviewButton}
-                              onClick={() =>
-                                setModalInfo({
-                                  open: true,
-                                  productName: item.name,
-                                  mode: 'view',
-                                  received: false,
-                                })
-                              }
-                            >
-                              후기 보기
-                            </button>
-                          : <button
-                              className={styles.reviewButton}
-                              onClick={() =>
-                                setModalInfo({
-                                  open: true,
-                                  productName: item.name,
-                                  mode: 'write',
-                                  received: false,
-                                })
-                              }
-                            >
-                              후기 작성
-                            </button>)
-                        : <button
+                      {viewType === '내가 남긴 후기' ? (
+                        item.isWritten ? (
+                          <button
                             className={styles.reviewButton}
-                            onClick={() =>
-                              setModalInfo({
-                                open: true,
-                                productName: item.name,
-                                mode: 'view',
-                                received: true,
-                              })
-                            }
-                          >
-                            후기 보기
-                          </button>
-                      }
+                            onClick={() => setModalInfo({ open: true, productName: item.title, mode: 'view', received: false })}
+                          >후기 보기</button>
+                        ) : (
+                          <button
+                            className={styles.reviewButton}
+                            onClick={() => setModalInfo({ open: true, productName: item.title, mode: 'write', received: false })}
+                          >후기 작성</button>
+                        )
+                      ) : (
+                        <button
+                          className={styles.reviewButton}
+                          onClick={() => setModalInfo({ open: true, productName: item.title, mode: 'view', received: true })}
+                        >후기 보기</button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -240,25 +189,20 @@ export default function ReviewsHistory() {
                 key={i + 1}
                 onClick={() => setCurrentPage(i + 1)}
                 className={
-                  currentPage === i + 1
-                    ? `${styles.pageNumber} ${styles.activePage}`
-                    : styles.pageNumber
+                  currentPage === i + 1 ? `${styles.pageNumber} ${styles.activePage}` : styles.pageNumber
                 }
               >
                 {i + 1}
               </button>
             ))}
-            <button onClick={nextPage} disabled={currentPage === totalPages}
-                    className={`${styles.arrowButton} ${styles.nextArrow}`}>
+            <button onClick={nextPage} disabled={currentPage === totalPages} className={`${styles.arrowButton} ${styles.nextArrow}`}>
               <img src={arrowIcon} alt="다음" />
             </button>
           </div>
         </>
       ) : (
         <div className={styles.content}>
-          <p className={styles.empty}>
-            “내가 남긴 후기” 또는 “받은 후기”를 선택해주세요.
-          </p>
+          <p className={styles.empty}>“내가 남긴 후기” 또는 “받은 후기”를 선택해주세요.</p>
         </div>
       )}
 
@@ -268,9 +212,9 @@ export default function ReviewsHistory() {
           productName={modalInfo.productName}
           mode={modalInfo.mode}
           received={modalInfo.received}
-          savedReview={localReviews[modalInfo.productName]}
-          onRegister={handleRegisterReview}
-          onDelete={handleDeleteReview}
+          savedReview={null}
+          onRegister={() => setModalInfo({ open: false, productName: '', mode: 'write', received: false })}
+          onDelete={() => setModalInfo({ open: false, productName: '', mode: 'write', received: false })}
         />
       )}
     </div>

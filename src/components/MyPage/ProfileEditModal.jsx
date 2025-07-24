@@ -3,15 +3,15 @@ import styles from './ProfileEditModal.module.css';
 
 import closeIcon from '../../assets/x.svg';
 import removePhotoIcon from '../../assets/backgroundX.svg';
-import defaultProfile from '../../assets/LOGOMAIN.png';
 import WithdrawModal from './secessionModal';
+import instance from '../../lib/axios';
 
 export default function ProfileEditModal({ open, onClose, currentProfile, onSave }) {
   const fileInputRef = useRef(null);
 
   const [nickname, setNickname] = useState('');
   const [email, setEmail] = useState('');
-  const [profileImg, setProfileImg] = useState(defaultProfile);
+  const [profileImg, setProfileImg] = useState(null);
 
   const [oldPasswordInput, setOldPasswordInput] = useState('');
   const [password, setPassword] = useState('');
@@ -21,15 +21,29 @@ export default function ProfileEditModal({ open, onClose, currentProfile, onSave
   const [errorMsg, setErrorMsg] = useState('');
   const [errorType, setErrorType] = useState('');
   const [passwordChanged, setPasswordChanged] = useState(false);
+
   const [duplicateChecked, setDuplicateChecked] = useState(false);
+  const [isNicknameAvailable, setIsNicknameAvailable] = useState(null);
 
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
 
   useEffect(() => {
     if (open) {
-      setNickname(currentProfile.nickname || '');
-      setEmail(currentProfile.email || '');
-      setProfileImg(currentProfile.profileImg || defaultProfile);
+      const fetchUserInfo = async () => {
+        try {
+          const res = await instance.get('/api/users/me');
+          const data = res.data;
+
+          setNickname(data.nickname || '');
+          setEmail(data.email || '');
+          setProfileImg(data.profileImage || null);
+        } catch (err) {
+          console.error('사용자 정보 조회 실패:', err);
+        }
+      };
+
+      fetchUserInfo();
+
       setOldPasswordInput('');
       setPassword('');
       setPasswordConfirm('');
@@ -38,8 +52,9 @@ export default function ProfileEditModal({ open, onClose, currentProfile, onSave
       setPasswordChanged(false);
       setCurrentPassword(localStorage.getItem('password') || '');
       setDuplicateChecked(false);
+      setIsNicknameAvailable(null);
     }
-  }, [open, currentProfile]);
+  }, [open]);
 
   if (!open) return null;
 
@@ -54,46 +69,56 @@ export default function ProfileEditModal({ open, onClose, currentProfile, onSave
     }
   };
 
-  const handleRemoveImg = () => setProfileImg(defaultProfile);
+  const handleRemoveImg = () => setProfileImg(null);
 
-  const handleSubmit = e => {
+  const handleSubmit = async e => {
     e.preventDefault();
 
-    if (oldPasswordInput || password || passwordConfirm) {
-      if (!oldPasswordInput) {
-        setErrorMsg('현재 비밀번호를 입력하세요.');
-        setErrorType('old');
-        return;
-      }
-      if (oldPasswordInput !== currentPassword) {
-        setErrorMsg('현재 비밀번호가 일치하지 않습니다.');
-        setErrorType('old');
-        return;
-      }
-      if (!password || !passwordConfirm) {
-        setErrorMsg('새 비밀번호를 입력하세요.');
-        setErrorType('new');
-        return;
-      }
-      if (password !== passwordConfirm) {
-        setErrorMsg('새 비밀번호가 일치하지 않습니다.');
-        setErrorType('confirm');
-        return;
-      }
-      if (password === oldPasswordInput) {
-        setErrorMsg('새 비밀번호가 이전 비밀번호와 동일합니다.');
-        setErrorType('new');
-        return;
-      }
-
-      localStorage.setItem('password', password);
-      setPasswordChanged(true);
-      setTimeout(() => setPasswordChanged(false), 2000);
-      setErrorType('');
+    if (!oldPasswordInput) {
+      setErrorMsg('현재 비밀번호를 입력하세요.');
+      setErrorType('old');
+      return;
     }
 
-    onSave({ nickname, email, profileImg });
-    onClose();
+    const requestBody = {
+      nickname,
+      profileImage: profileImg,
+      currentPassword: oldPasswordInput,
+      newPassword: password || undefined
+    };
+
+    try {
+      const res = await instance.patch('/api/users/me', requestBody);
+      alert(res.data.message);
+      if (password) localStorage.setItem('password', password);
+      onSave({ nickname, email, profileImg });
+      onClose();
+    } catch (err) {
+      const message = err.response?.data?.message;
+      const status = err.response?.status;
+      if (status === 400) {
+        setErrorMsg(message || '현재 비밀번호 오류');
+        setErrorType('old');
+      } else if (status === 409) {
+        alert('이미 사용 중인 닉네임입니다.');
+      } else {
+        alert('프로필 수정 중 오류 발생');
+      }
+    }
+  };
+
+  const handleCheckNickname = async () => {
+    try {
+      const response = await instance.get('/api/users/signup/check-nickname', {
+        params: { nickname }
+      });
+      const exists = response.data.exists;
+      setDuplicateChecked(true);
+      setIsNicknameAvailable(!exists);
+    } catch (error) {
+      console.error('닉네임 중복 확인 실패:', error);
+      alert('닉네임 중복 확인 중 오류 발생');
+    }
   };
 
   const isNicknameChanged = nickname !== currentProfile.nickname && nickname.length > 0;
@@ -110,7 +135,6 @@ export default function ProfileEditModal({ open, onClose, currentProfile, onSave
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
-        {/* 상단 닫기 X - 모달 전체 닫기 */}
         <div className={styles.headerRow}>
           <div className={styles.title}>프로필 편집</div>
           <img
@@ -121,23 +145,24 @@ export default function ProfileEditModal({ open, onClose, currentProfile, onSave
           />
         </div>
 
-        {/* 프로필 이미지/사진 삭제 */}
         <div className={styles.profileImgWrapper}>
           <div className={styles.profileImgBox}>
-            <img
-              src={profileImg}
-              alt="프로필"
-              className={styles.profileImg}
-              onError={e => { e.target.onerror = null; e.target.src = defaultProfile; }}
-            />
-          
-            {profileImg !== defaultProfile && (
+            {profileImg ? (
+              <img
+                src={profileImg}
+                alt="프로필 이미지"
+                className={styles.profileImg}
+                onError={() => setProfileImg(null)}
+              />
+            ) : (
+              <div className={styles.profileImgPlaceholder}></div>
+            )}
+
+            {profileImg && (
               <button
                 type="button"
                 className={styles.profileImgClose}
                 onClick={handleRemoveImg}
-                tabIndex={-1}
-                aria-label="프로필 이미지 삭제"
               >
                 <img src={removePhotoIcon} alt="" />
               </button>
@@ -172,6 +197,7 @@ export default function ProfileEditModal({ open, onClose, currentProfile, onSave
                   setErrorType('');
                   setErrorMsg('');
                   setDuplicateChecked(false);
+                  setIsNicknameAvailable(null);
                 }}
                 required
               />
@@ -185,24 +211,16 @@ export default function ProfileEditModal({ open, onClose, currentProfile, onSave
                   cursor: isNicknameChanged ? "pointer" : "not-allowed"
                 }}
                 disabled={!isNicknameChanged}
-                onClick={() => setDuplicateChecked(true)}
+                onClick={handleCheckNickname}
               >
                 중복 확인
               </button>
             </div>
-            {nickname && nickname !== '박지현' && duplicateChecked && (
-              <div
-                style={{
-                  color: "#32C05C",
-                  fontSize: 11,
-                  margin: "4px 2px 0 2px",
-                  fontWeight: 400,
-                  letterSpacing: "-0.02em",
-                  lineHeight: "14px"
-                }}
-              >
-                사용 가능한 닉네임입니다.
-              </div>
+            {duplicateChecked && isNicknameAvailable === true && (
+              <div className={styles.successMsg}>사용 가능한 닉네임입니다.</div>
+            )}
+            {duplicateChecked && isNicknameAvailable === false && (
+              <div className={styles.errorMsg}>이미 사용 중인 닉네임입니다.</div>
             )}
           </label>
 
@@ -233,6 +251,7 @@ export default function ProfileEditModal({ open, onClose, currentProfile, onSave
             />
             <ErrorMsg field="old" />
           </label>
+
           <label className={styles.label}>
             새 비밀번호
             <input
@@ -249,6 +268,7 @@ export default function ProfileEditModal({ open, onClose, currentProfile, onSave
             />
             <ErrorMsg field="new" />
           </label>
+
           <label className={styles.label}>
             새 비밀번호 확인
             <input
@@ -265,14 +285,14 @@ export default function ProfileEditModal({ open, onClose, currentProfile, onSave
             />
             <ErrorMsg field="confirm" />
           </label>
+
           {passwordChanged && (
-            <div style={{ color: "green", margin: "6px 0", fontSize: 13 }}>비밀번호가 변경되었습니다.</div>
+            <div style={{ color: "green", margin: "6px 0", fontSize: 13 }}>
+              비밀번호가 변경되었습니다.
+            </div>
           )}
 
-          <div
-            className={styles.withdraw}
-            onClick={() => setShowWithdrawModal(true)}
-          >
+          <div className={styles.withdraw} onClick={() => setShowWithdrawModal(true)}>
             탈퇴하기
           </div>
           <WithdrawModal
@@ -288,6 +308,7 @@ export default function ProfileEditModal({ open, onClose, currentProfile, onSave
               onClose();
             }}
           />
+
           <div className={styles.buttonRow}>
             <button type="submit" className={styles.saveBtn}>
               프로필 저장

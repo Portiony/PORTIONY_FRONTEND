@@ -4,6 +4,7 @@ import SignupForms from './Signup/SignupForms';
 import SignupLocation from './Signup/SignupLocation';
 import SignupSurvey from './Signup/SignupSurvey';
 import SignupDone from './Signup/SignupDone';
+import { SignupProvider } from './Signup/SignupContext';
 
 
 const SignUp = () => {
@@ -13,14 +14,16 @@ const SignUp = () => {
   const goToBeforeStep = () => setStep(step - 1);
 
   return (
-    <div>
-      {step === 1 && <SignupTerms onNext={goToNextStep} />}
-      {step === 2 && <SignupForms onNext={goToNextStep} onBack={goToBeforeStep} />}
-      {step === 3 && <SignupLocation onNext={goToNextStep} onBack={goToBeforeStep} />}
-      {step === 4 && <SignupSurvey onNext={goToNextStep} onBack={goToBeforeStep} />}
-      {step === 5 && <SignupDone />}
-    </div>
-  );
+      <SignupProvider>
+        <div>
+          {step === 1 && <SignupTerms onNext={goToNextStep} />}
+          {step === 2 && <SignupForms onNext={goToNextStep} onBack={goToBeforeStep} />}
+          {step === 3 && <SignupLocation onNext={goToNextStep} onBack={goToBeforeStep} />}
+          {step === 4 && <SignupSurvey onNext={goToNextStep} onBack={goToBeforeStep} />}
+          {step === 5 && <SignupDone />}
+        </div>
+      </SignupProvider>
+    );
 };
 
 export default SignUp;
