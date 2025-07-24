@@ -86,33 +86,87 @@ useEffect(() => {
 }, [dateSort]);
 
 //  1. Chat 컴포넌트 안에서
-const handleEnterRoom = async (room) => {
-  const lastSenderId = room.lastSenderId;
-  setSelectedRoom(room);
+// const handleEnterRoom = async (room) => {
+//   const lastSenderId = room.lastSenderId;
+//   setSelectedRoom(room);
+  
+//   if (lastSenderId && lastSenderId !== myUserId) {
+//   try {
+//     //  읽음 처리 API 호출
+//     await fetch(`${BASE_URL}/api/chats/${room.id}/read`, {
+//       method: 'PATCH',
+//       headers: {
+//         'Content-Type': 'application/json',
+//         Authorization: `Bearer ${token}`,
+//       },
+//     });
 
-  if (lastSenderId && lastSenderId !== myUserId) {
+//     //  읽음 상태 업데이트 (빨간 점 제거)
+//     const updatedRooms = chatRooms.map((r) =>
+//       r.id === room.id ? { ...r, isRead: true } : r
+//     );
+
+//     setChatRooms(updatedRooms);
+//     setSelectedRoom({ ...room, isRead: true }); // 오른쪽 상세 패널도 반영
+//   } catch (err) {
+//     console.error('읽음 처리 실패:', err);
+//   }
+// }
+// };
+const handleEnterRoom = async (room) => {
   try {
-    //  읽음 처리 API 호출
-    await fetch(`${BASE_URL}/api/chats/${room.id}/read`, {
-      method: 'PATCH',
+    // 메시지 불러오기
+    const res = await fetch(`${BASE_URL}/api/chats/${room.id}/messages`, {
+      method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
     });
 
-    //  읽음 상태 업데이트 (빨간 점 제거)
-    const updatedRooms = chatRooms.map((r) =>
-      r.id === room.id ? { ...r, isRead: true } : r
-    );
+    const data = await res.json(); // data.messageList로 옴
 
-    setChatRooms(updatedRooms);
-    setSelectedRoom({ ...room, isRead: true }); // 오른쪽 상세 패널도 반영
+    const formattedMessages = data.messageList.map((msg) => {
+      const isSystem = msg.senderId === 0;
+      return {
+        content: msg.content,
+        image: msg.imageUrls?.[0] || null,
+        time: msg.createdAt,
+        isMine: msg.senderId === myUserId,
+        isSystem,
+        systemType: isSystem ? 'completed' : null,
+      };
+    });
+
+    const updatedRoom = {
+      ...room,
+      messages: formattedMessages,
+    };
+
+    // 읽음 처리 (내가 마지막 보낸 사람이 아닐 때만)
+    if (room.lastSenderId && room.lastSenderId !== myUserId) {
+      await fetch(`${BASE_URL}/api/chats/${room.id}/read`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const updatedRooms = chatRooms.map((r) =>
+        r.id === room.id ? { ...r, isRead: true } : r
+      );
+
+      setChatRooms(updatedRooms);
+      setSelectedRoom({ ...updatedRoom, isRead: true });
+    } else {
+      setSelectedRoom(updatedRoom);
+    }
   } catch (err) {
-    console.error('읽음 처리 실패:', err);
+    console.error('채팅방 입장 또는 메시지 불러오기 실패:', err);
   }
-}
 };
+
+
 
   const [selectedRoom, setSelectedRoom] = useState(null);
 
