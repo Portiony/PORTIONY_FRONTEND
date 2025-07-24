@@ -1,13 +1,14 @@
 // src/features/Auth/KakaoRedirect.jsx
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axios from '../../lib/axios';
 
 function KakaoRedirect({ setIsLoggedIn }) {
   const navigate = useNavigate();
 
   useEffect(() => {
     const code = new URL(window.location.href).searchParams.get('code');
+    console.log('현재 redirect URI:', window.location.href);
 
     const fetchTokens = async () => {
       try {

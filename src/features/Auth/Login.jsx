@@ -4,7 +4,7 @@ import back from '../../assets/chevron-left.svg';
 import styles from './Login.module.css';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import axios from '../../lib/axios';
 
 function Login({ setIsLoggedIn }) {
   const [status, setStatus] = useState('init'); 
