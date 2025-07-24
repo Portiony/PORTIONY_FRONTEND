@@ -19,7 +19,7 @@ function Chat() {
   const [chatRooms, setChatRooms] = useState([]); //안에 더미값 넣었었음
   const [myUserId, setMyUserId] = useState(null);
 
-
+const token = "";
 
 //사용자 정보
 useEffect(() => {
@@ -89,6 +89,7 @@ useEffect(() => {
 const handleEnterRoom = async (room) => {
   const lastSenderId = room.lastSenderId;
   setSelectedRoom(room);
+
   if (lastSenderId && lastSenderId !== myUserId) {
   try {
     //  읽음 처리 API 호출
