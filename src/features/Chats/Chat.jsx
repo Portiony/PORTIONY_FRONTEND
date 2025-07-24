@@ -14,274 +14,320 @@ function Chat() {
   const myName = '남예은';
   const messagesEndRef = useRef(null);
   const chatContainerRef = useRef(null);
+  const BASE_URL = 'https://port-0-portiony-backend-md4272k5c4648749.sel5.cloudtype.app';
   const [dateSort, setDateSort] = useState('전체');
   const [chatRooms, setChatRooms] = useState([
-  {
-    id: 1,
-    partnerName: '이현승',
-    lastMessage: '언제쯤 WWWWWWWWWWASAWWWSASWWWWWWWWWASASAWWWWWWWWWWWWWWWAAASAASASWW받을 수 있나요?',
-    time: '오전 11:34',
-    title: '치약 10개a입 참여...할게요요요요 12432455253aaaaa',
-    price: '100,000000000000',
-    ddayText: '공구마감',
-    completionCount: 1,
-    postImage: postImage, // 게시글 이미지 테스트용
-    profileImg: profileImg, // 프로필 이미지 테스트용
-    isSeller: true,
-    messages: [
-      {
-        content: '안녕하세요! 내일 오후 6시 괜요! 내일 오후 6시 괜요'+'! 내일 오후 6시 괜요! 내일 오후 6시 괜요! 내일 오후 6시 괜요! 내일 오후 6시 괜요! 내일 오후 6시 괜요! 내일 오후 6시 괜요! 내일 오후 6시 괜요! 내일 오후 6시 괜요! 내일 오후 6시 괜요! 내일 오후 6시 괜찮으세요?',
-        time: '2025-06-13T11:32:00',
-        isMine: false,
-      },
-      {
-        content: '스타벅스 잠실점 앞에서 뵈어요!',
-        time: '2025-06-13T11:32:00',
-        isMine: false,
-      },
-      {
-        content: '넵 확인했습니다. 감사합니다!',
-        time: '2025-06-14T11:32:00',
-        isMine: true,
-      },
-      {
-        content: '안녕하세요! 내일 오후 6시 괜찮으세요?',
-        time: '오전 11:32',
-        isMine: false,
-      },
-      {
-        content: '스타벅스 잠실점 앞에서 뵈어요!',
-        time: '오전 11:33',
-        isMine: false,
-      },
-      {
-        content: '넵 확인했습니다. 감사합니다!',
-        time: '2025-06-13T11:32:00',
-        isMine: true,
-      },
-      {
-        content: '안녕하세요! 내일 오후 6시 괜찮으세요?',
-        time: '오전 11:32',
-        isMine: false,
-      },
-      {
-        content: '스타벅스 잠실점 앞에서 뵈어요!',
-        time: '오전 11:33',
-        isMine: false,
-      },
-      {
-        image: postImage,
-        time: '오전 11:35',
-        isMine: true,
-      },
-    ],
-  },
-  {
-    id: 2,
-    partnerName: '박지현',
-    lastMessage: '언제쯤 WWWWWWWWWWASAWWWSASWWWWWWWWWASASAWWWWWWWWWWWWWWWAAASAASASWW받을 수 있나요?',
-    time: '오전 11:34',
-    completionCount: 1,
-    title: '치약 10개입 공동구매선착순 참여...',
-    price: '6,000',
-    ddayText: '마감 D-2',
-    postImage: postImage, // 게시글 이미지 테스트용
-    profileImg: profileImg, // 프로필 이미지 테스트용
-    isSeller: false,
-    messages: [
-      {
-        content: '안녕하세요! 내일 오후 6시 괜찮으세요?',
-        time: '오전 11:32',
-        isMine: false,
-      },
-      {
-        content: '스타벅스 잠실점 앞에서 뵈어요!',
-        time: '오전 11:33',
-        isMine: false,
-      },
-      {
-        content: '넵 확인했습니다. 감사합니다!',
-        time: '오전 11:35',
-        isMine: true,
-      },
-    ],
-  },
-  {
-    id: 3,
-    partnerName: '이현승',
-    lastMessage: '언제쯤 WWWWWWWWWWASAWWWSASWWWWWWWWWASASAWWWWWWWWWWWWWWWAAASAASASWW받을 수 있나요?',
-    time: '오전 11:34',
-    title: '치약 10개입 공동구매선착순 참여...',
-    price: '6,000',
-    ddayText: '마감 D-2',
-    postImage: postImage, // 게시글 이미지 테스트용
-    profileImg: profileImg, // 프로필 이미지 테스트용
-    isSeller: false,
-    messages: [
-      {
-        content: '안녕하세요! 내일 오후 6시 괜찮으세요?',
-        time: '오전 11:32',
-        isMine: true,
-      },
-      {
-        content: '스타벅스 잠실점 앞에서 뵈어요!',
-        time: '오전 11:33',
-        isMine: false,
-      },
-      {
-        content: '넵 확인했습니다. 감사합니다!',
-        time: '오전 11:35',
-        isMine: true,
-      },
-    ],
-  },
-  {
-    id: 4,
-    partnerName: '이현승',
-    lastMessage: '언제쯤 WWWWWWWWWWASAWWWSASWWWWWWWWWASASAWWWWWWWWWWWWWWWAAASAASASWW받을 수 있나요?',
-    time: '오전 11:34',
-    title: '치약 10개입 공동구매선착순 참여...',
-    price: '6,000',
-    ddayText: '마감 D-2',
-    postImage: postImage, // 게시글 이미지 테스트용
-    profileImg: profileImg, // 프로필 이미지 테스트용
-    isSeller: true,
-    messages: [
-      {
-        content: '안녕하세요! 내일 오후 6시 괜찮으세요?',
-        time: '오전 11:32',
-        isMine: false,
-      },
-      {
-        content: '스타벅스 잠실점 앞에서 뵈어요!',
-        time: '오전 11:33',
-        isMine: false,
-      },
-      {
-        content: '넵 확인했습니다. 감사합니다!',
-        time: '오전 11:35',
-        isMine: true,
-      },
-    ],
-  },
-  {
-    id: 5,
-    partnerName: '구매자',
-    lastMessage: '언제쯤 WWWWWWWWWWASAWWWSASWWWWWWWWWASASAWWWWWWWWWWWWWWWAAASAASASWW받을 수 있나요?',
-    time: '오전 11:34',
-    title: '치약 10개입 공동구매선착순 참여...',
-    price: '6,000',
-    ddayText: '마감 D-2',
-    postImage: postImage, // 게시글 이미지 테스트용
-    profileImg: profileImg, // 프로필 이미지 테스트용
-    isSeller: false,
-    messages: [
-      {
-        content: '안녕하세요! 내일 오후 6시 괜찮으세요?',
-        time: '오전 11:32',
-        isMine: false,
-      },
-      {
-        content: '스타벅스 잠실점 앞에서 뵈어요!',
-        time: '오전 11:33',
-        isMine: false,
-      },
-      {
-        content: '넵 확인했습니다. 감사합니다!',
-        time: '오전 11:35',
-        isMine: true,
-      },
-    ],
-  },
-  {
-    id: 6,
-    partnerName: '판매자',
-    lastMessage: '언제쯤 WWWWWWWWWWASAWWWSASWWWWWWWWWASASAWWWWWWWWWWWWWWWAAASAASASWW받을 수 있나요?',
-    time: '오전 11:34',
-    title: '치약 10개입 공동구매선착순 참여...',
-    price: '6,000',
-    ddayText: '마감 D-2',
-    postImage: postImage, // 게시글 이미지 테스트용
-    profileImg: profileImg, // 프로필 이미지 테스트용
-    isSeller: true,
-    messages: [
-      {
-        content: '안녕하세요! 내일 오후 6시 괜찮으세요?',
-        time: '오전 11:32',
-        isMine: false,
-      },
-      {
-        content: '스타벅스 잠실점 앞에서 뵈어요!',
-        time: '오전 11:33',
-        isMine: false,
-      },
-      {
-        content: '넵 확인했습니다. 감사합니다!',
-        time: '오전 11:35',
-        isMine: true,
-      },
-    ],
-  },
-  {
-    id: 7,
-    partnerName: '이현승',
-    lastMessage: '언제쯤 WWWWWWWWWWASAWWWSASWWWWWWWWWASASAWWWWWWWWWWWWWWWAAASAASASWW받을 수 있나요?',
-    time: '오전 11:34',
-    title: '치약 10개입 공동구매선착순 참여...',
-    price: '6,000',
-    ddayText: '마감 D-2',
-    postImage: postImage, // 게시글 이미지 테스트용
-    profileImg: profileImg, // 프로필 이미지 테스트용
-    isSeller: false,
-    messages: [
-      {
-        content: '안녕하세요! 내일 오후 6시 괜찮으세요?',
-        time: '오전 11:32',
-        isMine: false,
-      },
-      {
-        content: '스타벅스 잠실점 앞에서 뵈어요!',
-        time: '오전 11:33',
-        isMine: false,
-      },
-      {
-        content: '넵 확인했습니다. 감사합니다!',
-        time: '오전 11:35',
-        isMine: true,
-      },
-    ],
-  },
-  {
-    id: 8,
-    partnerName: '이현승',
-    lastMessage: '언제쯤 WWWWWWWWWWASAWWWSASWWWWWWWWWASASAWWWWWWWWWWWWWWWAAASAASASWW받을 수 있나요?',
-    time: '오전 11:34',
-    title: '치약 10개입 공동구매선착순 참여...',
-    price: '6,000',
-    ddayText: '마감 D-2',
-    postImage: postImage, // 게시글 이미지 테스트용
-    profileImg: profileImg, // 프로필 이미지 테스트용
-    isSeller: false,
-    messages: [
-      {
-        content: '안녕하세요! 내일 오후 6시 괜찮으세요?',
-        time: '오전 11:32',
-        isMine: false,
-      },
-      {
-        content: '스타벅스 잠실점 앞에서 뵈어요!',
-        time: '오전 11:33',
-        isMine: false,
-      },
-      {
-        content: '넵 확인했습니다. 감사합니다!',
-        time: '오전 11:35',
-        isMine: true,
-      },
-    ],
-  },
+  // {
+  //   id: 1,
+  //   partnerName: '이현승',
+  //   lastMessage: '언제쯤 WWWWWWWWWWASAWWWSASWWWWWWWWWASASAWWWWWWWWWWWWWWWAAASAASASWW받을 수 있나요?',
+  //   time: '오전 11:34',
+  //   title: '치약 10개a입 참여...할게요요요요 12432455253aaaaa',
+  //   price: '100,000000000000',
+  //   ddayText: '공구마감',
+  //   completionCount: 1,
+  //   postImage: postImage, // 게시글 이미지 테스트용
+  //   profileImg: profileImg, // 프로필 이미지 테스트용
+  //   isSeller: true,
+  //   messages: [
+  //     {
+  //       content: '안녕하세요! 내일 오후 6시 괜요! 내일 오후 6시 괜요'+'! 내일 오후 6시 괜요! 내일 오후 6시 괜요! 내일 오후 6시 괜요! 내일 오후 6시 괜요! 내일 오후 6시 괜요! 내일 오후 6시 괜요! 내일 오후 6시 괜요! 내일 오후 6시 괜요! 내일 오후 6시 괜요! 내일 오후 6시 괜찮으세요?',
+  //       time: '2025-06-13T11:32:00',
+  //       isMine: false,
+  //     },
+  //     {
+  //       content: '스타벅스 잠실점 앞에서 뵈어요!',
+  //       time: '2025-06-13T11:32:00',
+  //       isMine: false,
+  //     },
+  //     {
+  //       content: '넵 확인했습니다. 감사합니다!',
+  //       time: '2025-06-14T11:32:00',
+  //       isMine: true,
+  //     },
+  //     {
+  //       content: '안녕하세요! 내일 오후 6시 괜찮으세요?',
+  //       time: '오전 11:32',
+  //       isMine: false,
+  //     },
+  //     {
+  //       content: '스타벅스 잠실점 앞에서 뵈어요!',
+  //       time: '오전 11:33',
+  //       isMine: false,
+  //     },
+  //     {
+  //       content: '넵 확인했습니다. 감사합니다!',
+  //       time: '2025-06-13T11:32:00',
+  //       isMine: true,
+  //     },
+  //     {
+  //       content: '안녕하세요! 내일 오후 6시 괜찮으세요?',
+  //       time: '오전 11:32',
+  //       isMine: false,
+  //     },
+  //     {
+  //       content: '스타벅스 잠실점 앞에서 뵈어요!',
+  //       time: '오전 11:33',
+  //       isMine: false,
+  //     },
+  //     {
+  //       image: postImage,
+  //       time: '오전 11:35',
+  //       isMine: true,
+  //     },
+  //   ],
+  // },
+  // {
+  //   id: 2,
+  //   partnerName: '박지현',
+  //   lastMessage: '언제쯤 WWWWWWWWWWASAWWWSASWWWWWWWWWASASAWWWWWWWWWWWWWWWAAASAASASWW받을 수 있나요?',
+  //   time: '오전 11:34',
+  //   completionCount: 1,
+  //   title: '치약 10개입 공동구매선착순 참여...',
+  //   price: '6,000',
+  //   ddayText: '마감 D-2',
+  //   postImage: postImage, // 게시글 이미지 테스트용
+  //   profileImg: profileImg, // 프로필 이미지 테스트용
+  //   isSeller: false,
+  //   messages: [
+  //     {
+  //       content: '안녕하세요! 내일 오후 6시 괜찮으세요?',
+  //       time: '오전 11:32',
+  //       isMine: false,
+  //     },
+  //     {
+  //       content: '스타벅스 잠실점 앞에서 뵈어요!',
+  //       time: '오전 11:33',
+  //       isMine: false,
+  //     },
+  //     {
+  //       content: '넵 확인했습니다. 감사합니다!',
+  //       time: '오전 11:35',
+  //       isMine: true,
+  //     },
+  //   ],
+  // },
+  // {
+  //   id: 3,
+  //   partnerName: '이현승',
+  //   lastMessage: '언제쯤 WWWWWWWWWWASAWWWSASWWWWWWWWWASASAWWWWWWWWWWWWWWWAAASAASASWW받을 수 있나요?',
+  //   time: '오전 11:34',
+  //   title: '치약 10개입 공동구매선착순 참여...',
+  //   price: '6,000',
+  //   ddayText: '마감 D-2',
+  //   postImage: postImage, // 게시글 이미지 테스트용
+  //   profileImg: profileImg, // 프로필 이미지 테스트용
+  //   isSeller: false,
+  //   messages: [
+  //     {
+  //       content: '안녕하세요! 내일 오후 6시 괜찮으세요?',
+  //       time: '오전 11:32',
+  //       isMine: true,
+  //     },
+  //     {
+  //       content: '스타벅스 잠실점 앞에서 뵈어요!',
+  //       time: '오전 11:33',
+  //       isMine: false,
+  //     },
+  //     {
+  //       content: '넵 확인했습니다. 감사합니다!',
+  //       time: '오전 11:35',
+  //       isMine: true,
+  //     },
+  //   ],
+  // },
+  // {
+  //   id: 4,
+  //   partnerName: '이현승',
+  //   lastMessage: '언제쯤 WWWWWWWWWWASAWWWSASWWWWWWWWWASASAWWWWWWWWWWWWWWWAAASAASASWW받을 수 있나요?',
+  //   time: '오전 11:34',
+  //   title: '치약 10개입 공동구매선착순 참여...',
+  //   price: '6,000',
+  //   ddayText: '마감 D-2',
+  //   postImage: postImage, // 게시글 이미지 테스트용
+  //   profileImg: profileImg, // 프로필 이미지 테스트용
+  //   isSeller: true,
+  //   messages: [
+  //     {
+  //       content: '안녕하세요! 내일 오후 6시 괜찮으세요?',
+  //       time: '오전 11:32',
+  //       isMine: false,
+  //     },
+  //     {
+  //       content: '스타벅스 잠실점 앞에서 뵈어요!',
+  //       time: '오전 11:33',
+  //       isMine: false,
+  //     },
+  //     {
+  //       content: '넵 확인했습니다. 감사합니다!',
+  //       time: '오전 11:35',
+  //       isMine: true,
+  //     },
+  //   ],
+  // },
+  // {
+  //   id: 5,
+  //   partnerName: '구매자',
+  //   lastMessage: '언제쯤 WWWWWWWWWWASAWWWSASWWWWWWWWWASASAWWWWWWWWWWWWWWWAAASAASASWW받을 수 있나요?',
+  //   time: '오전 11:34',
+  //   title: '치약 10개입 공동구매선착순 참여...',
+  //   price: '6,000',
+  //   ddayText: '마감 D-2',
+  //   postImage: postImage, // 게시글 이미지 테스트용
+  //   profileImg: profileImg, // 프로필 이미지 테스트용
+  //   isSeller: false,
+  //   messages: [
+  //     {
+  //       content: '안녕하세요! 내일 오후 6시 괜찮으세요?',
+  //       time: '오전 11:32',
+  //       isMine: false,
+  //     },
+  //     {
+  //       content: '스타벅스 잠실점 앞에서 뵈어요!',
+  //       time: '오전 11:33',
+  //       isMine: false,
+  //     },
+  //     {
+  //       content: '넵 확인했습니다. 감사합니다!',
+  //       time: '오전 11:35',
+  //       isMine: true,
+  //     },
+  //   ],
+  // },
+  // {
+  //   id: 6,
+  //   partnerName: '판매자',
+  //   lastMessage: '언제쯤 WWWWWWWWWWASAWWWSASWWWWWWWWWASASAWWWWWWWWWWWWWWWAAASAASASWW받을 수 있나요?',
+  //   time: '오전 11:34',
+  //   title: '치약 10개입 공동구매선착순 참여...',
+  //   price: '6,000',
+  //   ddayText: '마감 D-2',
+  //   postImage: postImage, // 게시글 이미지 테스트용
+  //   profileImg: profileImg, // 프로필 이미지 테스트용
+  //   isSeller: true,
+  //   messages: [
+  //     {
+  //       content: '안녕하세요! 내일 오후 6시 괜찮으세요?',
+  //       time: '오전 11:32',
+  //       isMine: false,
+  //     },
+  //     {
+  //       content: '스타벅스 잠실점 앞에서 뵈어요!',
+  //       time: '오전 11:33',
+  //       isMine: false,
+  //     },
+  //     {
+  //       content: '넵 확인했습니다. 감사합니다!',
+  //       time: '오전 11:35',
+  //       isMine: true,
+  //     },
+  //   ],
+  // },
+  // {
+  //   id: 7,
+  //   partnerName: '이현승',
+  //   lastMessage: '언제쯤 WWWWWWWWWWASAWWWSASWWWWWWWWWASASAWWWWWWWWWWWWWWWAAASAASASWW받을 수 있나요?',
+  //   time: '오전 11:34',
+  //   title: '치약 10개입 공동구매선착순 참여...',
+  //   price: '6,000',
+  //   ddayText: '마감 D-2',
+  //   postImage: postImage, // 게시글 이미지 테스트용
+  //   profileImg: profileImg, // 프로필 이미지 테스트용
+  //   isSeller: false,
+  //   messages: [
+  //     {
+  //       content: '안녕하세요! 내일 오후 6시 괜찮으세요?',
+  //       time: '오전 11:32',
+  //       isMine: false,
+  //     },
+  //     {
+  //       content: '스타벅스 잠실점 앞에서 뵈어요!',
+  //       time: '오전 11:33',
+  //       isMine: false,
+  //     },
+  //     {
+  //       content: '넵 확인했습니다. 감사합니다!',
+  //       time: '오전 11:35',
+  //       isMine: true,
+  //     },
+  //   ],
+  // },
+  // {
+  //   id: 8,
+  //   partnerName: '이현승',
+  //   lastMessage: '언제쯤 WWWWWWWWWWASAWWWSASWWWWWWWWWASASAWWWWWWWWWWWWWWWAAASAASASWW받을 수 있나요?',
+  //   time: '오전 11:34',
+  //   title: '치약 10개입 공동구매선착순 참여...',
+  //   price: '6,000',
+  //   ddayText: '마감 D-2',
+  //   postImage: postImage, // 게시글 이미지 테스트용
+  //   profileImg: profileImg, // 프로필 이미지 테스트용
+  //   isSeller: false,
+  //   messages: [
+  //     {
+  //       content: '안녕하세요! 내일 오후 6시 괜찮으세요?',
+  //       time: '오전 11:32',
+  //       isMine: false,
+  //     },
+  //     {
+  //       content: '스타벅스 잠실점 앞에서 뵈어요!',
+  //       time: '오전 11:33',
+  //       isMine: false,
+  //     },
+  //     {
+  //       content: '넵 확인했습니다. 감사합니다!',
+  //       time: '오전 11:35',
+  //       isMine: true,
+  //     },
+  //   ],
+  // },
   
 ]);
+const token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzdHJpbmciLCJpYXQiOjE3NTMzMjExMzcsImV4cCI6MTc1MzMyNDczN30.fpHJhA79Cl5UxZdpopyX3nfH1ib1RdmL6ucvI4uSXVE";
+
+useEffect(() => {
+  const fetchChatRooms = async () => {
+    try {
+      const type = getChatTypeParam(dateSort); 
+      const response = await fetch(`${BASE_URL}/api/chats?type=${type}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,  // ← 요거
+        },
+      });
+      const data = await response.json();
+
+      const rooms = data.chatRoomsList.map((room) => ({
+        id: room.chatRoomId,
+        partnerName: room.partner.name,
+        lastMessage: room.lastMessage || '',
+        time: room.lastMessageTime
+          ? new Date(room.lastMessageTime).toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+            })
+          : '',
+        title: room.post.title,
+        price: room.post.price.toLocaleString(),
+        ddayText: makeDdayText(room.post.deadline),
+        postImage: room.post.imageUrl,
+        profileImg: room.partner.profileImageUrl,
+        isSeller: room.isSeller,
+        isRead: room.isRead,
+        messages: [], // 나중에 실제 메시지 API로 채울 예정
+      }));
+
+      setChatRooms(rooms);
+    } catch (err) {
+      console.error('채팅방 불러오기 실패:', err);
+    }
+  };
+
+  fetchChatRooms();
+}, [dateSort]);
+
+
 
 
   const [selectedRoom, setSelectedRoom] = useState(null);
@@ -344,7 +390,7 @@ function Chat() {
                 lastMessageTime={room.time}
                 postImage={room.postImage}
                 profileImg={room.profileImg}
-                hasUnread={true}
+                hasUnread={!room.isRead}
                 onClick={() => setSelectedRoom(room)}
               />
             ))
@@ -461,5 +507,23 @@ function groupMessagesByDate(messages) {
     grouped[dateKey].push(msg);
   });
   return grouped;
+}
+
+       
+function getChatTypeParam(dateSort) {
+  if (dateSort === '전체') return 'all';
+  if (dateSort === '구매') return 'buy';
+  if (dateSort === '판매') return 'sell';
+  return 'all';
+}
+
+function makeDdayText(deadline) {
+  const today = new Date();
+  const endDate = new Date(deadline);
+  const diff = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+
+  if (diff < 0) return '공구마감';
+  if (diff === 0) return '마감 D-DAY';
+  return `마감 D-${diff}`;
 }
 
