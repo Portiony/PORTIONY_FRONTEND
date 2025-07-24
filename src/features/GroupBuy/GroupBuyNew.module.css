@@ -1,3 +1,15 @@
+.selectCustom {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px 16px;
+  padding-right: 36px;
+  cursor: pointer;
+  color: inherit; /* 색상은 JSX에서 제어 */
+}
+
 .product-form-wrapper {
   width: 1140px;
   margin: 0 auto;
@@ -96,6 +108,14 @@ textarea::placeholder {
 }
 
 /*  ---------이미지----------- */
+.image-preview-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 19.5px;
+  margin-bottom: 14px;
+}
+
+/* 이미지 첨부 전체 박스 */
 .image-upload-box {
   border-radius: 10px;
   padding: 10px;

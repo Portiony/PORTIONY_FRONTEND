@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
 import Login from './features/Auth/Login';
+import KakaoRedirect from './features/Auth/KakaoRedirect';
 import SignUp from './features/Auth/SignUp';
 import Home from './features/Main/Home';
 import MyPage from './features/MyPage/MyPage';
@@ -20,7 +21,7 @@ function App() {
 
   //테스트용 로그인 강제 true  
   useEffect(() => {
-   setIsLoggedIn(true);
+   setIsLoggedIn(false);
   }, []);
 
   return (
@@ -33,6 +34,8 @@ function App() {
               {/* 회원/비회원 구분이 필요한 페이지 */}
               <Route path="/signup" element={isLoggedIn ? <Navigate to="/" /> : <SignUp />} />
               <Route path="/login" element={isLoggedIn ? <Navigate to="/" /> : <Login setIsLoggedIn={setIsLoggedIn} />} />
+              <Route path="/login/oauth/kakao" element={<KakaoRedirect setIsLoggedIn={setIsLoggedIn} />} />
+
               {/* 로그인 안 하면 메인 못 들어감 */}
               <Route path="/" element={isLoggedIn ? <Home /> : <Navigate to="/login" />} />
               <Route path="/mypage" element={isLoggedIn ? <MyPage /> : <Navigate to="/login" />} />
