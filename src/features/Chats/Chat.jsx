@@ -283,7 +283,6 @@ function Chat() {
   // },
   
 ]);
-const token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzdHJpbmciLCJpYXQiOjE3NTMzMjExMzcsImV4cCI6MTc1MzMyNDczN30.fpHJhA79Cl5UxZdpopyX3nfH1ib1RdmL6ucvI4uSXVE";
 
 useEffect(() => {
   const fetchChatRooms = async () => {
