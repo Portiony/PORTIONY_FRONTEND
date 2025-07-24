@@ -42,7 +42,7 @@ function SignupSurvey({ onNext, onBack }) {
   const sendSignupRequest = async (finalPayload) => {
     try {
       setLoading(true);
-      const res = await axios.post('http://localhost:8080/api/users/signup', finalPayload);
+      const res = await axios.post('https://port-0-portiony-backend-md4272k5c4648749.sel5.cloudtype.app/api/users/signup', finalPayload);
 
       console.log('회원가입 성공:', res.data);
       onNext(); // 완료 페이지로 이동
