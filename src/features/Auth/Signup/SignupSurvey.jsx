@@ -4,7 +4,7 @@ import back from '../../../assets/chevron-left.svg';
 import required from '../../../assets/required.svg';
 import DropDownSurvey from '../../../components/DropDown/DropDownSurvey';
 import { useSignup } from './SignupContext';
-import axios from 'axios'; // axios import 추가
+import axios from 'axios'; 
 
 function SignupSurvey({ onNext, onBack }) {
   const { signupData, setSignupData } = useSignup();
