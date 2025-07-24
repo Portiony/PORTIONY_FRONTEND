@@ -1,50 +1,82 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './Likes.module.css';
 import Dropdown from '../../../components/DropDown/DropDown';
 import ProductList from '../../../components/ProductList/productList';
 import Pagination from '../../../components/PageNumber/Pagination';
-import dummyProducts from '../../../data/dummyProduct';
+import instance from '../../../lib/axios';
 
 export default function LikesHistory() {
   const [sortOption, setSortOption] = useState('정렬 기준');
   const [statusOption, setStatusOption] = useState('공구 상태');
   const [currentPage, setCurrentPage] = useState(1);
+  const [products, setProducts] = useState([]);
+  const [totalPages, setTotalPages] = useState(1);
   const productsPerPage = 12;
 
-  const likedIds = [1, 3, 7, 13, 15, 17, 22];
+  const getSortValue = (option) => {
+    switch (option) {
+      case '마감 임박순':
+        return 'deadline_asc';
+      case '마감 여유순':
+        return 'deadline_desc';
+      case '최근 찜순':
+        return 'wishlist_recent';
+      case '오래된 찜순':
+        return 'wishlist_oldest';
+      default:
+        return 'deadline_asc';
+    }
+  };
 
-  const products = dummyProducts
-    .filter(item => likedIds.includes(item.id))
-    .map(item => ({
-      id: item.id,
-      name: item.title,
-      price: `${Number(item.price).toLocaleString()} 원`,
-      details: `등록 일자 : ${item.createdAt}`,
-      image: item.images[0],
-      location: item.location,
-      endDate: item.deadline,
-      status: Number(item.id) % 2 === 0 ? '공구 완료' : '공구 중', 
-    }));
+  const getStatusValue = (option) => {
+    switch (option) {
+      case '공구 중':
+        return 'ongoing';
+      case '공구 완료':
+        return 'completed';
+      default:
+        return '';
+    }
+  };
 
-  let filtered = products.filter(
-    (item) => statusOption === '공구 상태' || item.status === statusOption
-  );
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const sort = getSortValue(sortOption);
+        const status = getStatusValue(statusOption);
 
-  if (sortOption === '마감 임박순') {
-    filtered = filtered.sort((a, b) => a.endDate.localeCompare(b.endDate));
-  } else if (sortOption === '마감 여유순') {
-    filtered = filtered.sort((a, b) => b.endDate.localeCompare(a.endDate));
-  } else if (sortOption === '최근 찜순') {
-    filtered = filtered.sort((a, b) => a.endDate.localeCompare(b.endDate));
-  } else if (sortOption === '오래된 찜순') {
-    filtered = filtered.sort((a, b) => b.endDate.localeCompare(a.endDate));
-  }
+        const res = await instance.get('/api/users/me/wishlist', {
+          params: {
+            sort,
+            status,
+            page: currentPage,
+            size: productsPerPage,
+          },
+        });
 
-  const totalPages = Math.ceil(filtered.length / productsPerPage);
-  const pagedProducts = filtered.slice(
-    (currentPage - 1) * productsPerPage,
-    currentPage * productsPerPage
-  );
+        const { total, page, post } = res.data;
+        setProducts(
+          post.map(item => ({
+            id: item.id,
+            name: item.title,
+            price: `${Number(item.price).toLocaleString()} 원`,
+            details: `등록 일자 : ${item.createdAt}`,
+            image: item.thumbnail,
+            location: item.region,
+            endDate: item.deadline,
+            status: item.status,
+          }))
+        );
+        setTotalPages(Math.ceil(total / productsPerPage));
+      } catch (error) {
+        console.error('찜 내역 불러오기 실패:', error);
+        setProducts([]);
+        setTotalPages(1);
+      }
+    };
+
+    fetchData();
+  }, [sortOption, statusOption, currentPage]);
 
   return (
     <div className={styles.container}>
@@ -64,8 +96,8 @@ export default function LikesHistory() {
         />
       </div>
       <div className={styles.content}>
-        {pagedProducts.length > 0 ? (
-          <ProductList products={pagedProducts} />
+        {products.length > 0 ? (
+          <ProductList products={products} />
         ) : (
           <p className={styles.empty}>찜 내역이 없습니다.</p>
         )}

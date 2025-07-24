@@ -1,58 +1,61 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './SellHistory.module.css';
 import Dropdown from '../../../components/DropDown/DropDown';
 import ProductList from '../../../components/ProductList/productList';
 import Pagination from '../../../components/PageNumber/Pagination';
-import dummyProducts from '../../../data/dummyProduct';
+import instance from '../../../lib/axios';
 
 export default function SellHistory() {
   const [dateSort, setDateSort] = useState('정렬 기준');
   const [priceSort, setPriceSort] = useState('금액');
   const [statusSort, setStatusSort] = useState('공구 상태');
   const [currentPage, setCurrentPage] = useState(1);
+  const [products, setProducts] = useState([]);
+  const [totalPages, setTotalPages] = useState(1);
+
   const productsPerPage = 12;
 
-  // 내가 판매한 상품 id 리스트
-  const sellIds = [2, 4, 5, 10, 12, 13, 15, 21, 23, 27, 28];
-  
-  const products = dummyProducts
-    .filter(item => sellIds.includes(item.id))
-    .map(item => ({
-      id: item.id,
-      name: item.title,
-      price: `${Number(item.price).toLocaleString()} 원`,
-      details: `등록 일자 : ${item.createdAt}`,
-      image: item.images[0],
-      location: item.location,
-      endDate: item.deadline,
-      status: Number(item.id) % 2 === 0 ? '공구 완료' : '공구 중',
-    }));
+  const sortParam = dateSort === '오래된 순' ? 'oldest' : 'recent';
+  const priceParam = priceSort === '금액 높은 순' ? 'desc' : priceSort === '금액 낮은 순' ? 'asc' : undefined;
+  const statusParam = statusSort === '공구 중' ? 'ongoing' : statusSort === '공구 완료' ? 'completed' : undefined;
 
-  let filtered = products.filter(
-    (item) => statusSort === '공구 상태' || item.status === statusSort
-  );
+  const userId = localStorage.getItem('userId');
 
-  if (dateSort === '최신 순') {
-    filtered = filtered.sort((a, b) => b.endDate.localeCompare(a.endDate));
-  } else if (dateSort === '오래된 순') {
-    filtered = filtered.sort((a, b) => a.endDate.localeCompare(b.endDate));
-  }
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await instance.get(`/api/users/${userId}/sales`, {
+          params: {
+            sort: sortParam,
+            price: priceParam,
+            status: statusParam,
+            page: currentPage,
+            size: productsPerPage,
+          }
+        });
 
-  if (priceSort === '금액 높은 순') {
-    filtered = filtered.sort(
-      (a, b) => parseInt(b.price.replace(/[^0-9]/g, '')) - parseInt(a.price.replace(/[^0-9]/g, ''))
-    );
-  } else if (priceSort === '금액 낮은 순') {
-    filtered = filtered.sort(
-      (a, b) => parseInt(a.price.replace(/[^0-9]/g, '')) - parseInt(b.price.replace(/[^0-9]/g, ''))
-    );
-  }
-  
-  const totalPages = Math.ceil(filtered.length / productsPerPage);
-  const pagedProducts = filtered.slice(
-    (currentPage - 1) * productsPerPage,
-    currentPage * productsPerPage
-  );
+        const { total, page, post } = res.data;
+
+        const formatted = post.map(item => ({
+          id: item.id,
+          name: item.title,
+          price: `${Number(item.price).toLocaleString()} 원`,
+          details: `등록 일자 : ${item.createdAt}`,
+          image: item.thumbnail,
+          location: item.region,
+          endDate: item.createdAt,
+          status: item.status,
+        }));
+
+        setProducts(formatted);
+        setTotalPages(Math.ceil(total / productsPerPage));
+      } catch (err) {
+        console.error('판매 내역 불러오기 실패:', err);
+      }
+    };
+
+    if (userId) fetchData();
+  }, [dateSort, priceSort, statusSort, currentPage, userId]);
 
   return (
     <div className={styles.container}>
@@ -78,8 +81,8 @@ export default function SellHistory() {
         />
       </div>
       <div className={styles.content}>
-        {pagedProducts.length > 0 ? (
-          <ProductList products={pagedProducts} />
+        {products.length > 0 ? (
+          <ProductList products={products} />
         ) : (
           <p className={styles.empty}>판매 내역이 없습니다.</p>
         )}
