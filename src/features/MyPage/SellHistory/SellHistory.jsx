@@ -37,7 +37,7 @@ export default function SellHistory() {
         const { total, page, post } = res.data;
 
         const formatted = post.map(item => ({
-          id: item.id,
+          id: item.postId,
           name: item.title,
           price: `${Number(item.price).toLocaleString()} 원`,
           details: `등록 일자 : ${item.createdAt}`,
