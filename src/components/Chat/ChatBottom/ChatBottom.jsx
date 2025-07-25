@@ -84,11 +84,11 @@ const [deliveryData, setDeliveryData] = useState({
           {/* 판매자 전용 옵션 */}
           {isSeller && (
             <>
-              <button className={styles.optionBtn} onClick={() => setShowPromiseModal(true)}>
+              <button className={styles.optionBtn} onClick={() => setShowPromiseModal(true)} disabled={isCompleted}>
                 <img src={promiseIcon} alt="약속 잡기" />
                 <span>약속 잡기</span>
               </button>
-              <button className={styles.optionBtn} onClick={() => setShowPayRequestModal(true)}>
+              <button className={styles.optionBtn} onClick={() => setShowPayRequestModal(true)} disabled={isCompleted}>
                 <img src={payIcon} alt="송금 요청" />
                 <span>송금 요청</span>
               </button>
@@ -104,6 +104,7 @@ const [deliveryData, setDeliveryData] = useState({
                 setShowDeliveryInfoModal(true);
               }
             }}
+            disabled={isCompleted}
           >
             <img src={addressIcon} alt="배송" />
             <span>{isSeller ? '배송 정보 전송' : '배송지 전송'}</span>
@@ -111,7 +112,7 @@ const [deliveryData, setDeliveryData] = useState({
 
 
           {/* 공통: 거래완료 */}
-          <button className={styles.optionBtn} onClick={() => setShowCompleteModal(true)}>
+          <button className={styles.optionBtn} onClick={() => setShowCompleteModal(true)} disabled={isCompleted}>
             <img src={doneIcon} alt="거래완료" />
             <span>거래 완료</span>
           </button>
