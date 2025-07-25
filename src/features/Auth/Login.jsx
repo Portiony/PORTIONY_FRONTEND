@@ -18,7 +18,7 @@ function Login({ setIsLoggedIn }) {
 
   const handleKakaoLogin = () => {
     const REST_API_KEY = '1905cc0f6daf870b0f4eb756b47ac06f';
-    const REDIRECT_URI = 'http://localhost:3000/login/oauth/kakao';
+    const REDIRECT_URI = 'https://portiony.netlify.app/login/oauth/kakao';
     const kakaoAuthURL = `https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}&response_type=code`;
 
     window.location.href = kakaoAuthURL;
@@ -27,7 +27,7 @@ function Login({ setIsLoggedIn }) {
 
   const handleFinalLogin = async () => {
     try {
-      const response = await axios.post('http://localhost:8080/api/users/login', {
+      const response = await axios.post('/api/users/login', {
         email: userEmail,
         password: userPassword,
       });
@@ -90,7 +90,7 @@ function Login({ setIsLoggedIn }) {
           <img src={character} alt="캐릭터 로고" className={styles.logoTop}/>
 
           <form
-            onsubmit={(e) => {
+            onSubmit={(e) => {
               e.preventDefault();
               if (userEmail && userPassword) {
                 handleFinalLogin();
@@ -106,7 +106,7 @@ function Login({ setIsLoggedIn }) {
             </div>
 
             <button 
-              type='button'
+              type='submit'
               className={styles.loginButton} 
               onClick={handleFinalLogin}
               disabled={!userEmail || !userPassword}>

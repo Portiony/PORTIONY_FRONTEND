@@ -13,7 +13,7 @@ function KakaoRedirect({ setIsLoggedIn }) {
     const fetchTokens = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:8080/api/users/login/oauth/kakao/success?code=${code}`
+          `api/users/login/oauth/kakao/success?code=${code}`
         );
 
         const data = response.data;
