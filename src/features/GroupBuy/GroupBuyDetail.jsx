@@ -62,7 +62,6 @@ function GroupBuyDetail() {
     setSelectedImage(null);
   };
 
-
   // 댓글 상태 (초기 더미 댓글 43개)
   const dummyComments = Array.from({ length: 43 }, (_, i) => ({
     id: i + 1,

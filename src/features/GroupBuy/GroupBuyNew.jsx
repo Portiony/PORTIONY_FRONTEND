@@ -9,13 +9,13 @@ import uncheckedIcon from '../../assets/checkbox-unchecked.svg';
 import styles from './GroupBuyNew.module.css';
 import GroupBuyModal from '../../components/GroupBuy/GroupBuyModal';
 import Dropdown from '../../components/DropDown/DropDown';
+import axios from 'axios';
 
 
 function GroupBuyNew({ mode = 'create', initialData = null, productId = null }) {
 
   // 라우팅
   const navigate = useNavigate();
-
 
   // form 입력값 상태
   const [form, setForm] = useState({
@@ -31,7 +31,6 @@ function GroupBuyNew({ mode = 'create', initialData = null, productId = null }) 
     deadline: '',
     method: '',
   });
-
 
   // 이미지 관련 상태
   const [images, setImages] = useState([]);             // 파일 객체 저장
@@ -155,32 +154,64 @@ function GroupBuyNew({ mode = 'create', initialData = null, productId = null }) 
   // 모달 내 '작성 취소' → 이전 페이지로 이동
   const handleConfirmCancel = () => window.history.back();
 
+  const categoryMap = {
+        '생활용품': 1,
+        '반려동물': 2,
+        '의류': 3,
+        '문구류': 4,
+        '육아용품': 5,
+        '화장품/뷰티': 6,
+        '잡화/기타': 7,
+      };
 
   // ----------------------- submit 핸들러 (등록 or 수정 → 상세 페이지로 이동)
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log(' handleSubmit 실행됨');
 
     if (!isFormComplete()) {
-        setShowWarning(true);
-        return;
+      setShowWarning(true);
+      console.log(' 필수값 누락');
+      return;
     }
 
-    setShowWarning(false); // 제출 가능 상태면 경고 숨김
+    setShowWarning(false);
 
-    // 로컬스토리지에 저장 (form + image previewUrls)
-      const groupBuyData = {
-        form,
-        imagePreviews: previewUrls, // base64 이미지
+    try {
+      const postData = {
+        categoryId: categoryMap[form.category],
+        title: form.title,
+        description: form.description,
+        capacity: Number(form.people),
+        price: Number(form.price.replace(/,/g, '')),
+        unit: form.unit === '직접 입력' ? form.unitCustom : form.unit,
+        deadline: new Date(form.deadline).toISOString(),
+        deliveryMethod: form.method,
+        isAgree: isChecked,
       };
-      localStorage.setItem('groupBuyDraft', JSON.stringify(groupBuyData));
 
-    if (mode === 'edit') {
-      // 수정 모드: 현재 productId로 이동
-      navigate(`/group-buy/${productId}`);
-    } else {
-      // 등록 모드: 새 id가 있다고 가정하고 이동
-      const newId = 99;  // 추후 백엔드 연동 필요
-      navigate(`/group-buy/${newId}`);
+      // 1. 게시글 등록 (axios POST)
+      const res = await axios.post('/api/posts', postData); // 프록시 설정 가정
+      const postId = res.data.postId;
+
+      // 2. 이미지 업로드
+      if (images.length > 0) {
+        const formData = new FormData();
+        images.forEach(file => formData.append('images', file));
+
+        await axios.post(`/api/posts/${postId}/images`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+      }
+
+      // 3. 이동
+      navigate(`/group-buy/${postId}`);
+
+    } catch (error) {
+      console.error('❌ 게시글 등록 중 오류:', error);
+      alert('게시글 등록에 실패했습니다.');
     }
   };
 
@@ -377,13 +408,13 @@ function GroupBuyNew({ mode = 'create', initialData = null, productId = null }) 
               )}
             </div>
             <input
-                type="date"
-                name="deadline"
-                placeholder="현재일로부터 3개월 이내까지만 입력할 수 있습니다."
-                min={minDate}
-                max={maxDate}
-                value={form.deadline}
-                onChange={handleChange}
+              type="date"
+              name="deadline"
+              value={form.deadline}
+              onChange={handleChange}
+              min={minDate}
+              max={maxDate}
+              className={`${styles['date-input']} ${form.deadline ? styles['has-value'] : ''}`}
             />
           </div>
 
