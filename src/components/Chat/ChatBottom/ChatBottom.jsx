@@ -230,7 +230,7 @@ const [deliveryData, setDeliveryData] = useState({
               systemType = 'pay';
               break;
             case 'address':
-              systemMessage = `🚚 배송지 입력이 완료되었습니다!\n수령인: ${addressData.name}\n전화번호: ${addressData.phone}\n배송지: ${addressData.address}\n${myName}님은 '+'버튼을 통해 배송 접수 정보를 알려주세요!`;
+              systemMessage = `🚚 배송지 입력이 완료되었습니다!\n수령인: ${addressData.name}\n전화번호: ${addressData.phone}\n배송지: ${addressData.address}\n${partnerName}님은 '+'버튼을 통해 배송 접수 정보를 알려주세요!`;
               systemType = 'address';
               break;
             case 'delivery':
