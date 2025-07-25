@@ -25,6 +25,7 @@ function Chat() {
   const client = useRef(null);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const selectedRoomRef = useRef(null); // ✅ 추가
+  const subscribedRoomIdsRef = useRef(new Set());
 
 
 useEffect(() => {
@@ -33,6 +34,7 @@ useEffect(() => {
     webSocketFactory: () => socket,
     onConnect: () => {
       console.log('✅ WebSocket connected');
+      subscribeAllRooms(chatRooms);
     },
     onStompError: (frame) => {
       console.error('WebSocket error:', frame);
@@ -123,67 +125,72 @@ useEffect(() => {
 // 모든 채팅방 구독 처리 > 목록에서도 실시간 반영을 위함
 useEffect(() => {
   if (!client.current || !client.current.connected) return;
+subscribeAllRooms(chatRooms);
 
-  if (!client.current.subscriptions) {
-    client.current.subscriptions = {};
-  }
+}, [myUserId, client.current?.connected, chatRooms]); // ✅ chatRooms 빠짐!!
 
-  const subscribeAllRooms = () => {
-    chatRooms.forEach((room) => {
-      const subId = `chat-room-${room.id}`;
 
-      // ❗ 정확하게 key로 확인
-      if (client.current.subscriptions[subId]) return;
+const subscribeAllRooms = () => {
+  if (!client.current?.connected) return;
 
-      client.current.subscribe(
-        `/sub/chat/room/${room.id}`,
-        (message) => {
-          const payload = JSON.parse(message.body);
-          if (payload.senderId === myUserId) return;
+  chatRooms.forEach((room) => {
+    const subId = `chat-room-${room.id}`;
 
-          const newMsg = {
-            content: payload.content,
-            image: payload.imageUrls?.[0] || null,
-            time: payload.createdAt,
-            isMine: false,
-            isSystem: payload.senderId === 0,
-            systemType: payload.senderId === 0 ? payload.systemType : null,
-          };
+    // ✅ 이미 구독된 방은 무시
+    if (subscribedRoomIdsRef.current.has(room.id)) return;
 
-          setChatRooms((prevRooms) =>
-            prevRooms.map((r) =>
-              r.id === room.id
-                ? {
-                    ...r,
-                    lastMessage: payload.content,
-                    time: new Date(payload.createdAt).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    }),
-                    isRead: selectedRoom?.id === r.id,
-                    lastSenderId: payload.senderId,
-                  }
-                : r
-            )
-          );
+    console.log(`📡 구독 시도: ${subId}`);
+    client.current.subscribe(
+      `/sub/chat/room/${room.id}`,
+      (message) => {
+        const payload = JSON.parse(message.body);
+        if (payload.senderId === myUserId) return;
 
-          // 선택된 방이면 메시지 추가
-          if (selectedRoomRef.current?.id === room.id) {
-  setSelectedRoom((prevRoom) => ({
-    ...prevRoom,
-    messages: [...prevRoom.messages, newMsg],
-  }));
-  setTimeout(scrollToBottom, 0);
-}
+        const newMsg = {
+          content: payload.content,
+          image: payload.imageUrls?.[0] || null,
+          time: payload.createdAt,
+          isMine: false,
+          isSystem: payload.senderId === 0,
+          systemType: payload.senderId === 0 ? payload.systemType : null,
+        };
 
-        },
-        { id: subId }
-      );
-    });
-  };
+        // 채팅 목록 업데이트
+        setChatRooms((prevRooms) =>
+          prevRooms.map((r) =>
+            r.id === room.id
+              ? {
+                  ...r,
+                  lastMessage: payload.content,
+                  time: new Date(payload.createdAt).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  }),
+                  isRead: selectedRoomRef.current?.id === r.id,
+                  lastSenderId: payload.senderId,
+                }
+              : r
+          )
+        );
 
-  subscribeAllRooms();
-}, [myUserId, client.current?.connected]); // ✅ chatRooms 빠짐!!
+        // 현재 선택된 방일 경우 메시지도 추가
+        if (selectedRoomRef.current?.id === room.id) {
+          setSelectedRoom((prevRoom) => ({
+            ...prevRoom,
+            messages: [...prevRoom.messages, newMsg],
+          }));
+          setTimeout(scrollToBottom, 0);
+        }
+      },
+      { id: subId }
+    );
+
+    // ✅ 구독 기록
+    subscribedRoomIdsRef.current.add(room.id);
+  });
+};
+
+
 
 const handleEnterRoom = async (room) => {
   try {
