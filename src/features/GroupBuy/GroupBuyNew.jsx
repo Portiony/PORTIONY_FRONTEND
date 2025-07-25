@@ -9,7 +9,7 @@ import uncheckedIcon from '../../assets/checkbox-unchecked.svg';
 import styles from './GroupBuyNew.module.css';
 import GroupBuyModal from '../../components/GroupBuy/GroupBuyModal';
 import Dropdown from '../../components/DropDown/DropDown';
-import axios from 'axios';
+import axios from '../../lib/axios';
 
 
 function GroupBuyNew({ mode = 'create', initialData = null, productId = null }) {
@@ -135,7 +135,7 @@ function GroupBuyNew({ mode = 'create', initialData = null, productId = null }) 
       form.category &&
       form.title &&
       form.description &&
-      images.length > 0 &&
+      //images.length > 0 &&
       form.amount &&
       (form.unit || form.unitCustom) &&
       form.people &&
@@ -162,7 +162,12 @@ function GroupBuyNew({ mode = 'create', initialData = null, productId = null }) 
         '육아용품': 5,
         '화장품/뷰티': 6,
         '잡화/기타': 7,
-      };
+  };
+  const deliveryMethodMap = {
+    '직거래': 'DIRECT',
+    '택배 배송': 'DELIVERY',
+    '직거래 및 택배 배송': 'ALL',
+  };
 
   // ----------------------- submit 핸들러 (등록 or 수정 → 상세 페이지로 이동)
   const handleSubmit = async (e) => {
@@ -185,15 +190,30 @@ function GroupBuyNew({ mode = 'create', initialData = null, productId = null }) 
         capacity: Number(form.people),
         price: Number(form.price.replace(/,/g, '')),
         unit: form.unit === '직접 입력' ? form.unitCustom : form.unit,
-        deadline: new Date(form.deadline).toISOString(),
-        deliveryMethod: form.method,
+        deadline: new Date(form.deadline).toISOString().slice(0, 19), // "2025-08-08T00:00:00"
+        deliveryMethod: deliveryMethodMap[form.method],
         isAgree: isChecked,
       };
 
-      // 1. 게시글 등록 (axios POST)
-      const res = await axios.post('/api/posts', postData); // 프록시 설정 가정
-      const postId = res.data.postId;
+      console.log('🟡 postData 전송 직전:', JSON.stringify(postData, null, 2));
 
+      // 1. 게시글 등록 (axios POST)
+      const res = await axios.post('https://port-0-portiony-backend-md4272k5c4648749.sel5.cloudtype.app/api/posts/', postData, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        },
+      });
+
+      console.log('📦 게시글 등록 응답:', res.data);
+      const postId = res.data.id;
+
+      if (!postId) {
+        alert('postId를 받아오지 못했습니다.');
+        return;
+      }
+
+/*
       // 2. 이미지 업로드
       if (images.length > 0) {
         const formData = new FormData();
@@ -202,16 +222,26 @@ function GroupBuyNew({ mode = 'create', initialData = null, productId = null }) 
         await axios.post(`/api/posts/${postId}/images`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`, // 추가
           },
         });
       }
-
+*/
       // 3. 이동
       navigate(`/group-buy/${postId}`);
 
     } catch (error) {
-      console.error('❌ 게시글 등록 중 오류:', error);
-      alert('게시글 등록에 실패했습니다.');
+      if (error.response) {
+        console.error('❌ 게시글 등록 중 오류:');
+        console.log('status:', error.response.status);
+        console.log('headers:', error.response.headers);
+        console.log('data:', error.response.data);  // 여기 중요!
+
+        alert(`서버 응답 오류:\n${JSON.stringify(error.response.data, null, 2)}`);
+      } else {
+        console.error('❌ 네트워크 또는 기타 오류:', error);
+        alert('요청 실패: 서버에 연결할 수 없습니다.');
+      }
     }
   };
 

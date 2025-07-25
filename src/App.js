@@ -19,8 +19,8 @@ import instance from './lib/axios';
 import './App.css';
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   // 토큰 기반 인증 상태 확인
   const checkAuth = async () => {
@@ -42,6 +42,7 @@ function App() {
     }
   };
 
+  /*
   useEffect(() => {
     checkAuth();
     window.addEventListener('auth-change', checkAuth);
@@ -49,6 +50,7 @@ function App() {
       window.removeEventListener('auth-change', checkAuth);
     };
   }, []);
+  */
 
   if (isLoading) return <div className="loading">로딩 중...</div>;
 
