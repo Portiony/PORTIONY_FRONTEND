@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 import boxImage from '../../assets/chat_logo.png';
@@ -8,6 +9,7 @@ import ChatListItem from '../../components/Chat/ChatListItem/ChatListItem';
 import ChatHeader from '../../components/Chat/ChatHeader/ChatHeader';
 import ChatBottom from '../../components/Chat/ChatBottom/ChatBottom';
 import ChatMessage from '../../components/Chat/ChatMessage/ChatMessage';
+import api from '../../lib/axios';
 
 import profileImg from '../../assets/profile.png';
 import postImage from '../../assets/product.png'; //상품 이미지
@@ -16,7 +18,7 @@ import defaultProduct from '../../assets/profile-image.svg';
 
 
 function Chat() {
-  const myName = '남예은';
+  const navigate = useNavigate();
   const messagesEndRef = useRef(null);
   const chatContainerRef = useRef(null);
   const BASE_URL = 'https://port-0-portiony-backend-md4272k5c4648749.sel5.cloudtype.app';
@@ -24,7 +26,7 @@ function Chat() {
   const [chatRooms, setChatRooms] = useState([]); //안에 더미값 넣었었음
   const [myUserId, setMyUserId] = useState(null);
 
-  const token = localStorage.getItem("accessToken");
+  //const token = localStorage.getItem("accessToken");
   const client = useRef(null); //stomp 클라이언트(stompjs)
   const [selectedRoom, setSelectedRoom] = useState(null); //현재 클릭된 채팅방
   const selectedRoomRef = useRef(null); //선택된 채팅방 ref
@@ -62,13 +64,7 @@ function Chat() {
   useEffect(() => {
     const fetchMyUserInfo = async () => {
       try {
-        const res = await fetch(`${BASE_URL}/api/users/`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-        const data = await res.json();
+        const { data } = await api.get('/api/users/');
         setMyUserId(data.userId);
       } catch (err) {
         console.error('사용자 정보 불러오기 실패:', err);
@@ -82,15 +78,9 @@ function Chat() {
     const fetchChatRooms = async () => {
       try {
         const type = getChatTypeParam(dateSort); 
-        const response = await fetch(`${BASE_URL}/api/chats?type=${type}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
+        const { data } = await api.get('/api/chats', {
+          params: { type }
         });
-        const data = await response.json();
-
         const rooms = data.chatRoomsList.map((room) => {
           const sellerStatus = room.status?.sellerStatus;
           const buyerStatus = room.status?.buyerStatus;
@@ -109,8 +99,9 @@ function Chat() {
           title: room.post.title,
           price: room.post.price.toLocaleString(),
           ddayText: makeDdayText(room.post.deadline),
+          postId: room.post.postId,
           postImage: room.post.imageUrl || defaultProduct,
-          profileImg: room.partner.profileImageUrlv || defaultProfile,
+          profileImg: room.partner.profileImageUrl || defaultProfile,
           isSeller: room.isSeller,
           isRead: room.isRead,
           lastSenderId: room.lastMessageSenderId,
@@ -205,14 +196,8 @@ function Chat() {
 const handleEnterRoom = async (room) => {
   try {
     // 메시지 불러오기
-    const res = await fetch(`${BASE_URL}/api/chats/${room.id}/messages`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const { data } = await api.get(`/api/chats/${room.id}/messages`);
 
-    const data = await res.json(); // data.messageList로 옴
     const sellerStatus = room.sellerStatus;
     const buyerStatus = room.buyerStatus;
     const isCompleted = sellerStatus === 'COMPLETED' && buyerStatus === 'COMPLETED';
@@ -237,13 +222,7 @@ const handleEnterRoom = async (room) => {
 
     // 읽음 처리 (내가 마지막 보낸 사람이 아닐 때만)
     if (room.lastSenderId && room.lastSenderId !== myUserId) {
-      await fetch(`${BASE_URL}/api/chats/${room.id}/read`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await api.patch(`/api/chats/${room.id}/read`);
 
       const updatedRooms = chatRooms.map((r) =>
         r.id === room.id ? { ...r, isRead: true } : r
@@ -264,19 +243,8 @@ const handleCompleteTrade = async () => {
   if (!selectedRoom) return;
 
   try {
-    const res = await fetch(`${BASE_URL}/api/chats/${selectedRoom.id}/complete`, {
-      method: 'PATCH',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const { data: result } = await api.patch(`/api/chats/${selectedRoom.id}/complete`);
 
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`거래 완료 실패: ${text}`);
-    }
-
-    const result = await res.json(); // { sellerStatus, buyerStatus }
 
     // count 계산 > 거래 완료 여부에 따름
     let count = 0;
@@ -379,7 +347,7 @@ const handleCompleteTrade = async () => {
               <p className={styles.chatEmptyText1}>
                 공동구매 상품을 골라 시작할 수 있어요.
               </p>
-              <button className={styles.button}>상품 둘러보기</button>
+              <button className={styles.button} onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>상품 둘러보기</button>
             </>
           ) : (
             filteredRooms.map((room) => (
@@ -405,6 +373,7 @@ const handleCompleteTrade = async () => {
       
           {/* ✅ 헤더 컴포넌트 추가 */}
           <ChatHeader
+            postId = {selectedRoom.postId}
             partnerName={selectedRoom.partnerName}
             postImage={selectedRoom.postImage}
             title={selectedRoom.title}
@@ -419,7 +388,6 @@ const handleCompleteTrade = async () => {
                   <div className={styles.dateLine}>{date}</div> {/* 스타일명 맞춤 */}
                   {msgs.map((msg, idx) => (
                     <ChatMessage
-                      myName={myName}
                       key={idx}
                       content={msg.content}
                       image={msg.image}
@@ -441,7 +409,6 @@ const handleCompleteTrade = async () => {
 
 
       <ChatBottom
-        myName={myName}
         isSeller={selectedRoom.isSeller}
         partnerName={selectedRoom.partnerName}
         onCompleteTrade={handleCompleteTrade}
