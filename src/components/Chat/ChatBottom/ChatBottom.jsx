@@ -28,6 +28,7 @@ function ChatBottom({ onSendMessage, isSeller, partnerName, myName, isCompleted,
   const [lastOpenedModal, setLastOpenedModal] = useState(null);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [showComplete2Modal, setShowComplete2Modal] = useState(false);
+  const [isComposing, setIsComposing] = useState(false);
 
   const [promiseData, setPromiseData] = useState({
     date: '',
@@ -135,8 +136,10 @@ const [deliveryData, setDeliveryData] = useState({
             e.target.style.height = 'auto'; // 높이 초기화
             e.target.style.height = `${e.target.scrollHeight}px`; // 내용에 따라 높이 조절
           }}
+          onCompositionStart={() => setIsComposing(true)}
+          onCompositionEnd={() => setIsComposing(false)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
+            if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
               e.preventDefault(); // 줄바꿈 방지
               handleSend();       // 기존 버튼 클릭과 동일한 전송 함수
             }
