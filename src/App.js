@@ -42,7 +42,7 @@ function App() {
     }
   };
 
-  /*
+
   useEffect(() => {
     checkAuth();
     window.addEventListener('auth-change', checkAuth);
@@ -50,7 +50,7 @@ function App() {
       window.removeEventListener('auth-change', checkAuth);
     };
   }, []);
-  */
+
 
   if (isLoading) return <div className="loading">로딩 중...</div>;
 
