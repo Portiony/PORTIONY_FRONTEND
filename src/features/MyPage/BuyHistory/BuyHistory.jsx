@@ -4,6 +4,7 @@ import Dropdown from '../../../components/DropDown/DropDown';
 import ProductList from '../../../components/ProductList/productList';
 import Pagination from '../../../components/PageNumber/Pagination';
 import instance from '../../../lib/axios';
+import defaultImage from '../../../assets/LOGOMAIN.png'; // 기본 이미지
 
 export default function BuyHistory() {
   const [dateSort, setDateSort] = useState('날짜');
@@ -18,7 +19,9 @@ export default function BuyHistory() {
     const fetchData = async () => {
       try {
         const sortParam = dateSort === '최신 순' ? 'recent' : 'oldest';
-        const priceParam = priceSort === '금액 높은 순' ? 'desc' : priceSort === '금액 낮은 순' ? 'asc' : null;
+        const priceParam =
+          priceSort === '금액 높은 순' ? 'desc' :
+          priceSort === '금액 낮은 순' ? 'asc' : null;
 
         const params = {
           sort: sortParam,
@@ -29,22 +32,27 @@ export default function BuyHistory() {
         if (priceParam) params.price = priceParam;
 
         const res = await instance.get('/api/users/me/purchases', { params });
-        const { purchases = [], total = 0 } = res.data;
 
-        const mappedProducts = purchases.map(item => ({
+        console.log('📦 API 응답:', res.data);
+
+        const { post = [], total = 0 } = res.data;
+
+        const mappedProducts = post.map(item => ({
           id: item.postId,
           name: item.title,
           price: `${item.price.toLocaleString()} 원`,
           details: `공구상태: ${item.status} / ${item.details}`,
-          image: item.thumbnail,
-          location: item.region,
+          image: item.thumbnail && item.thumbnail.trim() !== '' ? item.thumbnail : defaultImage,
+          location: item.region || '지역 정보 없음',
           endDate: item.purchasedAt
         }));
+
+        console.log('✅ 구매 내역:', mappedProducts);
 
         setProducts(mappedProducts);
         setTotalPages(Math.ceil(total / size));
       } catch (err) {
-        console.error('구매 내역 불러오기 실패:', err);
+        console.error('❌ 구매 내역 불러오기 실패:', err);
         setProducts([]);
       }
     };
