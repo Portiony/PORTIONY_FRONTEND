@@ -57,7 +57,7 @@ export default function LikesHistory() {
         const { total, page, post } = res.data;
         setProducts(
           post.map(item => ({
-            id: item.id,
+            id: item.postId,
             name: item.title,
             price: `${Number(item.price).toLocaleString()} 원`,
             details: `등록 일자 : ${item.createdAt}`,

@@ -151,3 +151,8 @@ letter-spacing: -0.32px;
   background: #F3F3F3;
   border-radius: 50px;
 }
+
+.optionBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

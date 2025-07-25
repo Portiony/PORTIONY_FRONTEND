@@ -19,7 +19,7 @@ export default function SellHistory() {
   const priceParam = priceSort === '금액 높은 순' ? 'desc' : priceSort === '금액 낮은 순' ? 'asc' : undefined;
   const statusParam = statusSort === '공구 중' ? 'ongoing' : statusSort === '공구 완료' ? 'completed' : undefined;
 
-  const userId = localStorage.getItem('userId');
+  const userId = localStorage.getItem('user_id');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,7 +37,7 @@ export default function SellHistory() {
         const { total, page, post } = res.data;
 
         const formatted = post.map(item => ({
-          id: item.id,
+          id: item.postId,
           name: item.title,
           price: `${Number(item.price).toLocaleString()} 원`,
           details: `등록 일자 : ${item.createdAt}`,

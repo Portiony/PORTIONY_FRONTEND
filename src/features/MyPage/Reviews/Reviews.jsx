@@ -18,7 +18,7 @@ export default function ReviewsHistory() {
   const [modalInfo, setModalInfo] = useState({ open: false, productName: '', mode: 'write', received: false });
   const perPage = 9;
 
-  const userId = Number(localStorage.getItem('userId'));
+  const userId = Number(localStorage.getItem('user_id'));
 
   useEffect(() => {
     if (!viewType) return;

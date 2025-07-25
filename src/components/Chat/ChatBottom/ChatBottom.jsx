@@ -17,7 +17,7 @@ import GroupBuyModal from '../../GroupBuy/GroupBuyModal';
 import CompleteModal from '../Modal/Complete';
 import Complete2Modal from '../Modal/Complete2';
 
-function ChatBottom({ onSendMessage, isSeller, partnerName, myName, completionCount }) {
+function ChatBottom({ onSendMessage, isSeller, partnerName, myName, isCompleted, onCompleteTrade  }) {
   const [message, setMessage] = useState('');
   const [showOptions, setShowOptions] = useState(false);
   const [showAddressModal, setShowAddressModal] = useState(false);
@@ -28,6 +28,7 @@ function ChatBottom({ onSendMessage, isSeller, partnerName, myName, completionCo
   const [lastOpenedModal, setLastOpenedModal] = useState(null);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [showComplete2Modal, setShowComplete2Modal] = useState(false);
+  const [isComposing, setIsComposing] = useState(false);
 
   const [promiseData, setPromiseData] = useState({
     date: '',
@@ -84,11 +85,11 @@ const [deliveryData, setDeliveryData] = useState({
           {/* 판매자 전용 옵션 */}
           {isSeller && (
             <>
-              <button className={styles.optionBtn} onClick={() => setShowPromiseModal(true)}>
+              <button className={styles.optionBtn} onClick={() => setShowPromiseModal(true)} disabled={isCompleted}>
                 <img src={promiseIcon} alt="약속 잡기" />
                 <span>약속 잡기</span>
               </button>
-              <button className={styles.optionBtn} onClick={() => setShowPayRequestModal(true)}>
+              <button className={styles.optionBtn} onClick={() => setShowPayRequestModal(true)} disabled={isCompleted}>
                 <img src={payIcon} alt="송금 요청" />
                 <span>송금 요청</span>
               </button>
@@ -104,6 +105,7 @@ const [deliveryData, setDeliveryData] = useState({
                 setShowDeliveryInfoModal(true);
               }
             }}
+            disabled={isCompleted}
           >
             <img src={addressIcon} alt="배송" />
             <span>{isSeller ? '배송 정보 전송' : '배송지 전송'}</span>
@@ -111,7 +113,7 @@ const [deliveryData, setDeliveryData] = useState({
 
 
           {/* 공통: 거래완료 */}
-          <button className={styles.optionBtn} onClick={() => setShowCompleteModal(true)}>
+          <button className={styles.optionBtn} onClick={() => setShowCompleteModal(true)} disabled={isCompleted}>
             <img src={doneIcon} alt="거래완료" />
             <span>거래 완료</span>
           </button>
@@ -134,8 +136,10 @@ const [deliveryData, setDeliveryData] = useState({
             e.target.style.height = 'auto'; // 높이 초기화
             e.target.style.height = `${e.target.scrollHeight}px`; // 내용에 따라 높이 조절
           }}
+          onCompositionStart={() => setIsComposing(true)}
+          onCompositionEnd={() => setIsComposing(false)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
+            if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
               e.preventDefault(); // 줄바꿈 방지
               handleSend();       // 기존 버튼 클릭과 동일한 전송 함수
             }
@@ -226,7 +230,7 @@ const [deliveryData, setDeliveryData] = useState({
               systemType = 'pay';
               break;
             case 'address':
-              systemMessage = `🚚 배송지 입력이 완료되었습니다!\n수령인: ${addressData.name}\n전화번호: ${addressData.phone}\n배송지: ${addressData.address}\n${myName}님은 '+'버튼을 통해 배송 접수 정보를 알려주세요!`;
+              systemMessage = `🚚 배송지 입력이 완료되었습니다!\n수령인: ${addressData.name}\n전화번호: ${addressData.phone}\n배송지: ${addressData.address}\n${partnerName}님은 '+'버튼을 통해 배송 접수 정보를 알려주세요!`;
               systemType = 'address';
               break;
             case 'delivery':
@@ -258,15 +262,17 @@ const [deliveryData, setDeliveryData] = useState({
     {showCompleteModal && (
       <CompleteModal
         onCancel={() => setShowCompleteModal(false)}
-        onConfirm={() => {
+        onConfirm={async () => {
           setShowCompleteModal(false);
           setShowComplete2Modal(true);
 
+          const count = await onCompleteTrade();
+
           let systemMessage = '';
-          console.log(completionCount);
-          if (completionCount === 0) {
+          console.log('거래 완료 count:', count, '← 시스템 메시지 조건 확인');
+          if (count === 1) {
             systemMessage = `🎉 거래가 완료되었어요!\n판매자/구매자님 모두 [거래완료] 버튼을 눌러주셔야 거래가 ‘최종 완료’됩니다.`;
-          } else if (completionCount === 1) {
+          } else if (count === 2) {
             systemMessage = `🎉 소중한 거래가 최종 완료되었습니다!\n후기는 마이페이지에서 작성가능합니다 :)\n포셔니와 함께 해주셔서 감사합니다.`;
           }
 

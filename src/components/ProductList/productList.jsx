@@ -2,14 +2,15 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './productList.module.css';
 
-import mapIcon from '../../assets/location_on.svg'; 
+import mapIcon from '../../assets/location_on.svg';
 import clockIcon from '../../assets/alarm.svg';
+import defaultImage from '../../assets/LOGOMAIN.png';
 
 function getDDay(endDate) {
   const end = new Date(endDate);
   const now = new Date();
-  end.setHours(0,0,0,0);
-  now.setHours(0,0,0,0);
+  end.setHours(0, 0, 0, 0);
+  now.setHours(0, 0, 0, 0);
   const diffTime = end - now;
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   if (diffDays < 0) return '마감';
@@ -23,45 +24,56 @@ export default function ProductList({ products: propProducts, onClickProduct }) 
 
   const handleClick = (product) => {
     if (onClickProduct) {
-      onClickProduct(product); // 외부에서 prop이 넘어오면 그걸 우선!
+      onClickProduct(product);
     } else {
-      navigate(`/group-buy/${product.id}`); // 아니면 상세페이지로 이동
+      navigate(`/group-buy/${product.id}`);
     }
   };
 
   return (
     <div className={styles.container}>
-      {data.map((product, index) => (
-        <div
-          key={product.id || index}
-          className={styles.productCard}
-          onClick={() => handleClick(product)}
-          style={{ cursor: 'pointer' }}
-        >
-          <div className={styles.imageContainer}>
-            <div className={styles.topBadges}>
-              <span className={styles.badgeLocation}>
-                <img src={mapIcon} alt="위치" className={styles.icon} />
-                {product.location}
-              </span>
-              <span className={styles.badgeDDay}>
-                <img src={clockIcon} alt="마감" className={styles.icon} />
-                {getDDay(product.endDate)}
-              </span>
+      {data.map((product, index) => {
+        const imageSrc =
+          product.image && product.image.trim() !== ''
+            ? product.image
+            : defaultImage;
+
+        return (
+          <div
+          key={`${product.id}-${index}`}
+            className={styles.productCard}
+            onClick={() => handleClick(product)}
+            style={{ cursor: 'pointer' }}
+          >
+            <div className={styles.imageContainer}>
+              <div className={styles.topBadges}>
+                <span className={styles.badgeLocation}>
+                  <img src={mapIcon} alt="위치" className={styles.icon} />
+                  {product.location || '위치 정보 없음'}
+                </span>
+                <span className={styles.badgeDDay}>
+                  <img src={clockIcon} alt="마감" className={styles.icon} />
+                  {getDDay(product.endDate)}
+                </span>
+              </div>
+              <img
+                src={imageSrc}
+                alt={product.name}
+                className={styles.productImage}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = defaultImage;
+                }}
+              />
             </div>
-            <img
-              src={product.image}
-              alt={product.name}
-              className={styles.productImage}
-            />
+            <div className={styles.productInfo}>
+              <h3 className={styles.productName}>{product.name}</h3>
+              <p className={styles.productPrice}>{product.price}</p>
+              <p className={styles.productDetails}>{product.details}</p>
+            </div>
           </div>
-          <div className={styles.productInfo}>
-            <h3 className={styles.productName}>{product.name}</h3>
-            <p className={styles.productPrice}>{product.price}</p>
-            <p className={styles.productDetails}>{product.details}</p>
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

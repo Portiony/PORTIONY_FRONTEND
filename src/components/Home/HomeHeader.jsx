@@ -3,7 +3,21 @@ import styles from './HomeHeader.module.css';
 import typography from './Typography.module.css';
 import locationIcon from '../../assets/location_on.svg';
 
-const categories = ['의류', '반려동물', '문구류', '육아용품', '화장품/뷰티', '잡화/기타'];
+import category1 from '../../assets/category_1.svg';
+import category2 from '../../assets/category_2.svg';
+import category3 from '../../assets/category_3.svg';
+import category4 from '../../assets/category_4.svg';  
+import category5 from '../../assets/category_5.svg';
+import category6 from '../../assets/category_6.svg';
+
+const categories = [
+  { name: '의류', image: category1 },
+  { name: '반려동물', image: category2 },
+  { name: '문구류', image: category3 },
+  { name: '육아용품', image: category4 },
+  { name: '화장품/뷰티', image: category5 },
+  { name: '잡화/기타', image: category6 },
+];
 
 
 function HomeHeader({ onLocationClick, selectedAddress, selectedCategory, onCategoryChange, searchKeyword, onSearchKeywordChange }) {
@@ -68,14 +82,14 @@ function HomeHeader({ onLocationClick, selectedAddress, selectedCategory, onCate
     {categories.map((cat, i) => (
       <div 
         key={i} 
-        className={`${styles.categoryCard} ${selectedCategory === cat ? styles.active : ''}`}
+        className={`${styles.categoryCard} ${selectedCategory === cat.name ? styles.active : ''}`}
         onClick={() => {
-          const isSame = selectedCategory === cat;
-          onCategoryChange(isSame ? '전체' : cat);
+          const isSame = selectedCategory === cat.name;
+          onCategoryChange(isSame ? '전체' : cat.name);
         }}
       >
-        <img className={styles.categoryIcon} src="https://placehold.co/40x40" />
-        <span className={`${styles.categoryLabel} ${typography.body2}`}>{cat}</span>
+        <img className={styles.categoryIcon} src={cat.image} />
+        <span className={`${styles.categoryLabel} ${typography.body2}`}>{cat.name}</span>
       </div>
     ))}
   </div>
