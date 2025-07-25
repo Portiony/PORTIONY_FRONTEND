@@ -145,16 +145,40 @@ function Chat() {
         `/sub/chat/room/${room.id}`,
         (message) => {
           const payload = JSON.parse(message.body);
-          if (payload.senderId === myUserId) return; //내가 보낸 메시지 무시 > 이미 렌더링 처리됨
-
+          if (payload.senderId === myUserId) return; //내가 보낸 메시지 무시 > 이미 렌더링 처리
+          const isFinalCompleteMessage = payload.content?.includes('🎉 소중한 거래가 최종 완료되었습니다!\n후기는 마이페이지에서 작성가능합니다 :)\n포셔니와 함께 해주셔서 감사합니다.');
           const newMsg = {
             content: payload.content,
             image: payload.imageUrls?.[0] || null,
             time: payload.createdAt,
             isMine: false,
-            isSystem: payload.senderId === 0,
+            isSystem: isFinalCompleteMessage,
             systemType: payload.senderId === 0 ? payload.systemType : null,
           };
+
+          if (isFinalCompleteMessage) {
+            api.get('/api/chats').then(({ data }) => {
+              const updatedRoom = data.chatRoomsList.find((r) => r.chatRoomId === room.id);
+              if (!updatedRoom) return;
+
+              const sellerStatus = updatedRoom.status?.sellerStatus;
+              const buyerStatus = updatedRoom.status?.buyerStatus;
+              const isTrulyCompleted = sellerStatus === 'COMPLETED' && buyerStatus === 'COMPLETED';
+
+              if (isTrulyCompleted) {
+                if (selectedRoomRef.current?.id === room.id) {
+                  setSelectedRoom((prev) => ({
+                    ...prev,
+                    sellerStatus,
+                    buyerStatus,
+                    isCompleted: true, // ✅ 이걸 강제로 다시 넣어줘야 버튼 반응
+                  }));
+                }
+              }
+            });
+          }
+
+
 
           // 채팅 목록 업데이트
           setChatRooms((prevRooms) =>
