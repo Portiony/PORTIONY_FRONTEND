@@ -35,7 +35,7 @@ function SignupLocation({ onNext, onBack }) {
   };
 
   // 주소 문자열 → regionId 매핑 요청
-  /*const resolveRegion = async (address) => {
+  const resolveRegion = async (address) => {
     setLoading(true);
     try {
       const res = await fetch('/api/location/resolve', {
@@ -62,13 +62,13 @@ function SignupLocation({ onNext, onBack }) {
       setLoading(false);
     }
   };
-  */
+  
 
   // 현재 위치 버튼 클릭 시
   const handleCurrentLocation = () => {
     // 임시 위치 처리
     // 나중에 아래 코드는 다시 활성화
-    /*
+    
     if (!navigator.geolocation) {
       alert('브라우저가 위치 정보를 지원하지 않습니다.');
       return;
@@ -97,17 +97,17 @@ function SignupLocation({ onNext, onBack }) {
         alert('위치 정보를 가져오는 데 실패했습니다.');
       }
     });
-    */
+  
 
-    // 지금은 그냥 ID 3개 바로 저장
-    setSignupData(prev => ({
-      ...prev,
-      regionId: 22,
-      subregionId: 287,
-      dongId: 7486,
-    }));
-    setResolved(true);
-  };
+   } // 지금은 그냥 ID 3개 바로 저장
+  //   setSignupData(prev => ({
+  //     ...prev,
+  //     regionId: 22,
+  //     subregionId: 287,
+  //     dongId: 7486,
+  //   }));
+  //   setResolved(true);
+  // };
 
   // 더미 검색 결과
   const handleSearch = async () => {

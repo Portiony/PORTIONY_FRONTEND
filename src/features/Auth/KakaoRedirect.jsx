@@ -13,7 +13,7 @@ function KakaoRedirect({ setIsLoggedIn }) {
     const fetchTokens = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:8080/api/users/login/oauth/kakao/success?code=${code}`
+          `/api/users/login/oauth/kakao/success?code=${code}`
         );
 
         const data = response.data;
@@ -22,6 +22,7 @@ function KakaoRedirect({ setIsLoggedIn }) {
           // 기존 회원 -> 로그인 처리
           localStorage.setItem('access_token', data.accessToken);
           localStorage.setItem('refresh_token', data.refreshToken);
+          localStorage.setItem('user_id', String(data.userId));
           setIsLoggedIn(true);
           navigate('/');
         } else if ('nickname' in data || 'email' in data) {
