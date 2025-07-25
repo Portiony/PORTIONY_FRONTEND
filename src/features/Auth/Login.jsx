@@ -31,8 +31,9 @@ function Login({ setIsLoggedIn }) {
         email: userEmail,
         password: userPassword,
       });
+      
 
-      const { accessToken, refreshToken } = response?.data ?? {};
+      const { accessToken, refreshToken, userId } = response?.data ?? {};
       if (!accessToken || !refreshToken) {
         throw new Error("토큰이 응답되지 않았습니다.");
       }
@@ -41,6 +42,7 @@ function Login({ setIsLoggedIn }) {
       const saveTokens = (accessToken, refreshToken) => {
         localStorage.setItem('access_token', accessToken);
         localStorage.setItem('refresh_token', refreshToken);
+        localStorage.setItem('user_id', String(userId));
       };
       saveTokens(accessToken, refreshToken);
 
@@ -108,13 +110,12 @@ function Login({ setIsLoggedIn }) {
             <button 
               type='submit'
               className={styles.loginButton} 
-              onClick={handleFinalLogin}
               disabled={!userEmail || !userPassword}>
               로그인
             </button>
           </form>
           <p className={styles.signupText}>
-            첫 방문이신가요? <a href="/signup" className={styles.signupLink}>회원가입</a>
+            첫 방문이신가요? <Link to="/signup" className={styles.signupLink}>회원가입</Link>
           </p>
         </>
       )}
