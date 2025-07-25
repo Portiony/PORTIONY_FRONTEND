@@ -280,6 +280,30 @@ const handleCompleteTrade = async () => {
     if (result.sellerStatus === 'COMPLETED') count += 1;
     if (result.buyerStatus === 'COMPLETED') count += 1;
 
+    const isCompletedNow = result.sellerStatus === 'COMPLETED' && result.buyerStatus === 'COMPLETED';
+
+    //  selectedRoom 즉시 반영 (=> ChatBottom이 즉시 반응)
+    setSelectedRoom((prev) => ({
+      ...prev,
+      sellerStatus: result.sellerStatus,
+      buyerStatus: result.buyerStatus,
+      isCompleted: isCompletedNow,
+    }));
+
+    // chatRooms 안에서도 상태 반영
+    setChatRooms((prevRooms) =>
+      prevRooms.map((room) =>
+        room.id === selectedRoom.id
+          ? {
+              ...room,
+              sellerStatus: result.sellerStatus,
+              buyerStatus: result.buyerStatus,
+              isCompleted: isCompletedNow,
+            }
+          : room
+      )
+    );
+
     // 상태 반영
     // setSelectedRoom((prev) => ({
     //   ...prev,
