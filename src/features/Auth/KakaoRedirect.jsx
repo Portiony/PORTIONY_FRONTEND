@@ -1,44 +1,55 @@
 // src/features/Auth/KakaoRedirect.jsx
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from '../../lib/axios';
+import instance from '../../lib/axios';
 
 function KakaoRedirect({ setIsLoggedIn }) {
   const navigate = useNavigate();
 
   useEffect(() => {
     const code = new URL(window.location.href).searchParams.get('code');
-    console.log('현재 redirect URI:', window.location.href);
+    if (!code) {
+      alert('잘못된 접근입니다.');
+      navigate('/login');
+      return;
+    }
 
-    const fetchTokens = async () => {
+    const run = async () => {
       try {
-        const response = await axios.get(
-          `/api/users/login/oauth/kakao/success?code=${code}`
-        );
+        const { data } = await instance.get(`/api/users/login/oauth/kakao/success?code=${code}`);
 
-        const data = response.data;
-
-        if ('accessToken' in data) {
-          // 기존 회원 -> 로그인 처리
+        // accessToken 이 있으면 기존 회원
+        if (data && data.accessToken) {
           localStorage.setItem('access_token', data.accessToken);
           localStorage.setItem('refresh_token', data.refreshToken);
           localStorage.setItem('user_id', String(data.userId));
           setIsLoggedIn(true);
+          window.dispatchEvent(new Event('auth-change'));
           navigate('/');
-        } else if ('nickname' in data || 'email' in data) {
-          // 신규 회원 -> 회원가입 페이지로 이동
-          navigate('/signup/kakao', { state: data }); 
-        } else {
-          throw new Error('응답 데이터 형식 오류입니다.');
+          return;
         }
-      } catch (err) {
-        console.error('카카오 로그인 실패:', err);
+
+        // 신규 회원 (KakaoSignupRequestDto 형식 맞춤)
+        if (data && (data.email || data.nickname)) {
+          navigate('/signup/kakao', {
+            state: {
+              ...data,
+              isSocial: true,
+              socialProvider: 'KAKAO',
+            },
+          });
+          return;
+        }
+
+        throw new Error('서버 응답 형식이 올바르지 않습니다.');
+      } catch (e) {
+        console.error('카카오 로그인 실패:', e);
         alert('카카오 로그인에 실패했습니다.');
         navigate('/login');
       }
     };
 
-    if (code) fetchTokens();
+    run();
   }, [navigate, setIsLoggedIn]);
 
   return <p>카카오 로그인 처리 중입니다...</p>;
