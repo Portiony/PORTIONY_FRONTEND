@@ -19,6 +19,7 @@ import defaultProduct from '../../assets/profile-image.svg';
 
 function Chat() {
   const navigate = useNavigate();
+  const [myName, setMyName] = useState('');
   const messagesEndRef = useRef(null);
   const chatContainerRef = useRef(null);
   const BASE_URL = 'https://port-0-portiony-backend-md4272k5c4648749.sel5.cloudtype.app';
@@ -66,6 +67,7 @@ function Chat() {
       try {
         const { data } = await api.get('/api/users/');
         setMyUserId(data.userId);
+        setMyName(data.nickname);
       } catch (err) {
         console.error('사용자 정보 불러오기 실패:', err);
       }
@@ -448,6 +450,7 @@ const handleCompleteTrade = async () => {
       <ChatBottom
         isSeller={selectedRoom.isSeller}
         partnerName={selectedRoom.partnerName}
+        myName={myName}
         onCompleteTrade={handleCompleteTrade}
         chatStatus={'active'}
         isCompleted={selectedRoom.isCompleted}
