@@ -36,10 +36,17 @@ function GroupBuyDetail() {
   const { id } = useParams(); // URL에서 postId 추출
   const [product, setProduct] = useState(null);
 
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const fetchProductAndComments = async () => {
       try {
         const res = await axios.get(`/api/posts/${id}`);
+        console.log('전체 응답 데이터:', res.data);
+        console.log('post 데이터:', res.data.post);
+        console.log('images:', res.data.post?.images);
+
+
         setProduct(res.data.post);
         setComments(res.data.items.content);
         setCommentMeta({
@@ -47,20 +54,23 @@ function GroupBuyDetail() {
           totalPages: res.data.totalPages,
           currentPage: res.data.currentPage,
         });
+        setLikeCount(res.data.post.likeCount);
+        setLiked(res.data.post.likedByMe);
       } catch (err) {
         console.error("게시글 상세 조회 실패:", err);
+      } finally {
+        setLoading(false);
       }
     };
-
     fetchProductAndComments();
   }, [id]);
 
   // 모달 종류 (예: 좋아요, 삭제, 공유 등 다양한 모달 구분)
   const [modalType, setModalType] = useState(null);
 
-  // 좋아요 상태 및 좋아요 수
+  // 좋아요 상태
   const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(12);
+  const [likeCount, setLikeCount] = useState(0);
 
   // 모달 열림 상태
   const [isGroupBuyModalOpen, setIsGroupBuyModalOpen] = useState(false);
@@ -77,6 +87,21 @@ function GroupBuyDetail() {
     setSelectedImage(null);
   };
   const hasImages = Array.isArray(product?.images) && product.images.length > 0;
+
+  const categoryMap = {
+    "1": '생활용품',
+    "2": '반려동물',
+    "3": '가공식품',
+    "4": '신선식품',
+    "5": '의류',
+    "6": '기타',
+  };
+
+  const deliveryMethodMap = {
+    DIRECT: "직거래",
+    DELIVERY: "택배 배송",
+    ALL: "직거래 및 택배 배송",
+  };
 
   /* 댓글 상태 (초기 더미 댓글 43개)
   const dummyComments = Array.from({ length: 43 }, (_, i) => ({
@@ -153,40 +178,60 @@ function GroupBuyDetail() {
   // 좋아요 버튼 클릭 처리 함수
   const handleLikeClick = async () => {
     try {
-      await axios.post(`/api/posts/${id}/like`, { liked: !liked });
+      if (liked) {
+        await axios.delete(`/api/posts/${id}/like`, {
+          data: { liked: false } // DELETE일 때도 body 넣어야 하면 data 키로 전달
+        });
+        setLikeCount((prev) => prev - 1);
+      } else {
+        await axios.post(`/api/posts/${id}/like`);
+        setLikeCount((prev) => prev + 1);
+      }
+
       setLiked((prev) => !prev);
-      setLikeCount((prevCount) => liked ? prevCount - 1 : prevCount + 1);
     } catch (err) {
-      console.error("찜하기 실패", err);
+      console.error("찜 처리 실패", err);
     }
   };
 
+
   // 댓글 제출 처리 함수
-  const handleSubmit = () => {
-    // 공백 입력 방지
+  const handleSubmit = async () => {
     if (!input.trim()) return;
 
-    // 새 댓글 객체 생성
-    const newComment = {
-      id: comments.length + 1,
-      user: {
-        nickname: "나",
-        profileUrl: sellerProfile,
-      },
-      datetime: new Date().toISOString().slice(0, 16).replace("T", " "),
-      text: input,
-    };
+    try {
+      const res = await axios.post(`/api/posts/${id}/comments`, {
+        content: input
+      });
 
-    // 댓글 배열 맨 앞에 새 댓글 추가
-    setComments([newComment, ...comments]);
-    setInput("");       // 입력창 초기화
-    setCurrentPage(1);  // 첫 페이지로 이동 (새 댓글 보여주기 위해)
+      // 댓글 등록 후 댓글 목록 최신화
+      const updatedComments = await axios.get(`/api/posts/${id}/comments?page=1`);
+      const newContent = updatedComments.data.items?.content || [];
+      setComments(newContent);
+      setCommentMeta({
+        totalCount: updatedComments.data.totalCount,
+        totalPages: updatedComments.data.totalPages,
+        currentPage: updatedComments.data.currentPage,
+      });
+      setInput("");  // 입력창 초기화
+      setCurrentPage(1);  // 1페이지로 이동
+
+    } catch (err) {
+      console.error("댓글 등록 실패", err);
+    }
   };
 
-  // 상품이 존재하지 않으면 에러 메시지 렌더링
-  //if (!product) return <div className={styles['group-buy-detail-page']}>상품을 찾을 수 없습니다.</div>;
-  if (!product || !product.images) {
+
+  // 에러 메시지 렌더링
+  if (loading) {
     return <div className={styles['group-buy-detail-page']}>로딩 중...</div>;
+  }
+  if (!product) {
+    return <div className={styles['group-buy-detail-page']}>상품 정보를 불러오는 중입니다...</div>;
+  }
+  if (!Array.isArray(product.images)) {
+    // images가 null, undefined일 경우 빈 배열로 대체
+    product.images = [];
   }
 
   return (
@@ -256,9 +301,6 @@ function GroupBuyDetail() {
               )}
             </div>
 
-
-
-
             <div className={styles['product-info']}>
               <div className={`${styles['status']} ${isCompleted ? styles['completed'] : ''}`}>
                 {!isCompleted && <img src={clockIcon} alt="상태 아이콘" className={styles['status-icon']} />}
@@ -269,7 +311,7 @@ function GroupBuyDetail() {
               <dl className={styles['detail-list']}>
                 <div className={styles['detail-row']}>
                   <dt>카테고리</dt>
-                  <dd>{product.categoryId}</dd>
+                  <dd>{categoryMap[Number(product.categoryId)] || '알 수 없음'}</dd>
                 </div>
                 <div className={styles['detail-row']}>
                   <dt>1인당 소분량</dt>
@@ -281,7 +323,7 @@ function GroupBuyDetail() {
                 </div>
                 <div className={styles['detail-row']}>
                   <dt>거래 방법</dt>
-                  <dd>{product.method}</dd>
+                  <dd>{deliveryMethodMap[product.deliveryMethod] || '알 수 없음'}</dd>
                 </div>
                 <div className={styles['detail-row']}>
                   <dt>거래 위치</dt>
@@ -289,11 +331,11 @@ function GroupBuyDetail() {
                 </div>
                 <div className={styles['detail-row']}>
                   <dt>마감일</dt>
-                  <dd>{product.deadline}</dd>
+                  <dd>{product.deadline?.substring(0, 10)}</dd>
                 </div>
                 <div className={styles['detail-row']}>
                   <dt>작성일</dt>
-                  <dd>{product.createdAt}</dd>
+                  <dd>{product.createdAt?.substring(0, 10)}</dd>
                 </div>
               </dl>
               <div className={styles['seller-section']}>
@@ -390,13 +432,17 @@ function GroupBuyDetail() {
             onConfirm={async () => {
               try {
                 if (modalType === 'delete') {
+                  await axios.delete(`/api/posts/${id}`);
                   navigate('/');
                 } else if (modalType === 'complete') {
                   await axios.patch(`/api/posts/${id}/status`, {
-                    status: '공구 완료'
+                    status: 'DONE'
                   });
                   setIsCompleted(true);
                 } else if (modalType === 'reopen') {
+                  await axios.patch(`/api/posts/${id}/status`, {
+                    status: 'PROGRESS'
+                  });
                   setIsCompleted(false);
                 } else if (modalType === 'edit') {
                   navigate(`/group-buy/${id}/edit`);
@@ -410,6 +456,7 @@ function GroupBuyDetail() {
             onCancel={() => setIsGroupBuyModalOpen(false)}
           />
         )}
+
 
         {selectedImage && (
           <div className={styles['image-modal-overlay']} onClick={handleCloseImgModal}>
@@ -459,7 +506,7 @@ function GroupBuyDetail() {
                   />
                   <div className={styles['comment-content']}>
                     <div className={styles['comment-header']}>
-                      <span className={styles['comment-nickname']}>{comment.user.nickname}</span>
+                      <span className={styles['comment-nickname']}>{comment.commentUser.nickname}</span>
                       <span className={styles['comment-datetime']}>
                         {new Date(comment.createdAt).toLocaleString()}
                       </span>
