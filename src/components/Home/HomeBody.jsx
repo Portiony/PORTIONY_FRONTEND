@@ -10,8 +10,11 @@ import banner3 from '../../assets/banner3.png';
 import ProductList from '../ProductList/productList';
 import Pagination from '../../components/PageNumber/Pagination';
 import Dropdown from '../../components/DropDown/DropDown';
-import dummyProducts from '../../data/dummyProduct';
 import dummyTransactions from '../../data/dummyTransaction';
+
+import {fetchPosts} from '../../api/postApi';
+import { fetchAIPosts } from '../../api/postApi'; 
+
 
 const images = [
     banner1,
@@ -20,13 +23,20 @@ const images = [
 ];
 
 function HomeBody({ selectedAddress, selectedCategory, searchKeyword }) {
+  
   const navigate = useNavigate();
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [dateSort, setDateSort] = useState('');
+  const [dateSort, setDateSort] = useState("날짜");
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 12; // 페이지당 상품 개수
   const [showClosed, setShowClosed] = useState(false); //공구 마감된 상품 보기 여부
+  const [products, setProducts] = useState({
+    post: [],
+    total: 0,
+    page:1
+  }); // 상품 데이터
+
 
   // 슬라이더 이미지 변경을 위한 타이머 설정
   useEffect(() => {
@@ -53,45 +63,40 @@ function HomeBody({ selectedAddress, selectedCategory, searchKeyword }) {
     }
   });
 
-  // 상품 데이터
-  const products = dummyProducts
-    .filter(item => {
-      const isSameLocation = item.location === selectedAddress;
-      const isSameCategory = selectedCategory === '전체' ? true : item.category === selectedCategory;
-      const isSearchMatch = searchKeyword ? item.title.toLowerCase().includes(searchKeyword.toLowerCase()) : true;
-      return isSameLocation && isSameCategory && isSearchMatch;
-    })
-    .map(item => ({
-      id: item.id,
-      name: item.title,
-      price: `${Number(item.price).toLocaleString()} 원`,
-      image: item.images[0],
-      location: item.location,
-      endDate: item.deadline,
-      people: item.people,
-      details: `공구 인원 ${item.people}명 · 거래 완료 ${transactions[item.id] || 0}명`
-    }));
 
-  // 필터링: 공구 마감된 상품 보기 여부
-  let filtered = products.filter((item) => {
-    const today = new Date();
-    const endDate = new Date(item.endDate.replace(/\./g, '-'));
-    const isNotClosed = endDate >= today;
-    return showClosed || isNotClosed;
-  });
-  
-  // 필터링: 날짜 정렬
-  if (dateSort === '최신 순') {
-    filtered = filtered.sort((a, b) => b.endDate.localeCompare(a.endDate));
-  } else if (dateSort === '오래된 순') {
-    filtered = filtered.sort((a, b) => a.endDate.localeCompare(b.endDate));
-  }
+  // 상품 데이터 - 화면 바뀌거나 렌더링 될 때마다 API 호출
+  useEffect(() => {
+    const fetch = async () => {
+      try {
+        const data = await fetchPosts({
+          category: selectedCategory === '전체'? '' : selectedCategory,
+          page: currentPage,
+          status: showClosed? 'DONE' : 'PROGRESS',
+          regionId: selectedAddress?.sido,
+          subregionId: selectedAddress?.sigungu,
+          dongId: selectedAddress?.dong,
+          sort: dateSort === '최신 순' ? 'latest' : 'oldest',
+          keyword: searchKeyword,
+        });
+        const refinedPosts = data.posts.map(post => ({
+          id: post.id,
+          name: post.title,
+          price: `${post.price.toLocaleString()}원 / ${post.capacity}${post.unit}`,
+          image: post.thumbnail,
+          endDate: post.deadline,
+          details: `공구 인원 ${post.capacity}명 · 거래 완료 ${post.completedCount}명`,
+          location: selectedAddress?.dong
+        }));
+        setProducts({ total: data.total, posts: refinedPosts });
+      } catch (err) {
+        console.error('[상품 불러오기 실패]', err);
+      }
+    };
+    fetch();
+  }, [selectedCategory, currentPage, showClosed, selectedAddress, searchKeyword, dateSort]);
 
-  const totalPages = Math.ceil(filtered.length / productsPerPage);
-  const pagedProducts = filtered.slice(
-    (currentPage - 1) * productsPerPage,
-    currentPage * productsPerPage
-  );
+
+  const totalPages = (products.total + productsPerPage) / productsPerPage;
 
   return(
     <div className={styles.container}>
@@ -151,10 +156,10 @@ function HomeBody({ selectedAddress, selectedCategory, searchKeyword }) {
               >판매 등록</button>
           </div>
         </div>
-        <div className={pagedProducts.length === 0 ? styles.emptyContainer : ''}>
-          {pagedProducts.length > 0 ? (
+        <div className={products.total === 0 ? styles.emptyContainer : ''}>
+          {products.total > 0 ? (
             <ProductList
-              products = {pagedProducts}
+              products = {products.posts}
               context = "home"
             />
           ) : (
@@ -163,7 +168,7 @@ function HomeBody({ selectedAddress, selectedCategory, searchKeyword }) {
         </div>
       </div>
       <Pagination
-        totalPages={totalPages}
+        totalPages={Math.ceil(products.total / productsPerPage)}
         currentPage={currentPage}
         onPageChange={setCurrentPage}
       />
