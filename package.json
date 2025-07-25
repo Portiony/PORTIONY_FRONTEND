@@ -41,5 +41,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "postcss-color-hex-alpha": "^10.0.0",
+    "postcss-preset-env": "^10.2.4"
   }
 }

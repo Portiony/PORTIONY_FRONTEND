@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styles from './GroupBuyDetail.module.css';
 
@@ -6,11 +6,12 @@ import HomeHeader from '../../components/Home/HomeHeader';
 import LocationModal from '../../components/Home/LocationModal';
 import GroupBuyModal from '../../components/GroupBuy/GroupBuyModal';
 import Pagination from '../../components/PageNumber/Pagination';
-import dummyProducts from '../../data/dummyProduct';
+//import dummyProducts from '../../data/dummyProduct';
 import sellerProfile from "../../assets/seller-profile.svg";
 import clockIcon from "../../assets/clock-icon.svg";
 import chevronLeft from "../../assets/chevron-left.svg";
 import backIcon from "../../assets/back-icon-white.svg";
+import axios from '../../lib/axios';
 
 
 function GroupBuyDetail() {
@@ -24,21 +25,35 @@ function GroupBuyDetail() {
     setIsLocationModalOpen(false);
   };
 
-
-  // URL 파라미터에서 상품 ID 추출
-  const { id } = useParams();
-  console.log('url id:', id, typeof id);
-  console.log('더미:', dummyProducts.map(d => d.id));
-
-  // 상품 데이터 찾기 (더미 데이터에서)
-  const product = dummyProducts.find(item => String(item.id) === String(id));
-
   // -------------- 상태값 선언 ---------------
   // 판매자이면 true, 구매자이면 false
   const [isSeller, setIsSeller] = useState(true);
 
   // 공구완료면 true, 공구중이면 false
   const [isCompleted, setIsCompleted] = useState(false);
+
+  // URL 파라미터에서 상품 ID 추출
+  const { id } = useParams(); // URL에서 postId 추출
+  const [product, setProduct] = useState(null);
+
+  useEffect(() => {
+    const fetchProductAndComments = async () => {
+      try {
+        const res = await axios.get(`/api/posts/${id}`);
+        setProduct(res.data.post);
+        setComments(res.data.items.content);
+        setCommentMeta({
+          totalCount: res.data.totalCount,
+          totalPages: res.data.totalPages,
+          currentPage: res.data.currentPage,
+        });
+      } catch (err) {
+        console.error("게시글 상세 조회 실패:", err);
+      }
+    };
+
+    fetchProductAndComments();
+  }, [id]);
 
   // 모달 종류 (예: 좋아요, 삭제, 공유 등 다양한 모달 구분)
   const [modalType, setModalType] = useState(null);
@@ -61,9 +76,9 @@ function GroupBuyDetail() {
   const handleCloseImgModal = () => {
     setSelectedImage(null);
   };
+  const hasImages = Array.isArray(product?.images) && product.images.length > 0;
 
-
-  // 댓글 상태 (초기 더미 댓글 43개)
+  /* 댓글 상태 (초기 더미 댓글 43개)
   const dummyComments = Array.from({ length: 43 }, (_, i) => ({
     id: i + 1,
     user: {
@@ -74,6 +89,11 @@ function GroupBuyDetail() {
     text: `너무 예뻐요! 댓글 ${i + 1}번째입니다`,
   }));
   const [comments, setComments] = useState(dummyComments);
+  */
+
+  const [comments, setComments] = useState([]);
+  const [commentMeta, setCommentMeta] = useState({ totalCount: 0, totalPages: 0, currentPage: 0 });
+
 
   // 댓글 페이지네이션 관련 상태 및 변수
   const [currentPage, setCurrentPage] = useState(1);
@@ -83,7 +103,28 @@ function GroupBuyDetail() {
   // 현재 페이지에 보여줄 댓글 범위 계산
   const indexOfLast = currentPage * commentsPerPage;
   const indexOfFirst = indexOfLast - commentsPerPage;
-  const currentComments = comments.slice(indexOfFirst, indexOfLast);
+  //const currentComments = comments.slice(indexOfFirst, indexOfLast);
+
+  const handlePageChange = async (page) => {
+    try {
+      const res = await axios.get(`/api/posts/${id}/comments?page=${page}`);
+      setComments(res.data.items.content);
+      setCommentMeta({
+        totalCount: res.data.totalCount,
+        totalPages: res.data.totalPages,
+        currentPage: res.data.currentPage,
+      });
+    } catch (err) {
+      console.error("댓글 페이지네이션 실패", err);
+    }
+  };
+
+  const handleComplete = async () => {
+    await axios.patch(`/api/posts/${id}/status`, {
+      status: "공구 완료"
+    });
+    setIsCompleted(true);
+  };
 
   // 댓글 입력창 상태
   const [input, setInput] = useState("");
@@ -110,10 +151,14 @@ function GroupBuyDetail() {
   };
 
   // 좋아요 버튼 클릭 처리 함수
-  const handleLikeClick = () => {
-    setLiked((prev) => !prev);
-    // liked 값은 비동기 갱신이므로, 이전 상태 기준으로 증가/감소 처리
-    setLikeCount((prevCount) => (liked ? prevCount - 1 : prevCount + 1));
+  const handleLikeClick = async () => {
+    try {
+      await axios.post(`/api/posts/${id}/like`, { liked: !liked });
+      setLiked((prev) => !prev);
+      setLikeCount((prevCount) => liked ? prevCount - 1 : prevCount + 1);
+    } catch (err) {
+      console.error("찜하기 실패", err);
+    }
   };
 
   // 댓글 제출 처리 함수
@@ -139,8 +184,9 @@ function GroupBuyDetail() {
   };
 
   // 상품이 존재하지 않으면 에러 메시지 렌더링
-  if (!product) {
-    return <div className={styles['group-buy-detail-page']}>상품을 찾을 수 없습니다.</div>;
+  //if (!product) return <div className={styles['group-buy-detail-page']}>상품을 찾을 수 없습니다.</div>;
+  if (!product || !product.images) {
+    return <div className={styles['group-buy-detail-page']}>로딩 중...</div>;
   }
 
   return (
@@ -161,40 +207,57 @@ function GroupBuyDetail() {
           <div className={styles['product-wrapper']}>
 
             <div className={styles['product-image']}>
-              <button
-                className={styles['arrow-button']}
-                onClick={() => setCurrentImageIndex((prev) => (prev === 0 ? product.images.length - 1 : prev - 1))}
-                aria-label="이전 이미지"
-              >
-                <img src={backIcon} alt="이전" />
-              </button>
-              <img
-                src={product.images[currentImageIndex]}
-                alt={`상품 이미지 ${currentImageIndex + 1}`}
-                onClick={() => handleImageClick(product.images[currentImageIndex])}
-              />
-              <button
-                className={`${styles['arrow-button']} ${styles['right-arrow']}`}
-                onClick={() => setCurrentImageIndex((prev) => (prev === product.images.length - 1 ? 0 : prev + 1))}
-                aria-label="다음 이미지"
-              >
-                <img src={backIcon} alt="다음" />
-              </button>
-              {isCompleted && (
-                <div className={styles['overlay']}>
-                  <span className={styles['overlay-text']}>공구 마감된 상품입니다.</span>
-                </div>
-              )}
-              <div className={styles['image-dots']}>
-                {product.images.map((_, idx) => (
-                  <span
-                    key={idx}
-                    className={`${styles.dot} ${idx === currentImageIndex ? styles.active : ''}`}
-                    onClick={() => handleDotClick(idx)}
+              {product?.images?.length > 0 ? (
+                <>
+                  <button
+                    className={styles['arrow-button']}
+                    onClick={() =>
+                      setCurrentImageIndex((prev) =>
+                        prev === 0 ? product.images.length - 1 : prev - 1
+                      )
+                    }
+                    aria-label="이전 이미지"
+                  >
+                    <img src={backIcon} alt="이전" />
+                  </button>
+
+                  <img
+                    src={product.images[currentImageIndex]}
+                    alt={`상품 이미지 ${currentImageIndex + 1}`}
+                    onClick={() => handleImageClick(product.images[currentImageIndex])}
                   />
-                ))}
-              </div>
+
+                  <button
+                    className={`${styles['arrow-button']} ${styles['right-arrow']}`}
+                    onClick={() =>
+                      setCurrentImageIndex((prev) =>
+                        prev === product.images.length - 1 ? 0 : prev + 1
+                      )
+                    }
+                    aria-label="다음 이미지"
+                  >
+                    <img src={backIcon} alt="다음" />
+                  </button>
+
+                  <div className={styles['image-dots']}>
+                    {Array.isArray(product?.images) && product.images.map((_, idx) => (
+                      <span
+                        key={idx}
+                        className={`${styles.dot} ${
+                          idx === currentImageIndex ? styles.active : ''
+                        }`}
+                        onClick={() => handleDotClick(idx)}
+                      />
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <p className={styles['no-image']}>이미지가 없습니다.</p>
+              )}
             </div>
+
+
+
 
             <div className={styles['product-info']}>
               <div className={`${styles['status']} ${isCompleted ? styles['completed'] : ''}`}>
@@ -206,11 +269,11 @@ function GroupBuyDetail() {
               <dl className={styles['detail-list']}>
                 <div className={styles['detail-row']}>
                   <dt>카테고리</dt>
-                  <dd>{product.category}</dd>
+                  <dd>{product.categoryId}</dd>
                 </div>
                 <div className={styles['detail-row']}>
                   <dt>1인당 소분량</dt>
-                  <dd>{product.amount} {product.unit || product.unitCustom}</dd>
+                  <dd>{product.capacity} {product.unit || product.unitCustom}</dd>
                 </div>
                 <div className={styles['detail-row']}>
                   <dt>모집 · 거래 완료</dt>
@@ -230,7 +293,7 @@ function GroupBuyDetail() {
                 </div>
                 <div className={styles['detail-row']}>
                   <dt>작성일</dt>
-                  <dd>{product.createdAt}</dd> 
+                  <dd>{product.createdAt}</dd>
                 </div>
               </dl>
               <div className={styles['seller-section']}>
@@ -324,17 +387,25 @@ function GroupBuyDetail() {
                 : ''
             }
             cancelText="취소"
-            onConfirm={() => {
-              if (modalType === 'delete') {
-                navigate('/'); // 삭제 처리 (메인 화면 이동)
-              } else if (modalType === 'complete') {
-                setIsCompleted(true); // 공구완료 처리
-              } else if (modalType === 'reopen') {
-                setIsCompleted(false); // 재개시 처리
-              } else if (modalType === 'edit') {
-                navigate(`/group-buy/${id}/edit`); // 수정 처리 (수정페이지 이동)
+            onConfirm={async () => {
+              try {
+                if (modalType === 'delete') {
+                  navigate('/');
+                } else if (modalType === 'complete') {
+                  await axios.patch(`/api/posts/${id}/status`, {
+                    status: '공구 완료'
+                  });
+                  setIsCompleted(true);
+                } else if (modalType === 'reopen') {
+                  setIsCompleted(false);
+                } else if (modalType === 'edit') {
+                  navigate(`/group-buy/${id}/edit`);
+                }
+              } catch (err) {
+                console.error("모달 처리 중 오류", err);
+              } finally {
+                setIsGroupBuyModalOpen(false);
               }
-              setIsGroupBuyModalOpen(false);
             }}
             onCancel={() => setIsGroupBuyModalOpen(false)}
           />
@@ -357,11 +428,11 @@ function GroupBuyDetail() {
           </div>
         )}
 
-        {/* 댓글 영역*/}
+        {/* 댓글 영역 */}
         <div className={`${styles['white-box']} ${styles['second-box']}`}>
           <div className={styles['comment-section']}>
             <h2 className={styles['comment-title']}>
-                댓글 <span className={styles['comment-count']}>{comments.length}</span>
+              댓글 <span className={styles['comment-count']}>{commentMeta.totalCount}</span>
             </h2>
 
             <div className={styles['comment-input-wrapper']}>
@@ -374,33 +445,39 @@ function GroupBuyDetail() {
                 onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
               />
               <button className={styles['comment-submit']} onClick={handleSubmit}>
-                  등록
+                등록
               </button>
             </div>
 
             <ul className={styles['comment-list']}>
-              {currentComments.map((comment) => (
-                <li key={comment.id} className={styles['comment-item']}>
-                  <img src={comment.user.profileUrl} alt={comment.user.nickname} className={styles['comment-profile']} />
+              {comments.map((comment) => (
+                <li key={comment.commentId || comment.id} className={styles['comment-item']}>
+                  <img
+                    src={comment.commentUser.profileImage}
+                    alt={comment.commentUser.nickname}
+                    className={styles['comment-profile']}
+                  />
                   <div className={styles['comment-content']}>
                     <div className={styles['comment-header']}>
                       <span className={styles['comment-nickname']}>{comment.user.nickname}</span>
-                      <span className={styles['comment-datetime']}>{comment.datetime}</span>
+                      <span className={styles['comment-datetime']}>
+                        {new Date(comment.createdAt).toLocaleString()}
+                      </span>
                     </div>
-                    <p className={styles['comment-text']}>{comment.text}</p>
+                    <p className={styles['comment-text']}>{comment.content}</p>
                   </div>
                 </li>
               ))}
             </ul>
 
             <Pagination
-              totalPages={totalPages}
-              currentPage={currentPage}
-              onPageChange={setCurrentPage}
+              totalPages={commentMeta.totalPages}
+              currentPage={commentMeta.currentPage}
+              onPageChange={handlePageChange}
             />
-
           </div>
         </div>
+
       </div>
     </div>
   );
