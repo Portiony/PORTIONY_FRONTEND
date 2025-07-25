@@ -1,22 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import GroupBuyNew from './GroupBuyNew';
-import dummyProducts from '../../data/dummyProduct';
+import axios from '../../lib/axios';
 
 function GroupBuyEdit() {
   const { id } = useParams();
-  const productId = parseInt(id);
-
   const [initialData, setInitialData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const product = dummyProducts.find(p => p.id === productId);
-    if (product) {
-      setInitialData(product);
-    }
-    setLoading(false);
-  }, [productId]);
+    const fetchPostData = async () => {
+      try {
+        const res = await axios.get(`/api/posts/${id}`);
+        setInitialData(res.data.post);
+      } catch (err) {
+        console.error("게시글 불러오기 실패", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPostData();
+  }, [id]);
 
   if (loading) return <div>로딩중...</div>;
   if (!initialData) return <div>데이터를 불러올 수 없습니다.</div>;
@@ -24,7 +29,7 @@ function GroupBuyEdit() {
   return (
     <GroupBuyNew
       mode="edit"
-      productId={productId}
+      productId={id}
       initialData={initialData}
     />
   );

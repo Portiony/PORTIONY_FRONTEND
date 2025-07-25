@@ -15,6 +15,16 @@ import axios from '../../lib/axios';
 
 
 function GroupBuyDetail() {
+  // 판매자이면 true, 구매자이면 false
+  const [isSeller, setIsSeller] = useState(false);
+
+  // 공구완료면 true, 공구중이면 false
+  const [isCompleted, setIsCompleted] = useState(false);
+
+  // URL 파라미터에서 상품 ID 추출
+  const { id } = useParams(); // URL에서 postId 추출
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   // 지역 선택 모달 상태 (Header 관련)
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
@@ -25,18 +35,36 @@ function GroupBuyDetail() {
     setIsLocationModalOpen(false);
   };
 
-  // -------------- 상태값 선언 ---------------
-  // 판매자이면 true, 구매자이면 false
-  const [isSeller, setIsSeller] = useState(true);
+  const categoryMap = {
+      "1": '생활용품',
+      "2": '반려동물',
+      "3": '의류',
+      "4": '문구류',
+      "5": '육아용품',
+      "6": '화장품/뷰티',
+      "7": '잡화/기타'
+    };
 
-  // 공구완료면 true, 공구중이면 false
-  const [isCompleted, setIsCompleted] = useState(false);
+    const deliveryMethodMap = {
+      DIRECT: "직거래",
+      DELIVERY: "택배 배송",
+      ALL: "직거래 및 택배 배송",
+    };
 
-  // URL 파라미터에서 상품 ID 추출
-  const { id } = useParams(); // URL에서 postId 추출
-  const [product, setProduct] = useState(null);
+    const postStatusMap = {
+      PROGRESS: '공구 중',
+      DONE: '공구 완료',
+      CANCELLED: '취소됨'
+    };
 
-  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (product?.status === 'DONE') {
+      setIsCompleted(true);
+    }
+  }, [product]);
+
+
 
   useEffect(() => {
     const fetchProductAndComments = async () => {
@@ -88,20 +116,8 @@ function GroupBuyDetail() {
   };
   const hasImages = Array.isArray(product?.images) && product.images.length > 0;
 
-  const categoryMap = {
-    "1": '생활용품',
-    "2": '반려동물',
-    "3": '가공식품',
-    "4": '신선식품',
-    "5": '의류',
-    "6": '기타',
-  };
 
-  const deliveryMethodMap = {
-    DIRECT: "직거래",
-    DELIVERY: "택배 배송",
-    ALL: "직거래 및 택배 배송",
-  };
+
 
   /* 댓글 상태 (초기 더미 댓글 43개)
   const dummyComments = Array.from({ length: 43 }, (_, i) => ({
@@ -139,16 +155,10 @@ function GroupBuyDetail() {
         totalPages: res.data.totalPages,
         currentPage: res.data.currentPage,
       });
+      setCurrentPage(page);
     } catch (err) {
       console.error("댓글 페이지네이션 실패", err);
     }
-  };
-
-  const handleComplete = async () => {
-    await axios.patch(`/api/posts/${id}/status`, {
-      status: "공구 완료"
-    });
-    setIsCompleted(true);
   };
 
   // 댓글 입력창 상태
@@ -156,8 +166,6 @@ function GroupBuyDetail() {
 
   // 라우터 네비게이션 훅
   const navigate = useNavigate();
-
-  // --- 함수 선언 ---
 
   // 이미지 슬라이드에서 특정 인덱스 클릭시 현재 이미지 인덱스 변경
   const handleDotClick = (index) => {
@@ -215,6 +223,7 @@ function GroupBuyDetail() {
       });
       setInput("");  // 입력창 초기화
       setCurrentPage(1);  // 1페이지로 이동
+      handlePageChange(1); // 페이지네이션 함수 호출
 
     } catch (err) {
       console.error("댓글 등록 실패", err);
@@ -229,10 +238,7 @@ function GroupBuyDetail() {
   if (!product) {
     return <div className={styles['group-buy-detail-page']}>상품 정보를 불러오는 중입니다...</div>;
   }
-  if (!Array.isArray(product.images)) {
-    // images가 null, undefined일 경우 빈 배열로 대체
-    product.images = [];
-  }
+  const images = Array.isArray(product?.images) ? product.images : [];
 
   return (
     <div className={styles['group-buy-detail-page']}>
@@ -252,7 +258,7 @@ function GroupBuyDetail() {
           <div className={styles['product-wrapper']}>
 
             <div className={styles['product-image']}>
-              {product?.images?.length > 0 ? (
+              {images.length > 0 ? (
                 <>
                   <button
                     className={styles['arrow-button']}
@@ -267,7 +273,7 @@ function GroupBuyDetail() {
                   </button>
 
                   <img
-                    src={product.images[currentImageIndex]}
+                    src={images[currentImageIndex]}
                     alt={`상품 이미지 ${currentImageIndex + 1}`}
                     onClick={() => handleImageClick(product.images[currentImageIndex])}
                   />
