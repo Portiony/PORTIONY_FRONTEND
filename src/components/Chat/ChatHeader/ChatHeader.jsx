@@ -1,11 +1,17 @@
 // components/Chat/ChatHeader/ChatHeader.jsx
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import clock from '../../../assets/alarm.svg';
 import styles from './ChatHeader.module.css';
 import moreBtn from '../../../assets/more_vert.svg';
 import DdayBadge from '../ChatDdaybadge/ChatDdaybadge';
 
-function ChatHeader({ partnerName, postImage, title, price, ddayText }) {
+function ChatHeader({postId, partnerName, postImage, title, price, ddayText }) {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate(`/group-buy/${postId}`);
+  };
   return (
     <div className={styles.headerWrapper}>
       <div className={styles.topRow}>
@@ -17,7 +23,7 @@ function ChatHeader({ partnerName, postImage, title, price, ddayText }) {
       </div>
 
       <div className={styles.contentRow}>
-        <div className={styles.leftSection}>
+        <div className={styles.leftSection} onClick={handleClick} style={{ cursor: 'pointer' }}>
           <img src={postImage} alt="상품" className={styles.productImage} />
           <div className={styles.textSection}>
             <div className={styles.title}>
