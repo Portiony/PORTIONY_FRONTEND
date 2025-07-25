@@ -17,7 +17,7 @@ import GroupBuyModal from '../../GroupBuy/GroupBuyModal';
 import CompleteModal from '../Modal/Complete';
 import Complete2Modal from '../Modal/Complete2';
 
-function ChatBottom({ onSendMessage, isSeller, partnerName, myName, completionCount }) {
+function ChatBottom({ onSendMessage, isSeller, partnerName, myName, isCompleted, onCompleteTrade  }) {
   const [message, setMessage] = useState('');
   const [showOptions, setShowOptions] = useState(false);
   const [showAddressModal, setShowAddressModal] = useState(false);
@@ -258,15 +258,17 @@ const [deliveryData, setDeliveryData] = useState({
     {showCompleteModal && (
       <CompleteModal
         onCancel={() => setShowCompleteModal(false)}
-        onConfirm={() => {
+        onConfirm={async () => {
           setShowCompleteModal(false);
           setShowComplete2Modal(true);
 
+          const count = await onCompleteTrade();
+
           let systemMessage = '';
-          console.log(completionCount);
-          if (completionCount === 0) {
+          console.log('거래 완료 count:', count, '← 시스템 메시지 조건 확인');
+          if (count === 1) {
             systemMessage = `🎉 거래가 완료되었어요!\n판매자/구매자님 모두 [거래완료] 버튼을 눌러주셔야 거래가 ‘최종 완료’됩니다.`;
-          } else if (completionCount === 1) {
+          } else if (count === 2) {
             systemMessage = `🎉 소중한 거래가 최종 완료되었습니다!\n후기는 마이페이지에서 작성가능합니다 :)\n포셔니와 함께 해주셔서 감사합니다.`;
           }
 

@@ -22,176 +22,183 @@ function Chat() {
   const [myUserId, setMyUserId] = useState(null);
 
   const token = localStorage.getItem("accessToken");
-  const client = useRef(null);
-  const [selectedRoom, setSelectedRoom] = useState(null);
-  const selectedRoomRef = useRef(null); // ✅ 추가
-  const subscribedRoomIdsRef = useRef(new Set());
+  const client = useRef(null); //stomp 클라이언트(stompjs)
+  const [selectedRoom, setSelectedRoom] = useState(null); //현재 클릭된 채팅방
+  const selectedRoomRef = useRef(null); //선택된 채팅방 ref
+  const subscribedRoomIdsRef = useRef(new Set()); //중복 구독 방지용
 
-
-useEffect(() => {
-  const socket = new SockJS(`${BASE_URL}/ws-chat-sockjs`);
-  client.current = new Client({
-    webSocketFactory: () => socket,
-    onConnect: () => {
-      console.log('✅ WebSocket connected');
-      subscribeAllRooms(chatRooms);
-    },
-    onStompError: (frame) => {
-      console.error('WebSocket error:', frame);
-    },
-  });
-
-
-  client.current.activate();
-
-  return () => {
-    if (client.current) {
-      client.current.deactivate();
-    }
-  };
-}, []);
-
-useEffect(() => {
-  selectedRoomRef.current = selectedRoom;
-}, [selectedRoom]);
-
-
-
-//사용자 정보
-useEffect(() => {
-  const fetchMyUserInfo = async () => {
-    try {
-      const res = await fetch(`${BASE_URL}/api/users/`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
-      setMyUserId(data.userId);
-    } catch (err) {
-      console.error('사용자 정보 불러오기 실패:', err);
-    }
-  };
-
-  fetchMyUserInfo();
-}, []);
-
-//채팅방 목록 조회
-useEffect(() => {
-  const fetchChatRooms = async () => {
-    try {
-      const type = getChatTypeParam(dateSort); 
-      const response = await fetch(`${BASE_URL}/api/chats?type=${type}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,  // ← 요거
-        },
-      });
-      const data = await response.json();
-
-      const rooms = data.chatRoomsList.map((room) => ({
-        id: room.chatRoomId,
-        partnerName: room.partner.name,
-        lastMessage: room.lastMessage || '',
-        time: room.lastMessageTime
-          ? new Date(room.lastMessageTime).toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit',
-            })
-          : '',
-        title: room.post.title,
-        price: room.post.price.toLocaleString(),
-        ddayText: makeDdayText(room.post.deadline),
-        postImage: room.post.imageUrl,
-        profileImg: room.partner.profileImageUrl,
-        isSeller: room.isSeller,
-        isRead: room.isRead,
-        lastSenderId: room.lastMessageSenderId,
-        messages: [], // 나중에 실제 메시지 API로 채울 예정
-      }));
-
-      setChatRooms(rooms);
-    } catch (err) {
-      console.error('채팅방 불러오기 실패:', err);
-    }
-  };
-
-  fetchChatRooms();
-}, [dateSort]);
-
-
-// 모든 채팅방 구독 처리 > 목록에서도 실시간 반영을 위함
-useEffect(() => {
-  if (!client.current || !client.current.connected) return;
-subscribeAllRooms(chatRooms);
-
-}, [myUserId, client.current?.connected, chatRooms]); // ✅ chatRooms 빠짐!!
-
-
-const subscribeAllRooms = () => {
-  if (!client.current?.connected) return;
-
-  chatRooms.forEach((room) => {
-    const subId = `chat-room-${room.id}`;
-
-    // ✅ 이미 구독된 방은 무시
-    if (subscribedRoomIdsRef.current.has(room.id)) return;
-
-    console.log(`📡 구독 시도: ${subId}`);
-    client.current.subscribe(
-      `/sub/chat/room/${room.id}`,
-      (message) => {
-        const payload = JSON.parse(message.body);
-        if (payload.senderId === myUserId) return;
-
-        const newMsg = {
-          content: payload.content,
-          image: payload.imageUrls?.[0] || null,
-          time: payload.createdAt,
-          isMine: false,
-          isSystem: payload.senderId === 0,
-          systemType: payload.senderId === 0 ? payload.systemType : null,
-        };
-
-        // 채팅 목록 업데이트
-        setChatRooms((prevRooms) =>
-          prevRooms.map((r) =>
-            r.id === room.id
-              ? {
-                  ...r,
-                  lastMessage: payload.content,
-                  time: new Date(payload.createdAt).toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  }),
-                  isRead: selectedRoomRef.current?.id === r.id,
-                  lastSenderId: payload.senderId,
-                }
-              : r
-          )
-        );
-
-        // 현재 선택된 방일 경우 메시지도 추가
-        if (selectedRoomRef.current?.id === room.id) {
-          setSelectedRoom((prevRoom) => ({
-            ...prevRoom,
-            messages: [...prevRoom.messages, newMsg],
-          }));
-          setTimeout(scrollToBottom, 0);
-        }
+  //웹 소켓 연결 및 구독
+  useEffect(() => {
+    const socket = new SockJS(`${BASE_URL}/ws-chat-sockjs`);
+    client.current = new Client({
+      webSocketFactory: () => socket,
+      onConnect: () => { //웹 소켓 연결 후 모든 채팅방을 구독한다
+        console.log('✅ WebSocket connected');
+        subscribeAllRooms(chatRooms);
       },
-      { id: subId }
-    );
+      onStompError: (frame) => {
+        console.error('WebSocket error:', frame);
+      },
+    });
 
-    // ✅ 구독 기록
-    subscribedRoomIdsRef.current.add(room.id);
-  });
+    client.current.activate(); //소켓 연결 시작
+
+    return () => {
+      if (client.current) {
+        client.current.deactivate(); //페이지 나갈 때 소켓 종료
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    selectedRoomRef.current = selectedRoom; //현재 선택된 방 추적용, 최신값을 항상 유지함
+    console.log(selectedRoomRef.current);
+  }, [selectedRoom]);
+
+  //사용자 정보 불러옴
+  useEffect(() => {
+    const fetchMyUserInfo = async () => {
+      try {
+        const res = await fetch(`${BASE_URL}/api/users/`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
+        setMyUserId(data.userId);
+      } catch (err) {
+        console.error('사용자 정보 불러오기 실패:', err);
+      }
+    };
+    fetchMyUserInfo();
+  }, []);
+
+  //채팅방 목록 조회
+  useEffect(() => {
+    const fetchChatRooms = async () => {
+      try {
+        const type = getChatTypeParam(dateSort); 
+        const response = await fetch(`${BASE_URL}/api/chats?type=${type}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        const data = await response.json();
+
+        const rooms = data.chatRoomsList.map((room) => {
+          const sellerStatus = room.status?.sellerStatus;
+          const buyerStatus = room.status?.buyerStatus;
+          const isCompleted = sellerStatus === 'COMPLETED' && buyerStatus === 'COMPLETED';
+          
+          return {
+          id: room.chatRoomId,
+          partnerName: room.partner.name,
+          lastMessage: room.lastMessage || '',
+          time: room.lastMessageTime
+            ? new Date(room.lastMessageTime).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+              })
+            : '',
+          title: room.post.title,
+          price: room.post.price.toLocaleString(),
+          ddayText: makeDdayText(room.post.deadline),
+          postImage: room.post.imageUrl,
+          profileImg: room.partner.profileImageUrl,
+          isSeller: room.isSeller,
+          isRead: room.isRead,
+          lastSenderId: room.lastMessageSenderId,
+          messages: [],
+          sellerStatus,
+          buyerStatus,
+          isCompleted,
+          };
+        });
+
+        setChatRooms(rooms);
+      } catch (err) {
+        console.error('채팅방 불러오기 실패:', err);
+      }
+    };
+    fetchChatRooms();
+  }, [dateSort]);
+
+
+  // 모든 채팅방 구독 처리 > 목록에서 수신 메시지 실시간 반영을 위함
+  useEffect(() => {
+    if (!client.current || !client.current.connected) return; //웹소켓 연결 x
+    subscribeAllRooms(chatRooms);
+
+  }, [myUserId, client.current?.connected, chatRooms]); //myuserid 바뀔 때, 웹 소켓 연결 성공했을 때, chatroom 데이터가 바뀌었을 때 해당 useeffect 실행
+
+  // 모든 채팅방 구독 처리
+  const subscribeAllRooms = () => {
+    if (!client.current?.connected) return;
+
+    chatRooms.forEach((room) => { //보유하고 있는 chatroom 리스트를 순회 각 방을 하나씩 구독 처리
+      const subId = `chat-room-${room.id}`;
+
+      // 이미 구독된 방은 무시
+      if (subscribedRoomIdsRef.current.has(room.id)) return;
+
+      console.log(`구독 시도: ${subId}`);
+
+      //구독 로직
+      client.current.subscribe(
+        `/sub/chat/room/${room.id}`,
+        (message) => {
+          const payload = JSON.parse(message.body);
+          if (payload.senderId === myUserId) return; //내가 보낸 메시지 무시 > 이미 렌더링 처리됨
+
+          const newMsg = {
+            content: payload.content,
+            image: payload.imageUrls?.[0] || null,
+            time: payload.createdAt,
+            isMine: false,
+            isSystem: payload.senderId === 0,
+            systemType: payload.senderId === 0 ? payload.systemType : null,
+          };
+
+          // 채팅 목록 업데이트
+          setChatRooms((prevRooms) =>
+            prevRooms.map((r) =>
+              r.id === room.id
+                ? {
+                    ...r,
+                    lastMessage: payload.content,
+                    time: new Date(payload.createdAt).toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    }),
+                    isRead: selectedRoomRef.current?.id === r.id,
+                    lastSenderId: payload.senderId,
+                  }
+                : r
+            )
+          );
+
+          // 현재 선택된 방일 경우 메시지도 추가
+          if (selectedRoomRef.current?.id === room.id) {
+            setSelectedRoom((prevRoom) => ({
+              ...prevRoom,
+              messages: [...prevRoom.messages, newMsg], //내 메시지는 보내자마자 바로 렌더링 되므로 위에서 내가 보낸 메시지 무시 처리
+            }));
+            setTimeout(scrollToBottom, 0);
+          }
+        },
+        { id: subId }
+      );
+
+      // 구독 완료 표시
+      subscribedRoomIdsRef.current.add(room.id);
+    });
 };
 
 
-
+//채팅방 클릭 시 호출
 const handleEnterRoom = async (room) => {
   try {
     // 메시지 불러오기
@@ -203,6 +210,9 @@ const handleEnterRoom = async (room) => {
     });
 
     const data = await res.json(); // data.messageList로 옴
+    const sellerStatus = room.sellerStatus;
+    const buyerStatus = room.buyerStatus;
+    const isCompleted = sellerStatus === 'COMPLETED' && buyerStatus === 'COMPLETED';
 
     const formattedMessages = data.messageList.map((msg) => {
       const isSystem = msg.senderId === 0;
@@ -219,6 +229,7 @@ const handleEnterRoom = async (room) => {
     const updatedRoom = {
       ...room,
       messages: formattedMessages,
+      isCompleted,
     };
 
     // 읽음 처리 (내가 마지막 보낸 사람이 아닐 때만)
@@ -245,7 +256,51 @@ const handleEnterRoom = async (room) => {
   }
 };
 
+//거래완료
+const handleCompleteTrade = async () => {
+  if (!selectedRoom) return;
 
+  try {
+    const res = await fetch(`${BASE_URL}/api/chats/${selectedRoom.id}/complete`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`거래 완료 실패: ${text}`);
+    }
+
+    const result = await res.json(); // { sellerStatus, buyerStatus }
+
+    // count 계산 > 거래 완료 여부에 따름
+    let count = 0;
+    if (result.sellerStatus === 'COMPLETED') count += 1;
+    if (result.buyerStatus === 'COMPLETED') count += 1;
+
+    // 상태 반영
+    // setSelectedRoom((prev) => ({
+    //   ...prev,
+    //   completionCount: count,
+    // }));
+
+    // setChatRooms((prev) =>
+    //   prev.map((room) =>
+    //     room.id === selectedRoom.id
+    //       ? { ...room, completionCount: count }
+    //       : room
+    //   )
+    // );
+    console.log(`거래 완료 상태 업데이트 완료: ${count}`);
+    return count;
+  } catch (err) {
+    console.error(' 거래 완료 실패:', err);
+    alert('거래 완료 중 문제가 발생했습니다.');
+    return 0;
+  }
+};
 
 
 
@@ -360,10 +415,11 @@ const handleEnterRoom = async (room) => {
 
       <ChatBottom
         myName={myName}
-        isSeller={selectedRoom.isSeller} // TODO: 실제 로그인 유저 role로 바꿔줘!
+        isSeller={selectedRoom.isSeller}
         partnerName={selectedRoom.partnerName}
-        completionCount={selectedRoom.completionCount}
-        chatStatus={'active'} // TODO: 상태값에 따라 변경 가능
+        onCompleteTrade={handleCompleteTrade}
+        chatStatus={'active'}
+        isCompleted={selectedRoom.isCompleted}
         onSendMessage={(newMessage) => {
           const payload =
             typeof newMessage === 'string'
@@ -387,18 +443,18 @@ const handleEnterRoom = async (room) => {
           }
 
           const messageObj = {
-      content: payload.content,
-      image: payload.image || null,
-      time: new Date().toISOString(),
-      isMine: true,
-      isSystem: false,
-      systemType: null,
-    };
+            content: payload.content,
+            image: payload.image || null,
+            time: new Date().toISOString(),
+            isMine: true,
+            isSystem: false,
+            systemType: null,
+          };
 
-    setSelectedRoom((prevRoom) => ({
-      ...prevRoom,
-      messages: [...prevRoom.messages, messageObj],
-    }));
+          setSelectedRoom((prevRoom) => ({
+            ...prevRoom,
+            messages: [...prevRoom.messages, messageObj],
+          }));
 
             // ✅ 2. 채팅 목록에 lastMessage 갱신
           setChatRooms((prevRooms) =>
@@ -452,7 +508,6 @@ function groupMessagesByDate(messages) {
   });
   return grouped;
 }
-
        
 function getChatTypeParam(dateSort) {
   if (dateSort === '전체') return 'all';
