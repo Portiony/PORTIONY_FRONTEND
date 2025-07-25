@@ -90,12 +90,13 @@ function Chat() {
           id: room.chatRoomId,
           partnerName: room.partner.name,
           lastMessage: room.lastMessage || '',
-          time: room.lastMessageTime
-            ? new Date(room.lastMessageTime).toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-              })
-            : '',
+          // time: room.lastMessageTime
+          //   ? new Date(room.lastMessageTime).toLocaleTimeString([], {
+          //       hour: '2-digit',
+          //       minute: '2-digit',
+          //     })
+          //   : '',
+          time: room.lastMessageTime ? new Date(room.lastMessageTime) : null,
           title: room.post.title,
           price: room.post.price.toLocaleString(),
           ddayText: makeDdayText(room.post.deadline),
@@ -112,7 +113,8 @@ function Chat() {
           };
         });
 
-        setChatRooms(rooms);
+        //setChatRooms(rooms);
+        setChatRooms(sortRoomsByLatestMessage(rooms));
       } catch (err) {
         console.error('채팅방 불러오기 실패:', err);
       }
@@ -182,19 +184,22 @@ function Chat() {
 
           // 채팅 목록 업데이트
           setChatRooms((prevRooms) =>
+            sortRoomsByLatestMessage(
             prevRooms.map((r) =>
               r.id === room.id
                 ? {
                     ...r,
                     lastMessage: payload.content,
-                    time: new Date(payload.createdAt).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    }),
+                    // time: new Date(payload.createdAt).toLocaleTimeString([], {
+                    //   hour: '2-digit',
+                    //   minute: '2-digit',
+                    // }),
+                    time: new Date(payload.createdAt),
                     isRead: selectedRoomRef.current?.id === r.id,
                     lastSenderId: payload.senderId,
                   }
                 : r
+                )
             )
           );
 
@@ -379,7 +384,15 @@ const handleCompleteTrade = async () => {
                 key={room.id}
                 partnerName={room.partnerName}
                 lastMessage={room.lastMessage}
-                lastMessageTime={room.time}
+                // lastMessageTime={room.time}
+                lastMessageTime={
+                room.time instanceof Date
+                  ? room.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  : room.time
+                    ? new Date(room.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    : ''
+              }
+
                 postImage={room.postImage}
                 profileImg={room.profileImg}
                 hasUnread={room.lastMessage && !room.isRead && room.lastSenderId !== myUserId}
@@ -476,17 +489,20 @@ const handleCompleteTrade = async () => {
 
             // ✅ 2. 채팅 목록에 lastMessage 갱신
           setChatRooms((prevRooms) =>
+            sortRoomsByLatestMessage(
             prevRooms.map((room) =>
               room.id === selectedRoom.id
                 ? {
                     ...room,
                     lastMessage: payload.content,
-                    time: new Date().toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    }),
+                    // time: new Date().toLocaleTimeString([], {
+                    //   hour: '2-digit',
+                    //   minute: '2-digit',
+                    // }),
+                    time: new Date(),
                   }
                 : room
+            )
             )
           );
 
@@ -548,4 +564,10 @@ function makeDdayText(deadline) {
   return `마감 D-${diff}`;
 }
 
-
+function sortRoomsByLatestMessage(rooms) {
+  return [...rooms].sort((a, b) => {
+    const timeA = new Date(a.time || 0).getTime();
+    const timeB = new Date(b.time || 0).getTime();
+    return timeB - timeA; // 최신순 정렬
+  });
+}
