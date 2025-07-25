@@ -9,20 +9,20 @@
 
 /* 뒤로가기 + 이름 */
 .backWrapper {
-position: absolute;
-top: 13px;
-left: 26px;
-display: flex;
-align-items: center;
-gap: 26px; 
+  position: absolute;
+  top: 13px;
+  left: 26px;
+  display: flex;
+  align-items: center;
+  gap: 26px; 
 }
 
 /* 뒤로가기 */
 .backIcon {
-width: 25px;
-height: 25px;
-cursor: pointer;
-display: inline-block;
+  width: 25px;
+  height: 25px;
+  cursor: pointer;
+  display: inline-block;
 }
 
 /* 페이지 이름 */
@@ -32,22 +32,19 @@ display: inline-block;
   font-size: 20px;
   font-style: normal;
   font-weight: 600;
-  line-height: 20px; 
+  line-height: 20px;
   letter-spacing: -0.32px;
 }
 
 /* 내 동네 둘러보기 */
 .heading {
   color: #000;
-
-  /* Title/Title1 */
   font-family: Inter;
   font-size: 20px;
   font-style: normal;
   font-weight: 600;
-  line-height: 20px; /* 100% */
+  line-height: 20px;
   letter-spacing: -0.32px;
-
   margin-bottom: 74px;
 }
 
@@ -60,29 +57,24 @@ display: inline-block;
   margin-bottom: 30px;
 }
 
-/* 현재위치로찾기버튼  */
+/* 현재위치로찾기버튼 */
 .locationButton {
   display: flex;
   align-items: center;
   justify-content: center;
-
   width: 143px;
   height: 40px;
-  flex-shrink: 0;
-
   border: none;
   border-radius: 10px;
   background: #FECD24;
   cursor: pointer;
 
   color: #000;
-
-  /* Body/Body1 */
   font-family: Inter;
   font-size: 13px;
   font-style: normal;
   font-weight: 500;
-  line-height: 16px; /* 123.077% */
+  line-height: 16px;
   letter-spacing: -0.32px;
 }
 
@@ -103,25 +95,24 @@ display: inline-block;
 .searchInput {
   width: 100%;
   height: 100%;
-  padding: 10px 40px 10px 12px; 
+  padding: 10px 40px 10px 12px;
   box-sizing: border-box;
 
   border-radius: 10px;
   border: 1px solid #000;
   background: #FFF;
   box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.25);
+  margin-bottom: 20px;
 }
 
-/* 동명(읍, 면)으로 검색 (ex. 서초동) */
+/* 검색창 placeholder */
 .searchInput::placeholder {
   color: #6D6D6D;
-
-  /* Body/Body1 */
   font-family: Inter;
   font-size: 13px;
   font-style: normal;
   font-weight: 500;
-  line-height: 16px; /* 123.077% */
+  line-height: 16px;
   letter-spacing: -0.32px;
 }
 
@@ -136,94 +127,93 @@ display: inline-block;
   cursor: pointer;
 }
 
-/* 검색결과박스 */
+/* 검색결과 박스 */
 .resultBox {
   width: 605px;
-  height: 336px;
-
+  min-height: 100px;
+  max-height: 500px;
   border-radius: 10px;
   border: 1px solid #000;
   background: #FFF;
+  overflow-y: auto;
 }
 
-/* '검색어'검색 결과 */
+/* 검색어 결과 라벨 */
 .resultItemLabel {
   color: #000;
-
-  /* Body/Body1 */
   font-family: Inter;
   font-size: 13px;
   font-style: normal;
   font-weight: 500;
-  line-height: 16px; /* 123.077% */
+  line-height: 16px;
   letter-spacing: -0.32px;
-
   margin: 24px;
 }
 
 /* 구분선 */
 .resultBoxDivider {
   display: flex;
-  width: 547.001px;
-  height: 0px;
-  justify-content: center;
-  align-items: center;
-  flex-shrink: 0;
+  width: 547px;
+  height: 1px;
+  background-color: #ccc;
+  margin: 0 auto;
 }
 
-/* 검색결과 동네리스트 */
+/* 검색결과 동네 리스트 */
 .resultItemText {
   color: #000;
-
-  /* Body/Body1 */
   font-family: Inter;
   font-size: 13px;
   font-style: normal;
   font-weight: 500;
-  line-height: 16px; /* 123.077% */
+  line-height: 16px;
   letter-spacing: -0.32px;
   margin-left: 24px;
   margin-top: 20px;
-  gap: 20px;
+  cursor: pointer;
 }
 
-/* 검색결과 동네리스트 - 호버효과 */
+/* 검색결과 hover 효과 */
 .resultItemText:hover {
   text-decoration: underline;
 }
 
-/* 검색결과없을때 */
+/* 선택된 검색결과 */
+.selectedItem {
+  font-weight: 700;
+  text-decoration: underline;
+}
+.resultItemText:last-child {
+  margin-bottom: 20px;
+}
+
+/* 검색결과 없을 때 */
 .noResultText {
   color: #000;
-
-  /* Body/Body1 */
   font-family: Inter;
   font-size: 13px;
   font-style: normal;
   font-weight: 500;
-  line-height: 16px; /* 123.077% */
+  line-height: 16px;
   letter-spacing: -0.32px;
   margin-left: 24px;
   margin-top: 20px;
 }
 
-/* 선택동네 + 로 설정하시겠어요? 레이아웃*/
+/* 선택동네 안내박스 */
 .confirmBox {
-  height: 0;
   margin-top: 35px;
   transition: all 0.2s ease;
 }
 
-/* 동네선택했을때 */
+/* 동네 선택됨 */
 .visible {
   opacity: 1;
   visibility: visible;
-  height: auto;
-  margin: 0;
   text-align: center;
 }
 
-/* 동네선택 안했을때 */
+/* 동네 선택 안됨 */
 .hidden {
   opacity: 0;
   visibility: hidden;
@@ -231,21 +221,19 @@ display: inline-block;
   overflow: hidden;
 }
 
-/* 선택동네 + 로 설정하시겠어요? 문구*/
+/* 선택 문구 */
 .selectedText {
   color: #000;
-
-  /* Title/Title2 */
   font-family: Inter;
   font-size: 16px;
   font-style: normal;
   font-weight: 600;
-  line-height: 16px; /* 100% */
+  line-height: 16px;
   letter-spacing: -0.32px;
-  margin: 35px 0;
+  margin: 35px 0 20px 0;
 }
 
-/* 다음버튼 */
+/* 다음 버튼 */
 .nextButton {
   display: flex;
   width: 375px;
@@ -262,17 +250,17 @@ display: inline-block;
 
   color: #FFF;
   text-align: center;
-
-  /* Title/Title1 */
   font-family: Inter;
   font-size: 20px;
   font-style: normal;
   font-weight: 600;
-  line-height: 20px; /* 100% */
+  line-height: 20px;
   letter-spacing: -0.32px;
+
+  margin-top: 30px;
 }
 
-/* 다음버튼 - 비활성화 */
+/* 다음 버튼 - 비활성화 */
 .nextButton:disabled {
   background: #D9D9D9;
   cursor: not-allowed;

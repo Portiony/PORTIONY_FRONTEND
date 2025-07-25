@@ -74,22 +74,34 @@ export default function ProfileEditModal({ open, onClose, currentProfile, onSave
   const handleSubmit = async e => {
     e.preventDefault();
 
-    if (!oldPasswordInput) {
-      setErrorMsg('현재 비밀번호를 입력하세요.');
-      setErrorType('old');
-      return;
+    const wantsPasswordChange = password || passwordConfirm;
+
+    if (wantsPasswordChange) {
+      if (!oldPasswordInput) {
+        setErrorMsg('현재 비밀번호를 입력하세요.');
+        setErrorType('old');
+        return;
+      }
+      if (password !== passwordConfirm) {
+        setErrorMsg('비밀번호가 일치하지 않습니다.');
+        setErrorType('confirm');
+        return;
+      }
     }
 
     const requestBody = {
       nickname,
       profileImage: profileImg,
-      currentPassword: oldPasswordInput,
-      newPassword: password || undefined
     };
+
+    if (wantsPasswordChange) {
+      requestBody.currentPassword = oldPasswordInput;
+      requestBody.newPassword = password;
+    }
 
     try {
       const res = await instance.patch('/api/users/me', requestBody);
-      alert(res.data.message);
+      alert(res.data.message || '프로필이 수정되었습니다.');
       if (password) localStorage.setItem('password', password);
       onSave({ nickname, email, profileImg });
       onClose();
@@ -246,7 +258,7 @@ export default function ProfileEditModal({ open, onClose, currentProfile, onSave
                 setErrorType('');
                 setErrorMsg('');
               }}
-              placeholder="현재 비밀번호를 입력해주세요."
+              placeholder="비밀번호 변경 시 입력"
               autoComplete="current-password"
             />
             <ErrorMsg field="old" />
@@ -263,7 +275,7 @@ export default function ProfileEditModal({ open, onClose, currentProfile, onSave
                 setErrorType('');
                 setErrorMsg('');
               }}
-              placeholder="새 비밀번호를 입력해주세요."
+              placeholder="비밀번호 변경 안 할 시 비워두기"
               autoComplete="new-password"
             />
             <ErrorMsg field="new" />
@@ -280,7 +292,7 @@ export default function ProfileEditModal({ open, onClose, currentProfile, onSave
                 setErrorType('');
                 setErrorMsg('');
               }}
-              placeholder="새 비밀번호를 다시 한 번 입력해주세요."
+              placeholder="비밀번호 다시 입력"
               autoComplete="new-password"
             />
             <ErrorMsg field="confirm" />
