@@ -11,6 +11,9 @@ import ChatMessage from '../../components/Chat/ChatMessage/ChatMessage';
 
 import profileImg from '../../assets/profile.png';
 import postImage from '../../assets/product.png'; //상품 이미지
+import defaultProfile from '../../assets/LOGOMAIN.png';
+import defaultProduct from '../../assets/profile-image.svg';
+
 
 function Chat() {
   const myName = '남예은';
@@ -106,8 +109,8 @@ function Chat() {
           title: room.post.title,
           price: room.post.price.toLocaleString(),
           ddayText: makeDdayText(room.post.deadline),
-          postImage: room.post.imageUrl,
-          profileImg: room.partner.profileImageUrl,
+          postImage: room.post.imageUrl || defaultProduct,
+          profileImg: room.partner.profileImageUrlv || defaultProfile,
           isSeller: room.isSeller,
           isRead: room.isRead,
           lastSenderId: room.lastMessageSenderId,
