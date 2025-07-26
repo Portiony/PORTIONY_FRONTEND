@@ -79,7 +79,7 @@ function HomeBody({ selectedAddress, selectedCategory, searchKeyword }) {
           regionId: selectedAddress?.sido,
           subregionId: selectedAddress?.sigungu,
           dongId: selectedAddress?.dong,
-          sort: dateSort === '최신 순' ? 'latest' : 'oldest',
+          sort: dateSort === '날짜' ? 'latest' : dateSort,
           keyword: searchKeyword,
         });
         const refinedPosts = data.posts.map(post => ({
