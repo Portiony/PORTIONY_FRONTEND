@@ -33,18 +33,21 @@ function Chat() {
   const [selectedRoom, setSelectedRoom] = useState(null); //현재 클릭된 채팅방
   const selectedRoomRef = useRef(null); //선택된 채팅방 ref
   const subscribedRoomIdsRef = useRef(new Set()); //중복 구독 방지용
+  const hasEnteredRoomRef = useRef(false); //채팅하기 버튼 > 바로 해당 채팅룸 진입 무한루프 방지용
 
   //채팅하기 버튼 누르고 채팅방으로 진입했을 때
   useEffect(() => {
-  if (!location.state?.chatRoomId) return;
-    const roomId = location.state.chatRoomId;
+    if (!location.state?.chatRoomId || hasEnteredRoomRef.current) return;
 
-    // chatRooms가 로딩된 이후 room 찾기
+    const roomId = location.state.chatRoomId;
     const targetRoom = chatRooms.find((room) => room.id === roomId);
     if (targetRoom) {
-      handleEnterRoom(targetRoom);
+      handleEnterRoom(targetRoom);//진입이 한 번만 되게
+      hasEnteredRoomRef.current = true;
+
+      navigate('/chat', { replace: true });
     }
-  }, [chatRooms, location.state]);
+  }, [chatRooms, location.state, navigate]);
 
   //웹 소켓 연결 및 구독
   useEffect(() => {
