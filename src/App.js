@@ -62,8 +62,13 @@ function App() {
           <div className="scrollable-content">
             <Routes>
               {/* 비회원용 */}
+              {/* 회원가입 */}
               <Route path="/signup" element={isLoggedIn ? <Navigate to="/" /> : <SignUp />} />
+              {/* 카카오 신규회원 회원가입 */}
+              <Route path="/signup/kakao" element={isLoggedIn ? <Navigate to="/" /> : <SignUp initialStep={3} />} />
+              {/* 로그인 */}
               <Route path="/login" element={isLoggedIn ? <Navigate to="/" /> : <Login setIsLoggedIn={setIsLoggedIn} />} />
+              {/* 카카오 로그인 */}
               <Route path="/login/oauth/kakao" element={<KakaoRedirect setIsLoggedIn={setIsLoggedIn} />} />
 
               {/* 로그인 필수 */}

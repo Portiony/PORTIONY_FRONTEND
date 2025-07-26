@@ -12,62 +12,13 @@ function SignupLocation({ onNext, onBack }) {
   const [lastSearch, setLastSearch] = useState('중앙동');
   const [results, setResults] = useState([]);
   const [selectedUI, setSelectedUI] = useState(''); // 검색 결과 중 UI 선택 상태
-  const [selectedAddress, setSelectedAddress] = useState(''); // 실제 선택된 주소
-  const [resolved, setResolved] = useState(null); // regionId 정보 저장
+  const [selectedAddress, setSelectedAddress] = useState(''); // 실제 선택된 주소 (서버반환)
+  const [resolved, setResolved] = useState(false); // regionId 정보 저장
   const [loading, setLoading] = useState(false);
 
-  // Kakao API로 위도/경도 → 주소 문자열
-  const fetchAddressFromCoords = async (lat, lon) => {
-    const res = await fetch(
-      `https://dapi.kakao.com/v2/local/geo/coord2regioncode.json?x=${lon}&y=${lat}`,
-      {
-        headers: {
-          Authorization: `KakaoAK ${process.env.REACT_APP_KAKAO_REST_API_KEY}`,
-        },
-      }
-    );
-
-    const data = await res.json();
-    const region = data.documents?.[0];
-    if (!region) throw new Error('주소 정보 없음');
-
-    return `${region.region_1depth_name} ${region.region_2depth_name} ${region.region_3depth_name}`;
-  };
-
-  // 주소 문자열 → regionId 매핑 요청
-  const resolveRegion = async (address) => {
-    setLoading(true);
-    try {
-      const res = await fetch('/api/location/resolve', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address }),
-      });
-
-      if (!res.ok) throw new Error('주소 매핑 실패');
-      const data = await res.json(); // { regionId, subregionId, dongId }
-
-      // Context에 저장
-      setSignupData(prev => ({
-        ...prev,
-        regionId: data.regionId,
-        subregionId: data.subregionId,
-        dongId: data.dongId,
-      }));
-
-      setResolved(data); // 다음 단계 가능
-    } catch (err) {
-      alert('주소 매핑 실패: ' + err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
 
   // 현재 위치 버튼 클릭 시
   const handleCurrentLocation = () => {
-    // 임시 위치 처리
-    // 나중에 아래 코드는 다시 활성화
     
     if (!navigator.geolocation) {
       alert('브라우저가 위치 정보를 지원하지 않습니다.');
@@ -78,36 +29,51 @@ function SignupLocation({ onNext, onBack }) {
       const { latitude, longitude } = position.coords;
 
       try {
-        const address = await fetchAddressFromCoords(latitude, longitude);
-        setSelectedAddress(address);
-        setSelectedUI(address);
+        setLoading(true);
 
+        // 서버에 위경도 전달 -> address 스트링 반환
+        const res = await fetch('/api/location/resolve', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json'},
+          body: JSON.stringify({latitude, longitude}),
+        });
+
+        if (!res.ok) {
+          const errText = await res.text();
+          console.error('resolve error:', res.status, errText);
+          throw new Error(`주소 매핑 실패(${res.status})`);
+        }
+
+        const data = await res.json();
+        //  { regionId, subregionId, dongId, address } 이 부분
+
+        setSelectedAddress(data.address);
+        setSelectedUI(data.address);
+
+        // context 저장
         setSignupData(prev => ({
           ...prev,
-          regionId: 22,
-          subregionId: 287,
-          dongId: 7486,
+          regionId: data.regionId,
+          subregionId: data.subregionId,
+          dongId: data.dongId,
+          address: data.address,
         }));
 
         setResolved(true);
 
-        // await resolveRegion(address);
       } catch (err) {
         console.error('주소 변환 실패:', err);
         alert('위치 정보를 가져오는 데 실패했습니다.');
+      } finally {
+        setLoading(false);
       }
-    });
-  
-
-   } // 지금은 그냥 ID 3개 바로 저장
-  //   setSignupData(prev => ({
-  //     ...prev,
-  //     regionId: 22,
-  //     subregionId: 287,
-  //     dongId: 7486,
-  //   }));
-  //   setResolved(true);
-  // };
+    },
+    (err) => {
+      console.error('Geolocation error:', err);
+      alert('브라우저에서 위치 권한을 거부했거나 오류가 발생했습니다.');
+    }
+  );
+}; 
 
   // 더미 검색 결과
   const handleSearch = async () => {
@@ -197,6 +163,7 @@ function SignupLocation({ onNext, onBack }) {
       <button
         className={styles.nextButton}
         onClick={onNext}
+        //테스트 중 다음단계 강제로 넘기고싶으면 아래 코드 주석처리하기
         disabled={!resolved || loading}
       >
         <span>{loading ? '위치 확인 중...' : '다음'}</span>
