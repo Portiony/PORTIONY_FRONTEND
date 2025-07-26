@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation  } from 'react-router-dom';
 import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 import boxImage from '../../assets/chat_logo.png';
@@ -19,6 +19,7 @@ import defaultProduct from '../../assets/profile-image.svg';
 
 function Chat() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [myName, setMyName] = useState('');
   const messagesEndRef = useRef(null);
   const chatContainerRef = useRef(null);
@@ -32,6 +33,18 @@ function Chat() {
   const [selectedRoom, setSelectedRoom] = useState(null); //현재 클릭된 채팅방
   const selectedRoomRef = useRef(null); //선택된 채팅방 ref
   const subscribedRoomIdsRef = useRef(new Set()); //중복 구독 방지용
+
+  //채팅하기 버튼 누르고 채팅방으로 진입했을 때
+  useEffect(() => {
+  if (!location.state?.chatRoomId) return;
+    const roomId = location.state.chatRoomId;
+
+    // chatRooms가 로딩된 이후 room 찾기
+    const targetRoom = chatRooms.find((room) => room.id === roomId);
+    if (targetRoom) {
+      handleEnterRoom(targetRoom);
+    }
+  }, [chatRooms, location.state]);
 
   //웹 소켓 연결 및 구독
   useEffect(() => {
