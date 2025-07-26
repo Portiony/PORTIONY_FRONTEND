@@ -41,7 +41,18 @@ function SignupSurvey({ onNext, onBack }) {
     '기타': 5,
   };
 
-    const buildPayload = (overrides = {}) => {
+  const uploadProfileImage = async (file) => {
+    if(!file) return;
+
+    const formData = new FormData();
+    formData.append('profileImage', file);
+
+    await instance.patch('/api/users/me', formData, {
+      headers: {'Content-Type': 'multipart/form-data'},
+    });
+  };
+
+  const buildPayload = (overrides = {}) => {
     const mappedData = {
       mainCategory: categoryMap[category] || 0,
       purchaseReason: purposeMap[purpose] || 0,
@@ -61,6 +72,7 @@ function SignupSurvey({ onNext, onBack }) {
 
       // 카카오 신규회원 여부?
       const isKakao = signupData?.isSocial === true;
+      const file = signupData?.profileImageFile;
 
       if (isKakao) {
         // 카카오 신규회원 가입 완료
@@ -75,6 +87,7 @@ function SignupSurvey({ onNext, onBack }) {
         onNext?.(); // done 페이지로 이동
       } else { // 일반 회원가입 완료
           const res = await instance.post('/api/users/signup', payload);
+          await uploadProfileImage(file);
           onNext?.(); // done 페이지로 이동
         }
       } catch (err) {

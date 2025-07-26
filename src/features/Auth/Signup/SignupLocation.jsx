@@ -4,11 +4,19 @@ import location from '../../../assets/location.svg';
 import styles from './SignupLocation.module.css';
 import search from '../../../assets/search(gray).svg';
 import { useSignup } from './SignupContext'; // ✅ Context import
+import instance from '../../../lib/axios';
+
+const DEFAULT_SUGGESTIONS = [
+  { address: '경기도 평택시 중앙동' },
+  { address: '경기도 용인시 처인구 중앙동' },
+  { address: '충남 천안시 동남구 중앙동' },
+  { address: '경기도 안산시 단원구 중앙동' }
+];
 
 function SignupLocation({ onNext, onBack }) {
   const { setSignupData } = useSignup(); // ✅ 상태 저장용
 
-  const [searchTerm, setSearchTerm] = useState('중앙동');
+  const [searchTerm, setSearchTerm] = useState('');
   const [lastSearch, setLastSearch] = useState('중앙동');
   const [results, setResults] = useState([]);
   const [selectedUI, setSelectedUI] = useState(''); // 검색 결과 중 UI 선택 상태
@@ -16,8 +24,15 @@ function SignupLocation({ onNext, onBack }) {
   const [resolved, setResolved] = useState(false); // regionId 정보 저장
   const [loading, setLoading] = useState(false);
 
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
 
-  // 현재 위치 버튼 클릭 시
+  // 검색결과박스 초기화면
+  useEffect(() => {
+  setResults(DEFAULT_SUGGESTIONS);
+}, []);
+
+  // 현재 위치로찾기 버튼 클릭 시
   const handleCurrentLocation = () => {
     
     if (!navigator.geolocation) {
@@ -78,29 +93,57 @@ function SignupLocation({ onNext, onBack }) {
   );
 }; 
 
-  // 더미 검색 결과
-  const handleSearch = async () => {
-    if (!searchTerm.trim()) return;
+  // 키워드 검색 시 
+  const handleSearch = async (keyword = searchTerm, targetPage = 1) => {
+    const k = keyword.trim();
+    if (!k) return;
 
-    const results = [
-      '경기도 평택시 중앙동',
-      '경기도 용인시 처인구 중앙동',
-      '충남 천안시 동남구 중앙동',
-      '경기도 안산시 단원구 중앙동'
-    ];
+    try {
+      setLoading(true);
+      const res = await instance.get('/api/location/search', {
+        params: { keyword: k, page: targetPage, size: pageSize },
+      });
 
-    setResults(results);
-    setLastSearch(searchTerm);
-    setSearchTerm('');
+      setResults(res.data);
+      setPage(targetPage);
+      setLastSearch(k);
+      if (targetPage === 1) { // 검색어 입력 시에만 초기화하도록
+      setSearchTerm('');
+    }
+      setSelectedUI('');
+    } catch (err) {
+      console.error('검색 실패:', err)
+      alert('검색에 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => {
-    handleSearch();
-  }, []);
+  const handlePrev = async () => {
+    if (page === 1 || loading) return;
+    await handleSearch(lastSearch, page - 1);
+  };
 
-  useEffect(() => {
-    setSelectedUI('');
-  }, [searchTerm]);
+  const handleNext = async () => {
+    if (loading) return;
+    if (results.length < pageSize) return;
+    await handleSearch(lastSearch, page + 1);
+  };
+
+  const selectResult = (item) => {
+    setSelectedUI(item.address);
+    setSelectedAddress(item.address);
+
+    setSignupData(prev => ({
+      ...prev,
+      regionId: item.regionId,
+      subregionId: item.subregionId,
+      dongId: item.dongId,
+      address: item.address,
+    }));
+
+    setResolved(true);
+  };
 
   return (
     <div className={styles.allContainer}>
@@ -142,20 +185,39 @@ function SignupLocation({ onNext, onBack }) {
         {results.map((item, idx) => (
           <div
             key={idx}
-            className={`${styles.resultItemText} ${selectedUI === item ? styles.selectedItem : ''}`}
+            className={`${styles.resultItemText} ${selectedUI === item.address ? styles.selectedItem : ''}`}
             onClick={() => {
-              setSelectedUI(item);
-              alert('검색된 지역은 현재 사용할 수 없습니다.\n"현재 위치로 찾기"를 이용해주세요.');
+              selectResult(item)
             }}
           >
-            {item}
+            {item.address}
           </div>
         ))}
 
-        {results.length === 0 && searchTerm && (
+        {results.length === 0 && lastSearch && !loading && (
           <p className={styles.noResultText}>검색 결과가 없습니다.</p>
         )}
       </div>
+
+      <div className={styles.pagination}>
+        <button
+          type="button"
+          disabled={page === 1 || loading}
+          onClick={handlePrev}
+          className={styles.pageButton}
+        >
+          이전
+        </button>
+        <span className={styles.pageInfo}>{page} 페이지</span>
+        <button
+          type="button"
+          disabled={loading || results.length < pageSize}
+          onClick={handleNext}
+          className={styles.pageButton}
+        >
+          다음
+        </button>
+      </div>  
 
       {selectedAddress && (
         <div className={styles.confirmBox}>
