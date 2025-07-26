@@ -31,12 +31,15 @@ function SignupLocation({ onNext, onBack }) {
       try {
         setLoading(true);
 
-        // 서버에 위경도 전달 -> address 스트링 반환
-        const res = await fetch('/api/location/resolve', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json'},
-          body: JSON.stringify({latitude, longitude}),
-        });
+        const res = await fetch(
+          'https://port-0-portiony-backend-md4272k5c4648749.sel5.cloudtype.app/api/location/resolve',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ latitude, longitude }),
+          }
+        );
+        
 
         if (!res.ok) {
           const errText = await res.text();
