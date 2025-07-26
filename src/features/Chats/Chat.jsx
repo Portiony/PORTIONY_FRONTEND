@@ -201,26 +201,21 @@ function Chat() {
           }
 
           // 실시간 읽음 처리 추가 > 내가 보고 있는 채팅방
-          if (selectedRoomRef.current?.id === room.id) {
-            try {
-              await api.patch(`/api/chats/${room.id}/read`);
+          // 디바운스된 읽음 처리로 대체
+        if (selectedRoomRef.current?.id === room.id) {
+          debouncedMarkAsRead(room.id);
 
-              setChatRooms((prevRooms) =>
-                prevRooms.map((r) =>
-                  r.id === room.id ? { ...r, isRead: true } : r
-                )
-              );
+          setChatRooms((prevRooms) =>
+            prevRooms.map((r) =>
+              r.id === room.id ? { ...r, isRead: true } : r
+            )
+          );
 
-              setSelectedRoom((prev) => ({
-                ...prev,
-                isRead: true,
-              }));
-            } catch (err) {
-              console.error('실시간 읽음 처리 실패:', err);
-            }
-          }
-
-
+          setSelectedRoom((prev) => ({
+            ...prev,
+            isRead: true,
+          }));
+        }
 
           // 채팅 목록 업데이트
           setChatRooms((prevRooms) =>
@@ -448,7 +443,7 @@ const handleCompleteTrade = async () => {
         {selectedRoom ? (
           <div className={styles.chatDetail}>
       
-          {/* ✅ 헤더 컴포넌트 추가 */}
+          {/* 헤더 컴포넌트 추가 */}
           <ChatHeader
             postId = {selectedRoom.postId}
             partnerName={selectedRoom.partnerName}
@@ -613,3 +608,12 @@ function sortRoomsByLatestMessage(rooms) {
     return timeB - timeA; // 최신순 정렬
   });
 }
+
+//읽음 처리 api 0.5초에 1번만 호출됨 > 서버 부하 방지
+const debouncedMarkAsRead = debounce(async (roomId) => {
+  try {
+    await api.patch(`/api/chats/${roomId}/read`);
+  } catch (err) {
+    console.error('실시간 읽음 처리 실패:', err);
+  }
+}, 500);
