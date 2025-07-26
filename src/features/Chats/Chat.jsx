@@ -9,6 +9,7 @@ import ChatListItem from '../../components/Chat/ChatListItem/ChatListItem';
 import ChatHeader from '../../components/Chat/ChatHeader/ChatHeader';
 import ChatBottom from '../../components/Chat/ChatBottom/ChatBottom';
 import ChatMessage from '../../components/Chat/ChatMessage/ChatMessage';
+import debounce from 'lodash.debounce';
 import api from '../../lib/axios';
 
 import profileImg from '../../assets/profile.png';
@@ -163,9 +164,10 @@ function Chat() {
       //구독 로직
       client.current.subscribe(
         `/sub/chat/room/${room.id}`,
-        (message) => {
+        async (message) => {
           const payload = JSON.parse(message.body);
           if (payload.senderId === myUserId) return; //내가 보낸 메시지 무시 > 이미 렌더링 처리
+          //거래 완료 시스템 메시지 확인 > 실시간 버튼 disable 처리(첫 번째로 거래 완료 처리한 사람을 위한)
           const isFinalCompleteMessage = payload.content?.includes('🎉 소중한 거래가 최종 완료되었습니다!\n후기는 마이페이지에서 작성가능합니다 :)\n포셔니와 함께 해주셔서 감사합니다.');
           const newMsg = {
             content: payload.content,
@@ -191,11 +193,31 @@ function Chat() {
                     ...prev,
                     sellerStatus,
                     buyerStatus,
-                    isCompleted: true, // ✅ 이걸 강제로 다시 넣어줘야 버튼 반응
+                    isCompleted: true,
                   }));
                 }
               }
             });
+          }
+
+          // 실시간 읽음 처리 추가 > 내가 보고 있는 채팅방
+          if (selectedRoomRef.current?.id === room.id) {
+            try {
+              await api.patch(`/api/chats/${room.id}/read`);
+
+              setChatRooms((prevRooms) =>
+                prevRooms.map((r) =>
+                  r.id === room.id ? { ...r, isRead: true } : r
+                )
+              );
+
+              setSelectedRoom((prev) => ({
+                ...prev,
+                isRead: true,
+              }));
+            } catch (err) {
+              console.error('실시간 읽음 처리 실패:', err);
+            }
           }
 
 
@@ -506,7 +528,7 @@ const handleCompleteTrade = async () => {
             messages: [...prevRoom.messages, messageObj],
           }));
 
-            // ✅ 2. 채팅 목록에 lastMessage 갱신
+            // 2. 채팅 목록에 lastMessage 갱신
           setChatRooms((prevRooms) =>
             sortRoomsByLatestMessage(
             prevRooms.map((room) =>
@@ -519,6 +541,7 @@ const handleCompleteTrade = async () => {
                     //   minute: '2-digit',
                     // }),
                     time: new Date(),
+                    isRead: true
                   }
                 : room
             )
