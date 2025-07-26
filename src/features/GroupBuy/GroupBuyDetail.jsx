@@ -6,17 +6,37 @@ import HomeHeader from '../../components/Home/HomeHeader';
 import LocationModal from '../../components/Home/LocationModal';
 import GroupBuyModal from '../../components/GroupBuy/GroupBuyModal';
 import Pagination from '../../components/PageNumber/Pagination';
-//import dummyProducts from '../../data/dummyProduct';
 import sellerProfile from "../../assets/seller-profile.svg";
 import clockIcon from "../../assets/clock-icon.svg";
 import chevronLeft from "../../assets/chevron-left.svg";
 import backIcon from "../../assets/back-icon-white.svg";
 import axios from '../../lib/axios';
 
+// 댓글 날짜 포맷 함수
+function formatKoreanDatetime(datetimeStr) {
+  const date = new Date(datetimeStr);
+
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+
+  let hours = date.getHours();
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const isAM = hours < 12;
+  const ampm = isAM ? "오전" : "오후";
+
+  if (hours === 0) {
+    hours = 12;
+  } else if (hours > 12) {
+    hours -= 12;
+  }
+
+  return `${yyyy}-${mm}-${dd} ${ampm} ${hours}:${minutes}`;
+}
 
 function GroupBuyDetail() {
   // 판매자이면 true, 구매자이면 false
-  const [isSeller, setIsSeller] = useState(false);
+  const [isSeller, setIsSeller] = useState(null);
 
   // 공구완료면 true, 공구중이면 false
   const [isCompleted, setIsCompleted] = useState(false);
@@ -64,32 +84,41 @@ function GroupBuyDetail() {
     }
   }, [product]);
 
+  useEffect(() => {
+    const currentUserId = localStorage.getItem("user_id");
 
+    if (product && currentUserId) {
+      setIsSeller(String(product.sellerId) === String(currentUserId));
+    }
+  }, [product]);
 
   useEffect(() => {
     const fetchProductAndComments = async () => {
       try {
         const res = await axios.get(`/api/posts/${id}`);
-        console.log('전체 응답 데이터:', res.data);
-        console.log('post 데이터:', res.data.post);
-        console.log('images:', res.data.post?.images);
-
+        console.log("응답 확인:", res.data);
 
         setProduct(res.data.post);
-        setComments(res.data.items.content);
+
+        // 🔥 핵심 수정 포인트
+        const commentList = res.data.comments?.items?.content;
+        setComments(Array.isArray(commentList) ? commentList : []);
+
         setCommentMeta({
-          totalCount: res.data.totalCount,
-          totalPages: res.data.totalPages,
-          currentPage: res.data.currentPage,
+          totalCount: res.data.comments?.totalCount ?? 0,
+          totalPages: res.data.comments?.totalPages ?? 1,
+          currentPage: res.data.comments?.currentPage ?? 1
         });
-        setLikeCount(res.data.post.likeCount);
-        setLiked(res.data.post.likedByMe);
+
+        setLikeCount(res.data.post.likes ?? 0);
+        setLiked(res.data.post.likedByMe ?? false);
       } catch (err) {
         console.error("게시글 상세 조회 실패:", err);
       } finally {
         setLoading(false);
       }
     };
+
     fetchProductAndComments();
   }, [id]);
 
@@ -116,22 +145,6 @@ function GroupBuyDetail() {
   };
   const hasImages = Array.isArray(product?.images) && product.images.length > 0;
 
-
-
-
-  /* 댓글 상태 (초기 더미 댓글 43개)
-  const dummyComments = Array.from({ length: 43 }, (_, i) => ({
-    id: i + 1,
-    user: {
-      nickname: `user${i + 1}`,
-      profileUrl: sellerProfile,
-    },
-    datetime: "2025-07-04 15:30",
-    text: `너무 예뻐요! 댓글 ${i + 1}번째입니다`,
-  }));
-  const [comments, setComments] = useState(dummyComments);
-  */
-
   const [comments, setComments] = useState([]);
   const [commentMeta, setCommentMeta] = useState({ totalCount: 0, totalPages: 0, currentPage: 0 });
 
@@ -148,18 +161,30 @@ function GroupBuyDetail() {
 
   const handlePageChange = async (page) => {
     try {
-      const res = await axios.get(`/api/posts/${id}/comments?page=${page}`);
-      setComments(res.data.items.content);
-      setCommentMeta({
-        totalCount: res.data.totalCount,
-        totalPages: res.data.totalPages,
-        currentPage: res.data.currentPage,
+      const res = await axios.get(`/api/posts/${id}/comments`, {
+        params: {
+          page,
+          size: 10,
+          sort: 'createdAt',
+          direction: 'DESC'
+        }
       });
-      setCurrentPage(page);
+
+      const content = res.data.items?.content || [];
+
+      setComments(content);  // 목록 재세팅
+      setCommentMeta({
+        totalCount: res.data.totalCount ?? 0,
+        totalPages: res.data.items?.totalPages ?? 1,
+        currentPage: res.data.items?.number + 1 ?? page,
+      });
+      setCurrentPage(page);  // 상태 일치
+
     } catch (err) {
       console.error("댓글 페이지네이션 실패", err);
     }
   };
+
 
   // 댓글 입력창 상태
   const [input, setInput] = useState("");
@@ -202,33 +227,43 @@ function GroupBuyDetail() {
     }
   };
 
+  const [commentsKey, setCommentsKey] = useState(0);
 
-  // 댓글 제출 처리 함수
+
   const handleSubmit = async () => {
     if (!input.trim()) return;
 
     try {
-      const res = await axios.post(`/api/posts/${id}/comments`, {
-        content: input
-      });
+      const res = await axios.post(`/api/posts/${id}/comments`, { content: input });
+      console.log("댓글 응답 데이터:", res.data); // 🔍 여기에 commentUser 있나 확인
 
-      // 댓글 등록 후 댓글 목록 최신화
-      const updatedComments = await axios.get(`/api/posts/${id}/comments?page=1`);
-      const newContent = updatedComments.data.items?.content || [];
-      setComments(newContent);
-      setCommentMeta({
-        totalCount: updatedComments.data.totalCount,
-        totalPages: updatedComments.data.totalPages,
-        currentPage: updatedComments.data.currentPage,
-      });
-      setInput("");  // 입력창 초기화
-      setCurrentPage(1);  // 1페이지로 이동
-      handlePageChange(1); // 페이지네이션 함수 호출
+      const newComment = res.data;
+
+      // 현재 로그인한 댓글 쓴 유저 정보 가져오기
+      const currentUser = {
+        nickname: localStorage.getItem("nickname") || "알 수 없음",
+        profileImage: localStorage.getItem("profileImage") || sellerProfile
+      };
+
+      newComment.commentUser = currentUser;
+
+      setInput("");
+
+      setComments(prev => [newComment, ...prev]);
+
+      setCommentMeta(prev => ({
+        ...prev,
+        totalCount: prev.totalCount + 1,
+      }));
+
+      setCurrentPage(1);
 
     } catch (err) {
-      console.error("댓글 등록 실패", err);
+      console.error("댓글 등록 실패:", err.response?.data || err.message);
+      alert("댓글 등록에 실패했습니다.");
     }
   };
+
 
 
   // 에러 메시지 렌더링
@@ -321,11 +356,11 @@ function GroupBuyDetail() {
                 </div>
                 <div className={styles['detail-row']}>
                   <dt>1인당 소분량</dt>
-                  <dd>{product.capacity} {product.unit || product.unitCustom}</dd>
+                  <dd>{product.unitAmount} {product.unit}</dd>
                 </div>
                 <div className={styles['detail-row']}>
                   <dt>모집 · 거래 완료</dt>
-                  <dd>{product.people}명 · 1명</dd>
+                  <dd>{product.capacity}명 · 1명</dd> {/* TODO: 참여인원 필드 추가 시 교체 */}
                 </div>
                 <div className={styles['detail-row']}>
                   <dt>거래 방법</dt>
@@ -503,18 +538,28 @@ function GroupBuyDetail() {
             </div>
 
             <ul className={styles['comment-list']}>
-              {comments.map((comment) => (
+              {Array.isArray(comments) && comments.map((comment) => (
                 <li key={comment.commentId || comment.id} className={styles['comment-item']}>
-                  <img
-                    src={comment.commentUser.profileImage}
-                    alt={comment.commentUser.nickname}
-                    className={styles['comment-profile']}
-                  />
+                  {comment.commentUser ? (
+                    <img
+                      src={comment.commentUser.profileImage}
+                      alt={comment.commentUser.nickname}
+                      className={styles['comment-profile']}
+                    />
+                  ) : (
+                    <img
+                      src={sellerProfile}
+                      alt="알 수 없음"
+                      className={styles['comment-profile']}
+                    />
+                  )}
                   <div className={styles['comment-content']}>
                     <div className={styles['comment-header']}>
-                      <span className={styles['comment-nickname']}>{comment.commentUser.nickname}</span>
+                      <span className={styles['comment-nickname']}>
+                        {comment.commentUser?.nickname || "알 수 없음"}
+                      </span>
                       <span className={styles['comment-datetime']}>
-                        {new Date(comment.createdAt).toLocaleString()}
+                        {formatKoreanDatetime(comment.createdAt)}
                       </span>
                     </div>
                     <p className={styles['comment-text']}>{comment.content}</p>
