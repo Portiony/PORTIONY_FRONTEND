@@ -34,7 +34,8 @@ function HomeBody({ selectedAddress, selectedCategory, searchKeyword }) {
   const [products, setProducts] = useState({
     post: [],
     total: 0,
-    page:1
+    page:1,
+    isAI: false
   }); // 상품 데이터
   const [loading, setLoading] = useState(false);
 
@@ -70,6 +71,7 @@ function HomeBody({ selectedAddress, selectedCategory, searchKeyword }) {
   useEffect(() => {
     const fetch = async () => {
       setLoading(true);
+      await new Promise((resolve) => setTimeout(resolve, 3000)); // 1초 대기
       try {
         const data = await fetchPosts({
           category: selectedCategory === '전체'? '' : selectedCategory,
@@ -90,7 +92,7 @@ function HomeBody({ selectedAddress, selectedCategory, searchKeyword }) {
           details: `공구 인원 ${post.capacity}명 · 거래 완료 ${post.completedCount}명`,
           location: selectedAddress?.dong
         }));
-        setProducts({ total: data.total, posts: refinedPosts });
+        setProducts({ total: data.total, posts: refinedPosts, isAI: data.isAI });
       } catch (err) {
         console.error('[상품 불러오기 실패]', err);
       } finally{
@@ -99,9 +101,6 @@ function HomeBody({ selectedAddress, selectedCategory, searchKeyword }) {
     };
     fetch();
   }, [selectedCategory, currentPage, showClosed, selectedAddress, searchKeyword, dateSort]);
-
-
-  const totalPages = (products.total + productsPerPage) / productsPerPage;
 
   return(
     <div className={styles.container}>
@@ -161,17 +160,32 @@ function HomeBody({ selectedAddress, selectedCategory, searchKeyword }) {
               >판매 등록</button>
           </div>
         </div>
-        {loading ? (
-          <ProductSkeleton />
-        ) : (
-        <div className={products.total === 0 ? styles.emptyContainer : ''}>
-          {products.total > 0 ?(
-            <ProductList products={products.posts} context="home" />
-          ) : (
+        {loading && <ProductSkeleton />}
+
+        {!loading && products.total === 0 && (
+          <div className={styles.emptyContainer}>
             <p className={styles.empty}>등록된 상품이 없습니다.</p>
-          )}
-        </div>
-      )}
+          </div>
+        )}
+
+        {!loading && products.total > 0 && (
+          products.isAI && currentPage === 1 ? (
+            <div className={styles.aiProductListContainer}>
+              <div className={styles.recommendWrapper}>
+                <span className={`${styles.recommendTitle} ${typography.heading3}`}>
+                  예은님을 위한 추천 상품
+                </span>
+                <div className={styles.aiProductListWrapper}>
+                  <ProductList products={products.posts} context="home" />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className={styles.productListContainer}>
+              <ProductList products={products.posts} context="home" />
+            </div>
+          )
+        )}
       </div>
       <Pagination
         totalPages={Math.ceil(products.total / productsPerPage)}
