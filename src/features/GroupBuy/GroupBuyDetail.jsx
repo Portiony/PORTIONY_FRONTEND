@@ -202,6 +202,21 @@ function GroupBuyDetail() {
     }
   };
 
+  //채팅하기 버튼
+  const handleChatStart = async () => {
+    try {
+      const { data } = await axios.post(`/api/chats/${product.id}/room`);
+      navigate('/chat',{
+        state: {
+          chatRoomId: data.chatRoomId
+        }
+      });
+    } catch (err) {
+      console.error("채팅방 생성 실패:", err);
+      alert("채팅을 시작할 수 없습니다.");
+    }
+  };
+
 
   // 댓글 제출 처리 함수
   const handleSubmit = async () => {
@@ -386,7 +401,7 @@ function GroupBuyDetail() {
                           "❤ 찜하기"
                         )}
                       </button>
-                      <button className={styles['gbd-btn-chat']}>채팅하기</button>
+                      <button className={styles['gbd-btn-chat']} onClick={handleChatStart}>채팅하기</button>
                     </>
                   )
                 )}
