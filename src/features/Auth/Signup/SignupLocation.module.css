@@ -130,8 +130,7 @@
 /* 검색결과 박스 */
 .resultBox {
   width: 605px;
-  min-height: 300px;
-  max-height: 500px;
+  height: 336px;
   border-radius: 10px;
   border: 1px solid #000;
   background: #FFF;
