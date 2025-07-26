@@ -3,20 +3,22 @@ import styles from './HomeHeader.module.css';
 import typography from './Typography.module.css';
 import locationIcon from '../../assets/location_on.svg';
 
-import category1 from '../../assets/category_1.svg';
-import category2 from '../../assets/category_2.svg';
-import category3 from '../../assets/category_3.svg';
-import category4 from '../../assets/category_4.svg';  
-import category5 from '../../assets/category_5.svg';
-import category6 from '../../assets/category_6.svg';
+import category1 from '../../assets/category-1.svg';
+import category2 from '../../assets/category-2.svg';
+import category3 from '../../assets/category-3.svg';
+import category4 from '../../assets/category-4.svg';  
+import category5 from '../../assets/category-5.svg';
+import category6 from '../../assets/category-6.svg';
+import category7 from '../../assets/category-7.svg';
 
 const categories = [
-  { name: '의류', image: category1 },
+  { name: '생활용품', image: category1 },
   { name: '반려동물', image: category2 },
-  { name: '문구류', image: category3 },
-  { name: '육아용품', image: category4 },
-  { name: '화장품/뷰티', image: category5 },
-  { name: '잡화/기타', image: category6 },
+  { name: '의류', image: category3 },
+  { name: '문구류', image: category4 },
+  { name: '육아용품', image: category5 },
+  { name: '화장품/뷰티', image: category6 },
+  { name: '잡화/기타', image: category7 }
 ];
 
 
