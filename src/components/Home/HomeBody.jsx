@@ -71,7 +71,6 @@ function HomeBody({ selectedAddress, selectedCategory, searchKeyword }) {
   useEffect(() => {
     const fetch = async () => {
       setLoading(true);
-      await new Promise((resolve) => setTimeout(resolve, 3000)); // 1초 대기
       try {
         const data = await fetchPosts({
           category: selectedCategory === '전체'? '' : selectedCategory,
