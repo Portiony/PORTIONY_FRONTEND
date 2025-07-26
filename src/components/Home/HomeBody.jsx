@@ -13,7 +13,7 @@ import Dropdown from '../../components/DropDown/DropDown';
 import dummyTransactions from '../../data/dummyTransaction';
 
 import {fetchPosts} from '../../api/postApi';
-import { fetchAIPosts } from '../../api/postApi'; 
+import ProductSkeleton from '../ProductList/ProductSkeleton';
 
 
 const images = [
@@ -36,6 +36,8 @@ function HomeBody({ selectedAddress, selectedCategory, searchKeyword }) {
     total: 0,
     page:1
   }); // 상품 데이터
+  const [loading, setLoading] = useState(false);
+
 
 
   // 슬라이더 이미지 변경을 위한 타이머 설정
@@ -67,6 +69,7 @@ function HomeBody({ selectedAddress, selectedCategory, searchKeyword }) {
   // 상품 데이터 - 화면 바뀌거나 렌더링 될 때마다 API 호출
   useEffect(() => {
     const fetch = async () => {
+      setLoading(true);
       try {
         const data = await fetchPosts({
           category: selectedCategory === '전체'? '' : selectedCategory,
@@ -90,6 +93,8 @@ function HomeBody({ selectedAddress, selectedCategory, searchKeyword }) {
         setProducts({ total: data.total, posts: refinedPosts });
       } catch (err) {
         console.error('[상품 불러오기 실패]', err);
+      } finally{
+        setLoading(false);
       }
     };
     fetch();
@@ -156,16 +161,17 @@ function HomeBody({ selectedAddress, selectedCategory, searchKeyword }) {
               >판매 등록</button>
           </div>
         </div>
+        {loading ? (
+          <ProductSkeleton />
+        ) : (
         <div className={products.total === 0 ? styles.emptyContainer : ''}>
-          {products.total > 0 ? (
-            <ProductList
-              products = {products.posts}
-              context = "home"
-            />
+          {products.total > 0 ?(
+            <ProductList products={products.posts} context="home" />
           ) : (
             <p className={styles.empty}>등록된 상품이 없습니다.</p>
           )}
         </div>
+      )}
       </div>
       <Pagination
         totalPages={Math.ceil(products.total / productsPerPage)}
