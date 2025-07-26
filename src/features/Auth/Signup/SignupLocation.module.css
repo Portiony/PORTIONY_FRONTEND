@@ -130,7 +130,7 @@
 /* 검색결과 박스 */
 .resultBox {
   width: 605px;
-  min-height: 100px;
+  min-height: 300px;
   max-height: 500px;
   border-radius: 10px;
   border: 1px solid #000;
@@ -200,10 +200,39 @@
   margin-top: 20px;
 }
 
+/* 페이징 */
+.pagination {
+   display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* 이전다음버튼 */
+.pageButton {
+  cursor: pointer;
+}
+
+/* 이전다음버튼 - 비활성화 */
+.pageButton:disabled {
+  cursor: none;
+}
+
 /* 선택동네 안내박스 */
 .confirmBox {
-  margin-top: 35px;
   transition: all 0.2s ease;
+}
+
+/* n 페이지 */
+.pageInfo {
+  color: #000;
+  font-family: Inter;
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: -0.32px;
 }
 
 /* 동네 선택됨 */
