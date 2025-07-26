@@ -59,44 +59,50 @@ function HomeHeader({ onLocationClick, selectedAddress, selectedCategory, onCate
   return (
     <div className={styles.homeHeader}>
       <div className={styles.searchBarWrapper}>
-    <button className={styles.locationBtn} onClick={onLocationClick}>
-      <div className={styles.locationContent}>
-        <img src={locationIcon} alt="위치아이콘" className={styles.locationIcon} />
-        <span className={typography.body1}>{getGuDongFromAddress(selectedAddress)}</span>
+        <button className={styles.locationBtn} onClick={onLocationClick}>
+          <div className={styles.locationContent}>
+            <img src={locationIcon} alt="위치아이콘" className={styles.locationIcon} />
+            <span className={typography.body1}>{getGuDongFromAddress(selectedAddress)}</span>
+          </div>
+        </button>
+        <div className={styles.searchBox}>
+          <input 
+            className={styles.searchInput} 
+            placeholder="검색어를 입력하세요" 
+            value={inputValue}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+          />
+          <button 
+            className={styles.searchBtn}
+            onClick={handleSearch}
+          />
+        </div>
       </div>
-    </button>
-    <div className={styles.searchBox}>
-      <input 
-        className={styles.searchInput} 
-        placeholder="검색어를 입력하세요" 
-        value={inputValue}
-        onChange={handleInputChange}
-        onKeyDown={handleKeyDown}
-      />
-      <button 
-        className={styles.searchBtn}
-        onClick={handleSearch}
-      />
-    </div>
-  </div>
 
-  <div className={styles.categoryList}>
-    {categories.map((cat, i) => (
-      <div 
-        key={i} 
-        className={`${styles.categoryCard} ${selectedCategory === cat.name ? styles.active : ''}`}
-        onClick={() => {
-          const isSame = selectedCategory === cat.name;
-          onCategoryChange(isSame ? '전체' : cat.name);
-        }}
-      >
-        <img className={styles.categoryIcon} src={cat.image} />
-        <span className={`${styles.categoryLabel} ${typography.body2}`}>{cat.name}</span>
+      <div className={styles.categoryList}>
+        {categories.map((category, index) => (
+          (() => {
+            const categoryId = index + 1;
+            const isSelected = selectedCategory === categoryId;
+            
+            return (
+              <div
+                key={categoryId}
+                className={`${styles.categoryCard} ${isSelected ? styles.active : ''}`}
+                onClick={() => onCategoryChange(isSelected ? '' : categoryId)}
+              >
+                <img className={styles.categoryIcon} src={category.image} />
+                <span className={`${styles.categoryLabel} ${typography.body2}`}>
+                  {category.name}
+                </span>
+              </div>
+            );
+          })()
+        ))}
       </div>
-    ))}
-  </div>
-  </div>
-   );
+    </div>
+  );
 }
 
 export default HomeHeader;
