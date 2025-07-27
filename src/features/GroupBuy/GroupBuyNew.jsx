@@ -169,7 +169,7 @@ function GroupBuyNew({ mode = 'create', initialData = null, productId = null }) 
     '직거래 및 택배 배송': 'ALL',
   };
 
-  // ----------------------- submit 핸들러 (등록 or 수정 → 상세 페이지로 이동)
+  // ----------------------- submit 핸들러 (등록/수정 → 상세 페이지로 이동)
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log('handleSubmit 실행됨');
@@ -188,6 +188,7 @@ function GroupBuyNew({ mode = 'create', initialData = null, productId = null }) 
       description: form.description,
       capacity: Number(form.people),
       price: Number(form.price.replace(/,/g, '')),
+      unitAmount: Number(form.amount), // 소분량 값을 unitAmount로 매핑
       unit: form.unit === '직접 입력' ? form.unitCustom : form.unit,
       deadline: new Date(form.deadline).toISOString().slice(0, 19), // "2025-08-08T00:00:00"
       deliveryMethod: deliveryMethodMap[form.method],
@@ -213,18 +214,26 @@ function GroupBuyNew({ mode = 'create', initialData = null, productId = null }) 
 
       } else {
         // 게시글 등록 (POST)
+        const formData = new FormData();
+        formData.append('post', new Blob([JSON.stringify(postData)], { type: 'application/json' }));
+
+        images.forEach((file) => {
+          formData.append('images', file);
+        });
+
         const res = await axios.post(
           'https://port-0-portiony-backend-md4272k5c4648749.sel5.cloudtype.app/api/posts/',
-          postData,
+          formData,
           {
             headers: {
-              'Content-Type': 'application/json',
               Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+              // Content-Type은 명시하지 않아야 브라우저가 boundary 포함 자동 설정
             },
           }
         );
 
-        console.log('📦 게시글 등록 응답:', res.data);
+
+        console.log('게시글 등록 응답:', res.data);
         postId = res.data.id;
 
         if (!postId) {
@@ -281,10 +290,10 @@ function GroupBuyNew({ mode = 'create', initialData = null, productId = null }) 
         title: initialData.title || '',
         description: initialData.description || '',
         image: null, // 기존 이미지는 불러오지 않으므로 null 유지
-        amount: initialData.capacity || '',
+        people: initialData.capacity || '',
+        amount: initialData.unitAmount || '', // 여기에 unitAmount 주입
         unit: initialData.unit || '',
         unitCustom: initialData.unit === '직접 입력' ? initialData.unitCustom || '' : '',
-        people: initialData.capacity || '',
         price: initialData.price ? initialData.price.toLocaleString() : '',
         deadline: initialData.deadline?.substring(0, 10) || '',
         method: Object.keys(deliveryMethodMap).find(key => deliveryMethodMap[key] === initialData.deliveryMethod) || '',
