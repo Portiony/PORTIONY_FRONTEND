@@ -75,7 +75,7 @@ function HomeBody({ selectedAddressId, selectedAddress, selectedCategory, search
         const data = await fetchPosts({
           category: selectedCategory === '전체'? '' : selectedCategory,
           page: currentPage,
-          status: showClosed? 'DONE' : 'PROGRESS',
+          status: showClosed? '' : 'PROGRESS',
           dongId: selectedAddressId,
           sort: dateSort === '날짜' ? 'latest' : dateSort,
           keyword: searchKeyword,
