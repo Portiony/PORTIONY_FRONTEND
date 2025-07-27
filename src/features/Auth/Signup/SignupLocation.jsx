@@ -5,19 +5,16 @@ import styles from './SignupLocation.module.css';
 import search from '../../../assets/search(gray).svg';
 import { useSignup } from './SignupContext'; // ✅ Context import
 import instance from '../../../lib/axios';
+import axios from 'axios';
 
-const DEFAULT_SUGGESTIONS = [
-  { address: '경기도 평택시 중앙동' },
-  { address: '경기도 용인시 처인구 중앙동' },
-  { address: '충남 천안시 동남구 중앙동' },
-  { address: '경기도 안산시 단원구 중앙동' }
-];
+const BASE_URL = 'http://localhost:8080'; // API 기본 URL
+
 
 function SignupLocation({ onNext, onBack }) {
   const { setSignupData } = useSignup(); // ✅ 상태 저장용
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [lastSearch, setLastSearch] = useState('중앙동');
+  const [lastSearch, setLastSearch] = useState('');
   const [results, setResults] = useState([]);
   const [selectedUI, setSelectedUI] = useState(''); // 검색 결과 중 UI 선택 상태
   const [selectedAddress, setSelectedAddress] = useState(''); // 실제 선택된 주소 (서버반환)
@@ -27,10 +24,6 @@ function SignupLocation({ onNext, onBack }) {
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
-  // 검색결과박스 초기화면
-  useEffect(() => {
-  setResults(DEFAULT_SUGGESTIONS);
-}, []);
 
   // 현재 위치로찾기 버튼 클릭 시
   const handleCurrentLocation = () => {
@@ -46,39 +39,19 @@ function SignupLocation({ onNext, onBack }) {
       try {
         setLoading(true);
 
-        const res = await fetch(
-          'https://port-0-portiony-backend-md4272k5c4648749.sel5.cloudtype.app/api/location/resolve',
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ latitude, longitude }),
-          }
-        );
-        
+        const res = await axios.get(`${BASE_URL}/api/location/resolve`, {
+          params: {
+            latitude: Number(latitude),
+            longitude: Number(longitude),
+          },
+        });
 
-        if (!res.ok) {
-          const errText = await res.text();
-          console.error('resolve error:', res.status, errText);
-          throw new Error(`주소 매핑 실패(${res.status})`);
-        }
-
-        const data = await res.json();
+        console.log('현재 위치 검색 결과:', res.data);
+        const data = res.data;
         //  { regionId, subregionId, dongId, address } 이 부분
-
-        setSelectedAddress(data.address);
-        setSelectedUI(data.address);
-
-        // context 저장
-        setSignupData(prev => ({
-          ...prev,
-          regionId: data.regionId,
-          subregionId: data.subregionId,
-          dongId: data.dongId,
-          address: data.address,
-        }));
-
-        setResolved(true);
-
+        setLastSearch(data.currentAddress);
+        setResults(data.results)
+        
       } catch (err) {
         console.error('주소 변환 실패:', err);
         alert('위치 정보를 가져오는 데 실패했습니다.');
@@ -100,7 +73,7 @@ function SignupLocation({ onNext, onBack }) {
 
     try {
       setLoading(true);
-      const res = await instance.get('/api/location/search', {
+      const res = await axios.get(`${BASE_URL}/api/location/search`, {
         params: { keyword: k, page: targetPage, size: pageSize },
       });
 
@@ -173,7 +146,7 @@ function SignupLocation({ onNext, onBack }) {
             src={search}
             alt="검색"
             className={styles.searchIconInside}
-            onClick={handleSearch}
+            onClick={() => handleSearch()}
           />
         </div>
       </div>
