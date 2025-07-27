@@ -56,13 +56,12 @@
 }
 
 .content {
-    padding: 0px 65px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
 }
 
 .controlBar{
+    padding: 0px 65px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -141,6 +140,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 0px 65px;
 }
 .empty {
     color: #9C9C9C;
@@ -151,3 +151,33 @@
     line-height: 40px; 
     letter-spacing: -0.32px;
   }
+
+.loading {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #999;
+  padding: 2rem 0;
+}
+
+.productListContainer{
+    padding: 0px 65px;
+}
+
+.aiProductListContainer{
+    padding: 0px 55px;
+}
+
+.aiProductListWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 35px;
+    align-self: stretch;
+}
+
+.recommendWrapper {
+    border-radius: 20px;
+    background: #FFF;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.20);
+    padding: 15px
+}
