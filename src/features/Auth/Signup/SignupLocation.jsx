@@ -5,10 +5,6 @@ import styles from './SignupLocation.module.css';
 import search from '../../../assets/search(gray).svg';
 import { useSignup } from './SignupContext'; // ✅ Context import
 import instance from '../../../lib/axios';
-import axios from 'axios';
-
-const BASE_URL = 'http://localhost:8080'; // API 기본 URL
-
 
 function SignupLocation({ onNext, onBack }) {
   const { setSignupData } = useSignup(); // ✅ 상태 저장용
@@ -27,7 +23,7 @@ function SignupLocation({ onNext, onBack }) {
 
   // 현재 위치로찾기 버튼 클릭 시
   const handleCurrentLocation = () => {
-    
+
     if (!navigator.geolocation) {
       alert('브라우저가 위치 정보를 지원하지 않습니다.');
       return;
@@ -39,7 +35,7 @@ function SignupLocation({ onNext, onBack }) {
       try {
         setLoading(true);
 
-        const res = await axios.get(`${BASE_URL}/api/location/resolve`, {
+        const res = await instance.get('/api/location/resolve', {
           params: {
             latitude: Number(latitude),
             longitude: Number(longitude),
@@ -73,7 +69,7 @@ function SignupLocation({ onNext, onBack }) {
 
     try {
       setLoading(true);
-      const res = await axios.get(`${BASE_URL}/api/location/search`, {
+      const res = await instance.get('/api/location/search', {
         params: { keyword: k, page: targetPage, size: pageSize },
       });
 
