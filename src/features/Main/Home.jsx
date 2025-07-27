@@ -5,8 +5,8 @@ import LocationModal from '../../components/Home/LocationModal';
 
 function Home() {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedAddress, setSelectedAddress] = useState('서울특별시 중랑구 망우본동');
-    const [selectedAddressId, setSelectedAddressId] = useState(21894);
+    const [selectedAddress, setSelectedAddress] = useState('전국');
+    const [selectedAddressId, setSelectedAddressId] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('전체');
     const [searchKeyword, setSearchKeyword] = useState('');
 
