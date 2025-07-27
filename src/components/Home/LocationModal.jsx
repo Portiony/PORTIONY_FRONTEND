@@ -5,6 +5,7 @@ import typography from './Typography.module.css';
 import locationIcon from '../../assets/location_on.svg';
 import closeIcon from '../../assets/x.svg';
 import { searchLocations } from '../../api/postApi';
+import { searchLocationsByCurrentPosition } from '../../api/postApi';
 
 function LocationModal({ open, onClose, onSelectAddress }) {
   const [localSearchKeyword, setLocalSearchKeyword] = useState('');
@@ -38,6 +39,24 @@ function LocationModal({ open, onClose, onSelectAddress }) {
     onSelectAddress(location, locationId);
   };
 
+  const handleCurrentLocationClick = () => {
+    navigator.geolocation.getCurrentPosition((position) => {
+      const { latitude, longitude } = position.coords;
+      const fetch = async () => {
+        try {
+          const response = await searchLocationsByCurrentPosition(latitude, longitude);
+          setSearchKeyword(response.currentAddress);
+          setSearchResults(response.results);
+        }catch(err){
+
+        }finally {
+
+        }
+      }
+      fetch();
+    });
+  }
+
   if (!open) return null;
 
   return (
@@ -55,7 +74,9 @@ function LocationModal({ open, onClose, onSelectAddress }) {
           </div>
           <button className={styles.currentLocationBtn}>
             <img src={locationIcon} alt="위치아이콘" className={styles.locationIcon} />
-            <span>현재 위치로 찾기</span>
+            <span
+              onClick={handleCurrentLocationClick}
+            >현재 위치로 찾기</span>
           </button>
 
           <div className={styles.searchBox}>

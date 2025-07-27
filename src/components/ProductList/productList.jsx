@@ -33,6 +33,7 @@ export default function ProductList({ products: propProducts, onClickProduct }) 
   return (
     <div className={styles.container}>
       {data.map((product, index) => {
+        const dDay = getDDay(product.endDate);
         const imageSrc =
           product.image && product.image.trim() !== ''
             ? product.image
@@ -45,7 +46,13 @@ export default function ProductList({ products: propProducts, onClickProduct }) 
             onClick={() => handleClick(product)}
             style={{ cursor: 'pointer' }}
           >
+            
             <div className={styles.imageContainer}>
+              {dDay === '마감' && (
+                <div className={styles.grayOverlay}>
+                  <span className={styles.overlayText}>공구 마감</span>
+                </div>
+              )}
               <div className={styles.topBadges}>
                 <span className={styles.badgeLocation}>
                   <img src={mapIcon} alt="위치" className={styles.icon} />
@@ -53,7 +60,7 @@ export default function ProductList({ products: propProducts, onClickProduct }) 
                 </span>
                 <span className={styles.badgeDDay}>
                   <img src={clockIcon} alt="마감" className={styles.icon} />
-                  {getDDay(product.endDate)}
+                  {dDay}
                 </span>
               </div>
               <img
