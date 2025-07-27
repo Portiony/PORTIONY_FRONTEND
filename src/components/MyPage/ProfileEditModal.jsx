@@ -69,7 +69,17 @@ export default function ProfileEditModal({ open, onClose, currentProfile, onSave
     }
   };
 
+  // const handleFileChange = e => {
+  //   const file = e.target.files[0];
+  //   setSelectedFile(file);
+  //   const reader = new FileReader();
+  //   reader.onloadend = () => setProfileImg(reader.result);
+  //   reader.readAsDataURL(file);
+  // };
+
   const handleRemoveImg = () => setProfileImg(null);
+
+  // setSelectedFile(null); 추가
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -98,6 +108,18 @@ export default function ProfileEditModal({ open, onClose, currentProfile, onSave
       requestBody.currentPassword = oldPasswordInput;
       requestBody.newPassword = password;
     }
+
+    // const formData = new FormData();
+    // if (wantsPasswordChange) {
+    //   formData.append('currentPassword', oldPasswordInput);
+    //   formData.append('newPassword', password);
+    // }
+    // if (selectedFile) {
+    //   formData.append('profileImage', selectedFile);
+    // }
+    // const res = await instance.patch('/api/users/me', formData, {
+    //   headers: {'Content-Type': 'multipart/form-data'},
+    // });
 
     try {
       const res = await instance.patch('/api/users/me', requestBody);

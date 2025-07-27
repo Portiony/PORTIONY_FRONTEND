@@ -36,18 +36,22 @@ function SignupForms({ onNext, onBack }) {
   const [nicknameError, setNicknameError] = useState(false);
 
   const [profileImage, setProfileImage] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
 
   const fullEmail = `${emailId}@${domainType === '직접 입력' ? emailDomain : domainType}`;
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    setSelectedFile(file);
     const previewUrl = URL.createObjectURL(file);
     setProfileImage(previewUrl);
-    // 서버 연동 시 이미지 업로드 로직 추가 예정
   };
 
-  const removeProfileImage = () => setProfileImage(null);
+  const removeProfileImage = () => {
+    setProfileImage(null);
+    setProfileImage(null);
+  };
 
   const isValidEmailFormat = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -148,13 +152,12 @@ function SignupForms({ onNext, onBack }) {
   };
 
   const handleNext = () => {
-    // 전역 상태 저장
     setSignupData(prev => ({
       ...prev,
       email: fullEmail,
       password,
       nickname,
-      profileImage: ""
+      profileImage: selectedFile
     }));
 
     onNext(); // 다음 단계로 이동
