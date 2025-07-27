@@ -32,3 +32,13 @@
   line-height: 16px; /* 100% */
   letter-spacing: -0.32px;
 }
+
+/* Heading/Heading 3 */
+.heading3 {
+  font-family: Inter;
+  font-size: 22px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 22px; /* 100% */
+  letter-spacing: -0.32px;
+}

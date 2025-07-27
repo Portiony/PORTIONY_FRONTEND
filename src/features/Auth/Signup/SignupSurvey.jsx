@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styles from './SignupSurvey.module.css';
 import back from '../../../assets/chevron-left.svg';
 import required from '../../../assets/required.svg';
 import DropDownSurvey from '../../../components/DropDown/DropDownSurvey';
 import { useSignup } from './SignupContext';
-import axios from 'axios'; 
+import instance from '../../../lib/axios';
 
 function SignupSurvey({ onNext, onBack }) {
+  const navigate = useNavigate();
   const { signupData, setSignupData } = useSignup();
 
   const [category, setCategory] = useState('');
@@ -39,57 +41,83 @@ function SignupSurvey({ onNext, onBack }) {
     '기타': 5,
   };
 
-  const sendSignupRequest = async (finalPayload) => {
-    try {
-      setLoading(true);
-      const res = await axios.post('https://port-0-portiony-backend-md4272k5c4648749.sel5.cloudtype.app/api/users/signup', finalPayload);
+  const uploadProfileImage = async (file) => {
+    if(!file) return;
 
-      console.log('회원가입 성공:', res.data);
-      onNext(); // 완료 페이지로 이동
-    } catch (err) {
-      const message = err.response?.data?.message || '서버 오류';
-      alert(`회원가입 실패: ${message}`);
-      console.error('회원가입 실패:', err);
-    } finally {
-      setLoading(false);
-    }
+    const formData = new FormData();
+    formData.append('profileImage', file);
+
+    await instance.patch('/api/users/me', formData, {
+      headers: {'Content-Type': 'multipart/form-data'},
+    });
   };
 
-  const handleNext = async () => {
+  const buildPayload = (overrides = {}) => {
     const mappedData = {
       mainCategory: categoryMap[category] || 0,
       purchaseReason: purposeMap[purpose] || 0,
       situation: situationMap[situation] || 0,
+      ...overrides,
     };
 
-    setSignupData(prev => ({
-      ...prev,
-      ...mappedData,
-    }));
-
-    const payload = {
+    return {
       ...signupData,
-      regionId: signupData.regionId ?? 22,
-      subregionId: signupData.subregionId ?? 287,
-      dongId: signupData.dongId ?? 7486,
       ...mappedData,
     };
+  };
 
+  const sendSignupRequest = async (payload) => {
+    try {
+      setLoading(true);
+
+      // 카카오 신규회원 여부?
+      const isKakao = signupData?.isSocial === true;
+      const file = signupData?.profileImageFile;
+
+      if (isKakao) {
+        // 카카오 신규회원 가입 완료
+        const res = await instance.post('/api/users/login/oauth/kakao/signup', payload);
+        const { accessToken, refreshToken, userId } = res.data ?? {};
+        if (accessToken && refreshToken) {
+          localStorage.setItem('access_token', accessToken);
+          localStorage.setItem('refresh_token', refreshToken);
+          localStorage.setItem('user_id', String(userId));
+          window.dispatchEvent(new Event('auth-change'));
+        }
+        onNext?.(); // done 페이지로 이동
+      } else { // 일반 회원가입 완료
+          const res = await instance.post('/api/users/signup', payload);
+          await uploadProfileImage(file);
+          onNext?.(); // done 페이지로 이동
+        }
+      } catch (err) {
+        console.error('회원가입 실패:', err); 
+        if (err.response) {
+          console.error('서버 응답:', err.response); 
+        }
+        const message = err.response?.data?.message || '서버 오류';
+        alert(`회원가입 실패: ${message}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+  const handleNext = async () => {
+    const payload = buildPayload(); 
+    setSignupData(payload);
     console.log('회원가입 요청 payload:', payload);
     await sendSignupRequest(payload);
   };
 
   const handleSkip = async () => {
-    const payload = {
+    const payload =  {
       ...signupData,
-      regionId: signupData.regionId ?? 22,
-      subregionId: signupData.subregionId ?? 287,
-      dongId: signupData.dongId ?? 7486,
       mainCategory: 0,
       purchaseReason: 0,
       situation: 0,
     };
 
+    setSignupData(payload);
     console.log('회원가입 요청 payload (건너뛰기):', payload);
     await sendSignupRequest(payload);
   };

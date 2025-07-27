@@ -14,8 +14,9 @@ import GroupBuyDetail from './features/GroupBuy/GroupBuyDetail';
 import GroupBuyEdit from './features/GroupBuy/GroupBuyEdit';
 import Community from './features/Community/Community';
 import ChatTest from './features/Chats/ChatTest';
+import Place from './features/Auth/Signup/Place';
 
-import instance from './lib/axios'; 
+import instance from './lib/axios';
 import './App.css';
 
 function App() {
@@ -32,7 +33,7 @@ function App() {
     }
 
     try {
-      await instance.get('/api/users/'); 
+      await instance.get('/api/users/');
       setIsLoggedIn(true);
     } catch (error) {
       console.error('토큰 확인 실패:', error);
@@ -42,7 +43,6 @@ function App() {
     }
   };
 
-
   useEffect(() => {
     checkAuth();
     window.addEventListener('auth-change', checkAuth);
@@ -50,7 +50,6 @@ function App() {
       window.removeEventListener('auth-change', checkAuth);
     };
   }, []);
-
 
   if (isLoading) return <div className="loading">로딩 중...</div>;
 
@@ -63,6 +62,7 @@ function App() {
             <Routes>
               {/* 비회원용 */}
               <Route path="/signup" element={isLoggedIn ? <Navigate to="/" /> : <SignUp />} />
+              <Route path="/signup/kakao" element={isLoggedIn ? <Navigate to="/" /> : <SignUp initialStep={3} />} />
               <Route path="/login" element={isLoggedIn ? <Navigate to="/" /> : <Login setIsLoggedIn={setIsLoggedIn} />} />
               <Route path="/login/oauth/kakao" element={<KakaoRedirect setIsLoggedIn={setIsLoggedIn} />} />
 
@@ -72,10 +72,13 @@ function App() {
               <Route path="/chat" element={isLoggedIn ? <Chat /> : <Navigate to="/login" />} />
               <Route path="/community" element={isLoggedIn ? <Community /> : <Navigate to="/login" />} />
 
-              {/* 공구 상세/생성/수정 (로그인 여부 무관) */}
+              {/* 공구 관련 */}
               <Route path="/group-buy/new" element={<GroupBuyNew />} />
               <Route path="/group-buy/:id" element={<GroupBuyDetail />} />
               <Route path="/group-buy/:id/edit" element={<GroupBuyEdit />} />
+
+              {/* 위치 기반 페이지 */}
+              <Route path="/place" element={<Place />} /> 
 
               {/* 테스트용 채팅 */}
               <Route path="/chat-test" element={<ChatTest />} />

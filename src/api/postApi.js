@@ -20,7 +20,7 @@ export async function fetchPosts(params) {
     return response.data;
 }
 
-export async function searchLocationOptions(latitude, longitude){
-    const response = await instance.get(`/api/location/resolve?latitude=${latitude}&longitude=${longitude}`);
+export async function searchLocations(keyword){
+    const response = await instance.get(`/api/location/search?keyword=${keyword}`);
     return response.data;
 }

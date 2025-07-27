@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation  } from 'react-router-dom';
 import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 import boxImage from '../../assets/chat_logo.png';
@@ -9,6 +9,7 @@ import ChatListItem from '../../components/Chat/ChatListItem/ChatListItem';
 import ChatHeader from '../../components/Chat/ChatHeader/ChatHeader';
 import ChatBottom from '../../components/Chat/ChatBottom/ChatBottom';
 import ChatMessage from '../../components/Chat/ChatMessage/ChatMessage';
+import debounce from 'lodash.debounce';
 import api from '../../lib/axios';
 
 import profileImg from '../../assets/profile.png';
@@ -19,6 +20,7 @@ import defaultProduct from '../../assets/profile-image.svg';
 
 function Chat() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [myName, setMyName] = useState('');
   const messagesEndRef = useRef(null);
   const chatContainerRef = useRef(null);
@@ -32,6 +34,21 @@ function Chat() {
   const [selectedRoom, setSelectedRoom] = useState(null); //현재 클릭된 채팅방
   const selectedRoomRef = useRef(null); //선택된 채팅방 ref
   const subscribedRoomIdsRef = useRef(new Set()); //중복 구독 방지용
+  const hasEnteredRoomRef = useRef(false); //채팅하기 버튼 > 바로 해당 채팅룸 진입 무한루프 방지용
+
+  //채팅하기 버튼 누르고 채팅방으로 진입했을 때
+  useEffect(() => {
+    if (!location.state?.chatRoomId || hasEnteredRoomRef.current) return;
+
+    const roomId = location.state.chatRoomId;
+    const targetRoom = chatRooms.find((room) => room.id === roomId);
+    if (targetRoom) {
+      handleEnterRoom(targetRoom);//진입이 한 번만 되게
+      hasEnteredRoomRef.current = true;
+
+      navigate('/chat', { replace: true });
+    }
+  }, [chatRooms, location.state, navigate]);
 
   //웹 소켓 연결 및 구독
   useEffect(() => {
@@ -147,9 +164,10 @@ function Chat() {
       //구독 로직
       client.current.subscribe(
         `/sub/chat/room/${room.id}`,
-        (message) => {
+        async (message) => {
           const payload = JSON.parse(message.body);
           if (payload.senderId === myUserId) return; //내가 보낸 메시지 무시 > 이미 렌더링 처리
+          //거래 완료 시스템 메시지 확인 > 실시간 버튼 disable 처리(첫 번째로 거래 완료 처리한 사람을 위한)
           const isFinalCompleteMessage = payload.content?.includes('🎉 소중한 거래가 최종 완료되었습니다!\n후기는 마이페이지에서 작성가능합니다 :)\n포셔니와 함께 해주셔서 감사합니다.');
           const newMsg = {
             content: payload.content,
@@ -175,14 +193,29 @@ function Chat() {
                     ...prev,
                     sellerStatus,
                     buyerStatus,
-                    isCompleted: true, // ✅ 이걸 강제로 다시 넣어줘야 버튼 반응
+                    isCompleted: true,
                   }));
                 }
               }
             });
           }
 
+          // 실시간 읽음 처리 추가 > 내가 보고 있는 채팅방
+          // 디바운스된 읽음 처리로 대체
+        if (selectedRoomRef.current?.id === room.id) {
+          debouncedMarkAsRead(room.id);
 
+          setChatRooms((prevRooms) =>
+            prevRooms.map((r) =>
+              r.id === room.id ? { ...r, isRead: true } : r
+            )
+          );
+
+          setSelectedRoom((prev) => ({
+            ...prev,
+            isRead: true,
+          }));
+        }
 
           // 채팅 목록 업데이트
           setChatRooms((prevRooms) =>
@@ -410,7 +443,7 @@ const handleCompleteTrade = async () => {
         {selectedRoom ? (
           <div className={styles.chatDetail}>
       
-          {/* ✅ 헤더 컴포넌트 추가 */}
+          {/* 헤더 컴포넌트 추가 */}
           <ChatHeader
             postId = {selectedRoom.postId}
             partnerName={selectedRoom.partnerName}
@@ -490,7 +523,7 @@ const handleCompleteTrade = async () => {
             messages: [...prevRoom.messages, messageObj],
           }));
 
-            // ✅ 2. 채팅 목록에 lastMessage 갱신
+            // 2. 채팅 목록에 lastMessage 갱신
           setChatRooms((prevRooms) =>
             sortRoomsByLatestMessage(
             prevRooms.map((room) =>
@@ -503,6 +536,7 @@ const handleCompleteTrade = async () => {
                     //   minute: '2-digit',
                     // }),
                     time: new Date(),
+                    isRead: true
                   }
                 : room
             )
@@ -574,3 +608,12 @@ function sortRoomsByLatestMessage(rooms) {
     return timeB - timeA; // 최신순 정렬
   });
 }
+
+//읽음 처리 api 0.5초에 1번만 호출됨 > 서버 부하 방지
+const debouncedMarkAsRead = debounce(async (roomId) => {
+  try {
+    await api.patch(`/api/chats/${roomId}/read`);
+  } catch (err) {
+    console.error('실시간 읽음 처리 실패:', err);
+  }
+}, 500);
