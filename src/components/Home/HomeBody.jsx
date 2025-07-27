@@ -22,7 +22,7 @@ const images = [
     banner3
 ];
 
-function HomeBody({ selectedAddress, selectedCategory, searchKeyword }) {
+function HomeBody({ selectedAddressId, selectedAddress, selectedCategory, searchKeyword }) {
   
   const navigate = useNavigate();
 
@@ -76,9 +76,7 @@ function HomeBody({ selectedAddress, selectedCategory, searchKeyword }) {
           category: selectedCategory === '전체'? '' : selectedCategory,
           page: currentPage,
           status: showClosed? 'DONE' : 'PROGRESS',
-          regionId: selectedAddress?.sido,
-          subregionId: selectedAddress?.sigungu,
-          dongId: selectedAddress?.dong,
+          dongId: selectedAddressId,
           sort: dateSort === '날짜' ? 'latest' : dateSort,
           keyword: searchKeyword,
         });
@@ -89,7 +87,7 @@ function HomeBody({ selectedAddress, selectedCategory, searchKeyword }) {
           image: post.thumbnail,
           endDate: post.deadline,
           details: `공구 인원 ${post.capacity}명 · 거래 완료 ${post.completedCount}명`,
-          location: selectedAddress?.dong
+          location: selectedAddress.trim().split(' ').at(-1)
         }));
         setProducts({ total: data.total, posts: refinedPosts, isAI: data.isAI });
       } catch (err) {
