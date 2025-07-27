@@ -22,5 +22,12 @@ export async function fetchPosts(params) {
 
 export async function searchLocations(keyword){
     const response = await instance.get(`/api/location/search?keyword=${keyword}`);
+    console.log('검색 결과:', response.data);
+    return response.data;
+}
+
+export async function searchLocationsByCurrentPosition(latitude, longitude) {
+    const response = await instance.get(`/api/location/resolve?latitude=${Number(latitude)}&longitude=${Number(longitude)}`);
+    console.log('현재 위치 검색 결과:', response.data);
     return response.data;
 }
