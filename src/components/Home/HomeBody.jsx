@@ -170,7 +170,7 @@ function HomeBody({ selectedAddressId, selectedAddress, selectedCategory, search
             <div className={styles.aiProductListContainer}>
               <div className={styles.recommendWrapper}>
                 <span className={`${styles.recommendTitle} ${typography.heading3}`}>
-                  예은님을 위한 추천 상품
+                  당신을 위한 추천 상품
                 </span>
                 <div className={styles.aiProductListWrapper}>
                   <ProductList products={products.posts} context="home" />
