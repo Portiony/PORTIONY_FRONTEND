@@ -73,7 +73,7 @@ function HomeBody({ selectedAddressId, selectedAddress, selectedCategory, search
       setLoading(true);
       try {
         const data = await fetchPosts({
-          category: selectedCategory === '전체'? '' : selectedCategory,
+          selectedCategory: selectedCategory === '전체'? '' : selectedCategory,
           page: currentPage,
           status: showClosed? '' : 'PROGRESS',
           dongId: selectedAddressId,
@@ -145,7 +145,7 @@ function HomeBody({ selectedAddressId, selectedAddress, selectedCategory, search
                 <span className={styles.customBox}></span>
               </label>
               <span className={typography.body1}>
-                  공구 마감된 상품 보기
+                  공구 마감된 상품도 보기
               </span>
             </div>
           </div>
