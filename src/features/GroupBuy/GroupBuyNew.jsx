@@ -222,12 +222,11 @@ function GroupBuyNew({ mode = 'create', initialData = null, productId = null }) 
         });
 
         const res = await axios.post(
-          'https://port-0-portiony-backend-md4272k5c4648749.sel5.cloudtype.app/api/posts/',
+          '/api/posts/',
           formData,
           {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-              // Content-Type은 명시하지 않아야 브라우저가 boundary 포함 자동 설정
+            headers: {// Content-Type은 명시하지 않아야 브라우저가 boundary 포함 자동 설정
+              Authorization: `Bearer ${localStorage.getItem('access_token')}`
             },
           }
         );
