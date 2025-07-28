@@ -18,18 +18,23 @@ const SignUp = ({ initialStep = 1 }) => {
 };
 
 const SignUpInner = ({ initialStep }) => {
-  const [step, setStep] = useState(initialStep);
+  const [step, setStep] = useState(1);
   const location = useLocation();
   const { setSignupData } = useSignup();
 
   useEffect(() => {
-    if (initialStep === 3 && location.state) {
+    const targetStep = location.state?.initialStep ?? initialStep ?? 1;
+    setStep(targetStep);
+
+    if (targetStep === 2 && location.state) {
       const { email, nickname, profileImage } = location.state;
       setSignupData(prev => ({
         ...prev,
         email,
         nickname,
         profileImage,
+        isSocial: true,
+        socialProvider: location.state.socialProvider,
       }));
     }
   }, [initialStep, location.state, setSignupData]);
@@ -39,15 +44,13 @@ const SignUpInner = ({ initialStep }) => {
   const goToBeforeStep = () => setStep((s) => s - 1);
 
   return (
-      <SignupProvider>
-        <div>
-          {step === 1 && <SignupTerms onNext={goToNextStep} />}
-          {step === 2 && <SignupForms onNext={goToNextStep} onBack={goToBeforeStep} />}
-          {step === 3 && <SignupLocation onNext={goToNextStep} onBack={goToBeforeStep} />}
-          {step === 4 && <SignupSurvey onNext={goToNextStep} onBack={goToBeforeStep} />}
-          {step === 5 && <SignupDone />}
-        </div>
-      </SignupProvider>
+      <div>
+        {step === 1 && <SignupTerms onNext={goToNextStep} />}
+        {step === 2 && <SignupForms onNext={goToNextStep} onBack={goToBeforeStep} />}
+        {step === 3 && <SignupLocation onNext={goToNextStep} onBack={goToBeforeStep} />}
+        {step === 4 && <SignupSurvey onNext={goToNextStep} onBack={goToBeforeStep} />}
+        {step === 5 && <SignupDone />}
+      </div>
     );
 };
 

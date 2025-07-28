@@ -72,7 +72,7 @@ function SignupSurvey({ onNext, onBack }) {
 
       // 카카오 신규회원 여부?
       const isKakao = signupData?.isSocial === true;
-      const file = signupData?.profileImageFile;
+      const file = signupData?.profileImage;
 
       if (isKakao) {
         // 카카오 신규회원 가입 완료
