@@ -6,7 +6,7 @@ const instance = axios.create({
   withCredentials: true,
   timeout: 5000,
   headers: {
-    'Content-Type': 'application/json',
+    //'Content-Type': 'application/json', 명시하지 않아야 이미지 업로드에 에러가 생기지 않습니다.
   },
 });
 
