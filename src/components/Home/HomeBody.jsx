@@ -13,7 +13,7 @@ import Dropdown from '../../components/DropDown/DropDown';
 import dummyTransactions from '../../data/dummyTransaction';
 
 import {fetchPosts} from '../../api/postApi';
-import { fetchAIPosts } from '../../api/postApi'; 
+import ProductSkeleton from '../ProductList/ProductSkeleton';
 
 
 const images = [
@@ -22,7 +22,7 @@ const images = [
     banner3
 ];
 
-function HomeBody({ selectedAddress, selectedCategory, searchKeyword }) {
+function HomeBody({ selectedAddressId, selectedAddress, selectedCategory, searchKeyword }) {
   
   const navigate = useNavigate();
 
@@ -34,8 +34,11 @@ function HomeBody({ selectedAddress, selectedCategory, searchKeyword }) {
   const [products, setProducts] = useState({
     post: [],
     total: 0,
-    page:1
+    page:1,
+    isAI: false
   }); // 상품 데이터
+  const [loading, setLoading] = useState(false);
+
 
 
   // 슬라이더 이미지 변경을 위한 타이머 설정
@@ -67,15 +70,14 @@ function HomeBody({ selectedAddress, selectedCategory, searchKeyword }) {
   // 상품 데이터 - 화면 바뀌거나 렌더링 될 때마다 API 호출
   useEffect(() => {
     const fetch = async () => {
+      setLoading(true);
       try {
         const data = await fetchPosts({
-          category: selectedCategory === '전체'? '' : selectedCategory,
+          selectedCategory: selectedCategory === '전체'? '' : selectedCategory,
           page: currentPage,
-          status: showClosed? 'DONE' : 'PROGRESS',
-          regionId: selectedAddress?.sido,
-          subregionId: selectedAddress?.sigungu,
-          dongId: selectedAddress?.dong,
-          sort: dateSort === '최신 순' ? 'latest' : 'oldest',
+          status: showClosed? '' : 'PROGRESS',
+          dongId: selectedAddressId,
+          sort: dateSort === '날짜' ? 'latest' : dateSort,
           keyword: searchKeyword,
         });
         const refinedPosts = data.posts.map(post => ({
@@ -85,18 +87,17 @@ function HomeBody({ selectedAddress, selectedCategory, searchKeyword }) {
           image: post.thumbnail,
           endDate: post.deadline,
           details: `공구 인원 ${post.capacity}명 · 거래 완료 ${post.completedCount}명`,
-          location: selectedAddress?.dong
+          location: selectedAddress.trim().split(' ').at(-1)
         }));
-        setProducts({ total: data.total, posts: refinedPosts });
+        setProducts({ total: data.total, posts: refinedPosts, isAI: data.isAI });
       } catch (err) {
         console.error('[상품 불러오기 실패]', err);
+      } finally{
+        setLoading(false);
       }
     };
     fetch();
   }, [selectedCategory, currentPage, showClosed, selectedAddress, searchKeyword, dateSort]);
-
-
-  const totalPages = (products.total + productsPerPage) / productsPerPage;
 
   return(
     <div className={styles.container}>
@@ -144,7 +145,7 @@ function HomeBody({ selectedAddress, selectedCategory, searchKeyword }) {
                 <span className={styles.customBox}></span>
               </label>
               <span className={typography.body1}>
-                  공구 마감된 상품 보기
+                  공구 마감된 상품도 보기
               </span>
             </div>
           </div>
@@ -156,16 +157,32 @@ function HomeBody({ selectedAddress, selectedCategory, searchKeyword }) {
               >판매 등록</button>
           </div>
         </div>
-        <div className={products.total === 0 ? styles.emptyContainer : ''}>
-          {products.total > 0 ? (
-            <ProductList
-              products = {products.posts}
-              context = "home"
-            />
-          ) : (
+        {loading && <ProductSkeleton />}
+
+        {!loading && products.total === 0 && (
+          <div className={styles.emptyContainer}>
             <p className={styles.empty}>등록된 상품이 없습니다.</p>
-          )}
-        </div>
+          </div>
+        )}
+
+        {!loading && products.total > 0 && (
+          products.isAI && currentPage === 1 ? (
+            <div className={styles.aiProductListContainer}>
+              <div className={styles.recommendWrapper}>
+                <span className={`${styles.recommendTitle} ${typography.heading3}`}>
+                  당신을 위한 추천 상품
+                </span>
+                <div className={styles.aiProductListWrapper}>
+                  <ProductList products={products.posts} context="home" />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className={styles.productListContainer}>
+              <ProductList products={products.posts} context="home" />
+            </div>
+          )
+        )}
       </div>
       <Pagination
         totalPages={Math.ceil(products.total / productsPerPage)}

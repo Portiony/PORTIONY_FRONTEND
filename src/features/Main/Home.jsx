@@ -5,18 +5,16 @@ import LocationModal from '../../components/Home/LocationModal';
 
 function Home() {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedAddress, setSelectedAddress] = useState('서울특별시 중랑구 망우본동');
+    const [selectedAddress, setSelectedAddress] = useState('전국');
+    const [selectedAddressId, setSelectedAddressId] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('전체');
     const [searchKeyword, setSearchKeyword] = useState('');
 
-    const handleSelectDong = (address) => {
-        setSelectedAddress(address);
+    const handleSelectDong = (location, locationId) => {
+        setSelectedAddress(location);
+        setSelectedAddressId(locationId);
         setIsModalOpen(false);
     };
-    
-    // 임시 로직 : 현재는 전체주소에서 동만 추출하여 데이터를 필터링 (평택시 중앙동인지 안산시 중앙동인지 구분하지 않음)
-    // 추후 정확한 지역 매칭을 위해 필터 로직 개선 필요
-    const selectedDong = selectedAddress.split(' ').pop().trim();
 
     return (
         <div>
@@ -29,7 +27,8 @@ function Home() {
                 onSearchKeywordChange={setSearchKeyword}
             />
             <HomeBody
-                selectedAddress={selectedDong}
+                selectedAddressId={selectedAddressId}
+                selectedAddress={selectedAddress}
                 selectedCategory={selectedCategory}
                 searchKeyword={searchKeyword}
             />

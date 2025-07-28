@@ -3,20 +3,22 @@ import styles from './HomeHeader.module.css';
 import typography from './Typography.module.css';
 import locationIcon from '../../assets/location_on.svg';
 
-import category1 from '../../assets/category_1.svg';
-import category2 from '../../assets/category_2.svg';
-import category3 from '../../assets/category_3.svg';
-import category4 from '../../assets/category_4.svg';  
-import category5 from '../../assets/category_5.svg';
-import category6 from '../../assets/category_6.svg';
+import category1 from '../../assets/category-1.svg';
+import category2 from '../../assets/category-2.svg';
+import category3 from '../../assets/category-3.svg';
+import category4 from '../../assets/category-4.svg';  
+import category5 from '../../assets/category-5.svg';
+import category6 from '../../assets/category-6.svg';
+import category7 from '../../assets/category-7.svg';
 
 const categories = [
-  { name: '의류', image: category1 },
+  { name: '생활용품', image: category1 },
   { name: '반려동물', image: category2 },
-  { name: '문구류', image: category3 },
-  { name: '육아용품', image: category4 },
-  { name: '화장품/뷰티', image: category5 },
-  { name: '잡화/기타', image: category6 },
+  { name: '의류', image: category3 },
+  { name: '문구류', image: category4 },
+  { name: '육아용품', image: category5 },
+  { name: '화장품/뷰티', image: category6 },
+  { name: '잡화/기타', image: category7 }
 ];
 
 
@@ -57,44 +59,49 @@ function HomeHeader({ onLocationClick, selectedAddress, selectedCategory, onCate
   return (
     <div className={styles.homeHeader}>
       <div className={styles.searchBarWrapper}>
-    <button className={styles.locationBtn} onClick={onLocationClick}>
-      <div className={styles.locationContent}>
-        <img src={locationIcon} alt="위치아이콘" className={styles.locationIcon} />
-        <span className={typography.body1}>{getGuDongFromAddress(selectedAddress)}</span>
+        <button className={styles.locationBtn} onClick={onLocationClick}>
+          <div className={styles.locationContent}>
+            <img src={locationIcon} alt="위치아이콘" className={styles.locationIcon} />
+            <span className={typography.body1}>{getGuDongFromAddress(selectedAddress)}</span>
+          </div>
+        </button>
+        <div className={styles.searchBox}>
+          <input 
+            className={styles.searchInput} 
+            placeholder="검색어를 입력하세요" 
+            value={inputValue}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+          />
+          <button 
+            className={styles.searchBtn}
+            onClick={handleSearch}
+          />
+        </div>
       </div>
-    </button>
-    <div className={styles.searchBox}>
-      <input 
-        className={styles.searchInput} 
-        placeholder="검색어를 입력하세요" 
-        value={inputValue}
-        onChange={handleInputChange}
-        onKeyDown={handleKeyDown}
-      />
-      <button 
-        className={styles.searchBtn}
-        onClick={handleSearch}
-      />
-    </div>
-  </div>
 
-  <div className={styles.categoryList}>
-    {categories.map((cat, i) => (
-      <div 
-        key={i} 
-        className={`${styles.categoryCard} ${selectedCategory === cat.name ? styles.active : ''}`}
-        onClick={() => {
-          const isSame = selectedCategory === cat.name;
-          onCategoryChange(isSame ? '전체' : cat.name);
-        }}
-      >
-        <img className={styles.categoryIcon} src={cat.image} />
-        <span className={`${styles.categoryLabel} ${typography.body2}`}>{cat.name}</span>
+      <div className={styles.categoryList}>
+        {categories.map((category, index) => (
+          (() => {
+            const isSelected = selectedCategory === category.name;
+            
+            return (
+              <div
+                key={category.name}
+                className={`${styles.categoryCard} ${isSelected ? styles.active : ''}`}
+                onClick={() => onCategoryChange(isSelected ? '' : category.name)}
+              >
+                <img className={styles.categoryIcon} src={category.image} />
+                <span className={`${styles.categoryLabel} ${typography.body2}`}>
+                  {category.name}
+                </span>
+              </div>
+            );
+          })()
+        ))}
       </div>
-    ))}
-  </div>
-  </div>
-   );
+    </div>
+  );
 }
 
 export default HomeHeader;
