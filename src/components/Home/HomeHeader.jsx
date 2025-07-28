@@ -83,7 +83,6 @@ function HomeHeader({ onLocationClick, selectedAddress, selectedCategory, onCate
       <div className={styles.categoryList}>
         {categories.map((category, index) => (
           (() => {
-            const categoryId = index + 1;
             const isSelected = selectedCategory === category.name;
             
             return (
