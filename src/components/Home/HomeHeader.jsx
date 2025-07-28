@@ -83,14 +83,13 @@ function HomeHeader({ onLocationClick, selectedAddress, selectedCategory, onCate
       <div className={styles.categoryList}>
         {categories.map((category, index) => (
           (() => {
-            const categoryId = index + 1;
-            const isSelected = selectedCategory === categoryId;
+            const isSelected = selectedCategory === category.name;
             
             return (
               <div
-                key={categoryId}
+                key={category.name}
                 className={`${styles.categoryCard} ${isSelected ? styles.active : ''}`}
-                onClick={() => onCategoryChange(isSelected ? '' : categoryId)}
+                onClick={() => onCategoryChange(isSelected ? '' : category.name)}
               >
                 <img className={styles.categoryIcon} src={category.image} />
                 <span className={`${styles.categoryLabel} ${typography.body2}`}>

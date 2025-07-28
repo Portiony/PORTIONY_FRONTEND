@@ -73,7 +73,7 @@ function HomeBody({ selectedAddressId, selectedAddress, selectedCategory, search
       setLoading(true);
       try {
         const data = await fetchPosts({
-          category: selectedCategory === '전체'? '' : selectedCategory,
+          selectedCategory: selectedCategory === '전체'? '' : selectedCategory,
           page: currentPage,
           status: showClosed? '' : 'PROGRESS',
           dongId: selectedAddressId,
@@ -145,7 +145,7 @@ function HomeBody({ selectedAddressId, selectedAddress, selectedCategory, search
                 <span className={styles.customBox}></span>
               </label>
               <span className={typography.body1}>
-                  공구 마감된 상품 보기
+                  공구 마감된 상품도 보기
               </span>
             </div>
           </div>
@@ -170,7 +170,7 @@ function HomeBody({ selectedAddressId, selectedAddress, selectedCategory, search
             <div className={styles.aiProductListContainer}>
               <div className={styles.recommendWrapper}>
                 <span className={`${styles.recommendTitle} ${typography.heading3}`}>
-                  예은님을 위한 추천 상품
+                  당신을 위한 추천 상품
                 </span>
                 <div className={styles.aiProductListWrapper}>
                   <ProductList products={products.posts} context="home" />
