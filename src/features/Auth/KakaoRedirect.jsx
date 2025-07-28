@@ -36,6 +36,7 @@ function KakaoRedirect({ setIsLoggedIn }) {
               ...data,
               isSocial: true,
               socialProvider: 'KAKAO',
+              initialStep: 2,
             },
           });
           return;

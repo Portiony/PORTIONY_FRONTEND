@@ -50,7 +50,7 @@ function SignupForms({ onNext, onBack }) {
 
   const removeProfileImage = () => {
     setProfileImage(null);
-    setProfileImage(null);
+    setSelectedFile(null);
   };
 
   const isValidEmailFormat = (email) => {
@@ -269,7 +269,7 @@ function SignupForms({ onNext, onBack }) {
                 }}/>
             </div>
 
-            {passwordMessage && (
+            {passwordCheckMessage && (
               <span className={passwordCheckError ? styles.errorText : styles.successText}>
                 {passwordCheckMessage}
               </span>
