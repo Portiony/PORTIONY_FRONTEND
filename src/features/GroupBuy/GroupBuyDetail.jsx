@@ -398,10 +398,18 @@ function GroupBuyDetail() {
                 <p className={styles['section-title']}>판매자 정보</p>
                 <hr className={styles['divider']} />
                 <div className={styles['seller-box']}>
-                  <img src={sellerProfile} alt="판매자" />
+                  <img
+                    src={product.seller?.profileImage || sellerProfile}
+                    alt={product.seller?.nickname || '판매자'}
+                  />
                   <div className={styles['seller-info']}>
-                    <p className={styles['name']}>박지현</p>
-                    <p className={styles['stats']}>누적 거래 횟수: 12회 (구매 0회 / 판매 5회)</p>
+                    <p className={styles['name']}>
+                      {product.seller?.nickname || "알 수 없음"}
+                    </p>
+                    <p className={styles['stats']}>
+                      누적 거래 횟수: {(product.seller?.saleCount ?? 0) + (product.seller?.purchaseCount ?? 0)}회
+                      (구매 {product.seller?.purchaseCount ?? 0}회 / 판매 {product.seller?.saleCount ?? 0}회)
+                    </p>
                   </div>
                 </div>
               </div>
