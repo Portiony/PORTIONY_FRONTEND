@@ -1,10 +1,9 @@
-// src/components/Home/HomeBody.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./HomeBody.module.css";
 
 import searchIcon from "../../assets/search.svg";
-// import { fetchPosts } from "../../api/postApi"; // ← 지금은 안 쓸 거라 잠깐 주석
+// import { fetchPosts } from "../../api/postApi"; // 실제 API 쓰면 주석 해제
 
 import ProductList from "../ProductList/productList";
 import ProductSkeleton from "../ProductList/ProductSkeleton";
@@ -21,14 +20,13 @@ const ALL_CATEGORIES = [
   "잡화/기타",
 ];
 
-// 🔸 화면에만 보여줄 더미 데이터
+// 데모용 더미 데이터 (8개)
 const DUMMY_POSTS = [
   {
     id: 1,
     name: "키친타올 12롤 나눔",
     price: "9,900원 / 12롤",
-    image:
-      "https://via.placeholder.com/300x200.png?text=Kitchen+Towel", // 없으면 그냥 null 해도 됨
+    image: "",
     endDate: "2025-11-30",
     details: "공구 인원 12명 · 거래 완료 3명",
     location: "이문2동",
@@ -37,8 +35,7 @@ const DUMMY_POSTS = [
     id: 2,
     name: "강아지 간식 대용량",
     price: "6,500원 / 1봉",
-    image:
-      "https://via.placeholder.com/300x200.png?text=Pet+Snack",
+    image: "",
     endDate: "2025-12-01",
     details: "공구 인원 8명 · 거래 완료 5명",
     location: "이문2동",
@@ -47,8 +44,7 @@ const DUMMY_POSTS = [
     id: 3,
     name: "A4 복사용지 3팩 공동구매",
     price: "14,000원 / 3팩",
-    image:
-      "https://via.placeholder.com/300x200.png?text=A4+Paper",
+    image: "",
     endDate: "2025-12-05",
     details: "공구 인원 10명 · 거래 완료 1명",
     location: "이문2동",
@@ -57,53 +53,49 @@ const DUMMY_POSTS = [
     id: 4,
     name: "건조기 시트 160매",
     price: "11,000원 / 160매",
-    image:
-      "https://via.placeholder.com/300x200.png?text=Dryer+Sheet",
+    image: "",
     endDate: "2025-12-10",
     details: "공구 인원 6명 · 거래 완료 2명",
     location: "이문2동",
   },
   {
     id: 5,
-    name: "키친타올 12롤 나눔",
-    price: "9,900원 / 12롤",
-    image:
-      "https://via.placeholder.com/300x200.png?text=Kitchen+Towel", // 없으면 그냥 null 해도 됨
-    endDate: "2025-11-30",
-    details: "공구 인원 12명 · 거래 완료 3명",
+    name: "유아 물티슈 10팩 대용량",
+    price: "7,900원 / 10팩",
+    image: "",
+    endDate: "2025-12-03",
+    details: "공구 인원 15명 · 거래 완료 4명",
     location: "이문2동",
   },
   {
     id: 6,
-    name: "강아지 간식 대용량",
-    price: "6,500원 / 1봉",
-    image:
-      "https://via.placeholder.com/300x200.png?text=Pet+Snack",
-    endDate: "2025-12-01",
-    details: "공구 인원 8명 · 거래 완료 5명",
+    name: "겨울 니트 장갑 3컬러 세트",
+    price: "5,500원 / 1세트",
+    image: "",
+    endDate: "2025-12-08",
+    details: "공구 인원 9명 · 거래 완료 2명",
     location: "이문2동",
   },
   {
     id: 7,
-    name: "A4 복사용지 3팩 공동구매",
-    price: "14,000원 / 3팩",
-    image:
-      "https://via.placeholder.com/300x200.png?text=A4+Paper",
-    endDate: "2025-12-05",
-    details: "공구 인원 10명 · 거래 완료 1명",
+    name: "반려묘 캣타워 소형",
+    price: "29,000원 / 1개",
+    image: "",
+    endDate: "2025-12-12",
+    details: "공구 인원 5명 · 거래 완료 1명",
     location: "이문2동",
   },
   {
     id: 8,
-    name: "건조기 시트 160매",
-    price: "11,000원 / 160매",
-    image:
-      "https://via.placeholder.com/300x200.png?text=Dryer+Sheet",
-    endDate: "2025-12-10",
-    details: "공구 인원 6명 · 거래 완료 2명",
+    name: "생활세제 리필 4개입",
+    price: "12,500원 / 4개",
+    image: "",
+    endDate: "2025-12-15",
+    details: "공구 인원 11명 · 거래 완료 6명",
     location: "이문2동",
   },
 ];
+
 
 function HomeBody({
   onOpenLocation,
@@ -144,20 +136,19 @@ function HomeBody({
     return parts.slice(-2).join(" ");
   })();
 
+  // 데이터 불러오기 (지금은 더미)
   useEffect(() => {
-    // 🔸 여기서는 진짜 API 말고 더미를 넣어줄게
     setLoading(true);
     setTimeout(() => {
-      // 실제로는 fetchPosts(...) 하던 자리
       setProducts({
         posts: DUMMY_POSTS,
         total: DUMMY_POSTS.length,
         isAI: false,
       });
       setLoading(false);
-    }, 300); // 살짝 로딩 보는 용도
+    }, 250);
 
-    // 만약 진짜 서버 쓰면 이거로 바꾸면 됨
+    // 실제 API 쓰려면 위를 지우고 이걸 복구하면 됨
     /*
     const fetch = async () => {
       setLoading(true);
@@ -356,7 +347,7 @@ function HomeBody({
         )}
       </div>
 
-      {/* 플로팅 버튼 */}
+      {/* 플로팅 버튼 (조금 위로) */}
       <button
         className={styles.fab}
         onClick={() => navigate("/group-buy/new")}
@@ -364,7 +355,7 @@ function HomeBody({
         + 판매 등록
       </button>
 
-      {/* 필터 모달 (지역 변경은 여기서만) */}
+      {/* 필터 모달 */}
       {showFilterModal && (
         <div
           className={styles.modalOverlay}
