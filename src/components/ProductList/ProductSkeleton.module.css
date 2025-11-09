@@ -1,74 +1,65 @@
+/* src/components/ProductList/ProductSkeleton.module.css */
 .container {
-    margin-top: 20px;
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 10px;
-    width: 100%;
-    padding: 0 65px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
 }
 
 .productCard {
   display: flex;
-  flex-direction: column;
-  border-radius: 10px;
-  overflow: hidden;
-  background: #fff;
-  width: 180px;
-  transition: box-shadow 0.2s ease;
+  gap: 12px;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 10px 12px;
+  box-shadow: 0 6px 16px rgba(206, 191, 150, 0.05);
   animation: pulse 1.5s infinite ease-in-out;
 }
 
 .imageContainer {
-  position: relative;
-  width: 180px;
-  height: 180px;
-  overflow: hidden;
-  border: 1px solid #C5C5C5;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
+  min-width: 78px;
+  width: 78px;
+  height: 78px;
+  border-radius: 16px;
+  background: #eee;
 }
 
 .productImage {
-  width: 160px;
-  height: 160px;
-  border-radius: 10px;
-  background-color: #eee;
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  background: #e6e6e6;
 }
 
 .productInfo {
-  padding: 8px 5px 5px 5px;
-  flex-grow: 1;
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.productName {
-  width: 100%;
-  height: 21px;
-  background-color: #e0e0e0;
-  border-radius: 4px;
-}
-
-.productPrice {
-  width: 80%;
-  height: 16px;
-  background-color: #e0e0e0;
-  border-radius: 4px;
-}
-
+.productName,
+.productPrice,
 .productDetails {
-  width: 60%;
-  height: 10px;
-  background-color: #e0e0e0;
-  border-radius: 4px;
+  height: 12px;
+  background: #eaeaea;
+  border-radius: 6px;
+}
+
+.productName {
+  width: 75%;
+  height: 14px;
+}
+.productPrice {
+  width: 40%;
+}
+.productDetails {
+  width: 55%;
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {

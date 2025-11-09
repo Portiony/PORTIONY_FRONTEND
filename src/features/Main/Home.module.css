@@ -1,0 +1,23 @@
+/* src/pages/Home/Home.module.css */
+.screen {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    background: #f1f1f1;
+  }
+  
+  .phone {
+    width: 402px;
+    height: 874px;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* 헤더 고정 + 안쪽만 스크롤 */
+  }
+  
+  .bodyWrapper {
+    flex: 1;
+    overflow-y: auto;
+    background: #f7f7f8;
+  }
+  

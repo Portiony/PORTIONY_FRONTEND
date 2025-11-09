@@ -1,52 +1,33 @@
-import React from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import styles from './Footer.module.css';
-import logo_black from '../../assets/Logo_black.svg';
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import styles from "./Footer.module.css";
 
-const Footer = () => {
+function Footer() {
   const location = useLocation();
-  const navigate = useNavigate();
-
-  const handleLogoClick = (e) => {
-    e.preventDefault();
-    if (location.pathname === '/') {
-      window.location.reload();
-    } else {
-      navigate('/');
-    }
-  };
+  const tabs = [
+    { to: "/", label: "홈", match: (p) => p === "/" },
+    { to: "/chat", label: "채팅", match: (p) => p.startsWith("/chat") },
+    { to: "/community", label: "커뮤니티", match: (p) => p.startsWith("/community") },
+    { to: "/mypage", label: "마이페이지", match: (p) => p.startsWith("/mypage") },
+  ];
 
   return (
-    <footer className={styles.footer}>
-      <div className={styles.container}>
-        <div className={styles.left}>
-          <div className={styles.links}>
-            <span className={styles.link}>서비스 통합 약관</span>
-            <span className={styles.link}>이용 유의사항 & 커뮤니티 규칙</span>
-            <span className={styles.link}>자주 묻는 질문(FAQ)</span>
-            <span className={styles.link}>공지사항</span>
-            <span className={styles.link}>문의하기</span>
-            <span className={styles.link}>신고하기</span>
-          </div>
-
-          <a href="/" onClick={handleLogoClick} className={styles.logo}>
-            <img src={logo_black} alt="Portiony 로고" className={styles.logoImg} />
-          </a>
-
-          <div className={styles.slogan}>함께 사서, 함께 나누는 새로운 소비 문화</div>
-          <div className={styles.copyright}>
-            COPYRIGHT © Portiony. All rights reserved.
-          </div>
-        </div>
-
-        <div className={styles.right}>
-          <p>Portiony 정보</p>
-          <p>대표자: 박지현</p>
-          <p>EMAIL: thotemily@naver.com</p>
-        </div>
-      </div>
-    </footer>
+    <nav className={styles.tabbar}>
+      {tabs.map((tab) => {
+        const active = tab.match(location.pathname);
+        return (
+          <Link
+            key={tab.to}
+            to={tab.to}
+            className={`${styles.tabItem} ${active ? styles.active : ""}`}
+          >
+            {active && <span className={styles.activeIndicator} />}
+            <span className={styles.label}>{tab.label}</span>
+          </Link>
+        );
+      })}
+    </nav>
   );
-};
+}
 
 export default Footer;

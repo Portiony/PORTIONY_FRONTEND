@@ -1,8 +1,9 @@
-import React from 'react';
-import styles from './ProductSkeleton.module.css';
+// src/components/ProductList/ProductSkeleton.jsx
+import React from "react";
+import styles from "./ProductSkeleton.module.css";
 
 const ProductSkeleton = () => {
-  const skeletons = Array(12).fill(0);
+  const skeletons = Array(6).fill(0);
 
   return (
     <div className={styles.container}>

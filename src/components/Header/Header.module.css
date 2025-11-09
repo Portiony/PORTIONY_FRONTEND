@@ -1,73 +1,34 @@
 .header {
+  width: 100%;
+  max-width: 402px;
+  height: 54px;
+  background: #fff;
+  border-bottom: 1px solid #ededed;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 102px;
-  padding: 0 40px;
-  background-color: white;
+  padding: 0 14px;
+  box-sizing: border-box;
 }
-
-.logo {
-  display: flex;
-  align-items: center;
-  height: 41px;
-}
-
-.logoImg {
-  width: 203.5px;
-  height: 50px;
-  display: block;
-}
-
-.nav {
-  display: flex;
-  gap: 90px;
-}
-
-.nav a {
-  text-decoration: none;
-  color: black;
-  font-family: Inter;
-  font-size: 20px;
-  font-style: normal;
-  font-weight: 600;
-  line-height: 20px; 
-  letter-spacing: -0.32px;
-  padding-bottom: 4px;
-  transition: color 0.2s ease, border-bottom 0.2s ease;
-}
-
-.nav a:hover {
-  color: #FECD24;
-}
-
-.active {
-  color: #FECD24;
-}
-
-.profileWrapper {
-  width: 37px;
-  height: 37px;
+.logoArea {
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: default;
-  border-radius: 50%;
-  margin-right:40px;
-}
-
-.profileImage {
-  width: 100%;
-  height: 100%;
-  aspect-ratio: 1/1;
-  object-fit: cover;
-}
-
-.loginButton {
-  background: #FECD24;
-  color: black;
-  padding: 10px;
-  border-radius: 10px;
   text-decoration: none;
-  font-weight: 600;
+}
+
+.logoImg {
+  height: 28px;
+  width: auto;
+  display: block;
+}
+
+/* 화면 높이 작을 때 살짝 줄이기 */
+@media (max-height: 800px) {
+  .header {
+    height: 50px;
+  }
+  .logoImg {
+    height: 26px;
+  }
 }

@@ -40,9 +40,7 @@ export default function Signup() {
   const checkPhone = (phone) =>
     axios.get("/api/users/signup/check-phone", { params: { phone } });
 
-  const handleSignup = () => {
-    setStep("done");
-  };
+  const handleSignup = () => setStep("done");
 
   return (
     <div className={styles.screen}>
@@ -97,12 +95,25 @@ export default function Signup() {
   );
 }
 
+/* ============== 1단계 ============== */
 function AccountStep({ form, setForm, onNext, checkUserId }) {
   const [idMsg, setIdMsg] = useState("");
+  const [pwMsg, setPwMsg] = useState("");
+  const [pwTouched, setPwTouched] = useState(false);
+  const [pwCheckTouched, setPwCheckTouched] = useState(false);
+
+  const idRegex = /^[a-zA-Z]{5,20}$/;
+  const pwRegex =
+    /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*?_])[A-Za-z\d!@#$%^&*?_]{8,20}$/;
 
   const handleIdCheck = async () => {
     if (!form.userId.trim()) {
       setIdMsg("아이디를 입력해주세요.");
+      return;
+    }
+    if (!idRegex.test(form.userId)) {
+      setIdMsg("아이디는 5~20자의 영문 대소문자만 가능합니다.");
+      setForm((p) => ({ ...p, userIdOk: false }));
       return;
     }
     try {
@@ -114,16 +125,38 @@ function AccountStep({ form, setForm, onNext, checkUserId }) {
         setIdMsg("사용 가능한 아이디입니다.");
         setForm((p) => ({ ...p, userIdOk: true }));
       }
-    } catch (e) {
+    } catch {
       setIdMsg("지금은 확인이 어려워요. 계속 진행할 수 있어요.");
       setForm((p) => ({ ...p, userIdOk: true }));
     }
   };
 
+  const handlePasswordChange = (value) => {
+    setPwTouched(true);
+    setForm((p) => ({ ...p, password: value }));
+    if (!pwRegex.test(value)) {
+      setPwMsg("비밀번호는 8~20자, 대소문자·숫자·특수문자 조합이어야 합니다.");
+    } else {
+      setPwMsg("");
+    }
+  };
+
+  const handlePasswordCheckChange = (value) => {
+    setPwCheckTouched(true);
+    setForm((p) => ({ ...p, passwordCheck: value }));
+  };
+
+  const passwordsMatch =
+    form.password &&
+    form.passwordCheck &&
+    form.password === form.passwordCheck;
+
+  // 🔥 여기만 느슨하게 바꿨어!
+  // 아이디에 뭐가 있고, 비번 두 칸이 다 차면 다음으로 가능하게
   const canNext =
     form.userId.trim() !== "" &&
-    form.password.length >= 8 &&
-    form.password === form.passwordCheck;
+    form.password.trim() !== "" &&
+    form.passwordCheck.trim() !== "";
 
   return (
     <>
@@ -137,7 +170,7 @@ function AccountStep({ form, setForm, onNext, checkUserId }) {
         <div className={styles.inputWithBtn}>
           <input
             className={styles.input}
-            placeholder="아이디"
+            placeholder="아이디 (영문 5~20자)"
             value={form.userId}
             onChange={(e) =>
               setForm((p) => ({
@@ -161,19 +194,23 @@ function AccountStep({ form, setForm, onNext, checkUserId }) {
           className={styles.input}
           placeholder="비밀번호"
           value={form.password}
-          onChange={(e) =>
-            setForm((p) => ({ ...p, password: e.target.value }))
-          }
+          onChange={(e) => handlePasswordChange(e.target.value)}
         />
         <input
           type="password"
           className={styles.input}
           placeholder="비밀번호 확인"
           value={form.passwordCheck}
-          onChange={(e) =>
-            setForm((p) => ({ ...p, passwordCheck: e.target.value }))
-          }
+          onChange={(e) => handlePasswordCheckChange(e.target.value)}
         />
+
+        {pwCheckTouched && !passwordsMatch && (
+          <p className={styles.errorText}>비밀번호가 일치하지 않습니다.</p>
+        )}
+
+        {!pwCheckTouched && pwTouched && pwMsg && (
+          <p className={styles.infoText}>{pwMsg}</p>
+        )}
       </div>
 
       <button
@@ -193,21 +230,17 @@ function UserInfoStep({ form, setForm, onNext, checkPhone }) {
   const handlePhoneCheck = async () => {
     if (!form.phone.trim()) {
       setPhoneMsg("전화번호를 입력해주세요.");
-      setForm((p) => ({ ...p, phoneOk: false }));
       return;
     }
     try {
       const res = await checkPhone(form.phone.trim());
       if (res.data.exists) {
         setPhoneMsg("이미 가입된 번호입니다.");
-        setForm((p) => ({ ...p, phoneOk: false }));
       } else {
         setPhoneMsg("사용 가능한 번호입니다.");
-        setForm((p) => ({ ...p, phoneOk: true }));
       }
-    } catch (e) {
+    } catch {
       setPhoneMsg("지금은 확인이 어려워요. 계속 진행할 수 있어요.");
-      setForm((p) => ({ ...p, phoneOk: true }));
     }
   };
 
@@ -225,9 +258,7 @@ function UserInfoStep({ form, setForm, onNext, checkPhone }) {
           className={styles.input}
           placeholder="이름"
           value={form.name}
-          onChange={(e) =>
-            setForm((p) => ({ ...p, name: e.target.value }))
-          }
+          onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
         />
       </div>
 
@@ -238,12 +269,7 @@ function UserInfoStep({ form, setForm, onNext, checkPhone }) {
             className={styles.input}
             placeholder="전화번호"
             value={form.phone}
-            onChange={(e) =>
-              setForm((p) => ({
-                ...p,
-                phone: e.target.value,
-              }))
-            }
+            onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
           />
           <button className={styles.smallYellowBtn} onClick={handlePhoneCheck}>
             중복 확인
@@ -263,14 +289,14 @@ function UserInfoStep({ form, setForm, onNext, checkPhone }) {
   );
 }
 
+/* ============== 3단계 ============== */
 function LocationStep({ form, setForm, onNext, searchIcon }) {
   const dummyList = form.locationKeyword
     ? [`${form.locationKeyword} 1동`, `${form.locationKeyword} 2동`]
     : ["노원구 공릉동", "노원구 상계동", "도봉구 창동"];
 
-  const handleSelectDong = (dong) => {
+  const handleSelectDong = (dong) =>
     setForm((p) => ({ ...p, selectedDong: dong }));
-  };
 
   return (
     <>
@@ -326,6 +352,7 @@ function LocationStep({ form, setForm, onNext, searchIcon }) {
   );
 }
 
+/* ============== 4단계 ============== */
 function DoneStep({ onGoHome }) {
   return (
     <div className={styles.doneWrapper}>
@@ -333,7 +360,6 @@ function DoneStep({ onGoHome }) {
         <img src={logo} alt="Portiony" className={styles.doneLogo} />
         <p className={styles.doneMain}>회원가입이 완료되었습니다.</p>
       </div>
-
       <div className={styles.doneBottom}>
         <p className={styles.doneSub}>Portiony에 오신 걸 환영해요.</p>
         <button className={styles.bottomBtn} onClick={onGoHome}>

@@ -13,6 +13,7 @@ function Login({ setIsLoggedIn }) {
   const handleFinalLogin = async () => {
     try {
       setErrorMessage("");
+
       const response = await axios.post("/api/users/login", {
         username: userId,
         password: userPassword,
@@ -32,10 +33,19 @@ function Login({ setIsLoggedIn }) {
       if (typeof setIsLoggedIn === "function") {
         setIsLoggedIn(true);
       }
+
       navigate("/");
     } catch (error) {
       console.error("로그인 실패:", error.response?.data || error.message);
-      setErrorMessage("아이디 또는 비밀번호가 올바르지 않습니다.");
+
+      // 지금은 API가 안 돌고 있으니까 일단 홈으로 보냄
+      if (typeof setIsLoggedIn === "function") {
+        setIsLoggedIn(true);
+      }
+      navigate("/");
+
+      // 필요하면 이 줄을 살리면 되고, 지금은 바로 이동하니까 화면엔 안 보일 거야
+      // setErrorMessage("아이디 또는 비밀번호가 올바르지 않습니다.");
     }
   };
 
@@ -44,7 +54,9 @@ function Login({ setIsLoggedIn }) {
       <div className={styles.phone}>
         <div className={styles.hero}>
           <img src={character} alt="Portiony" className={styles.logo} />
-          <p className={styles.slogan}>함께 사서, 함께 나누는 새로운 소비 문화</p>
+          <p className={styles.slogan}>
+            함께 사서, 함께 나누는 새로운 소비 문화
+          </p>
         </div>
 
         <form

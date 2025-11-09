@@ -9,6 +9,7 @@ import {
 
 import Header from "./components/Header/Header";
 import Footer from "./components/Footer/Footer";
+
 import Login from "./features/Auth/Login";
 import SignUp from "./features/Auth/SignUp";
 import Home from "./features/Main/Home";
@@ -63,16 +64,19 @@ function App() {
 
 function AppShell({ isLoggedIn, setIsLoggedIn }) {
   const location = useLocation();
-  // 로그인/회원가입은 헤더 없이 보여주고 싶으면 여기에 추가
+
+  // 헤더/푸터 숨길 페이지
   const AUTH_PAGES = ["/login", "/signup"];
-  const hideHeader = AUTH_PAGES.includes(location.pathname);
+  const hideChrome = AUTH_PAGES.includes(location.pathname);
 
   return (
-    <div className="app-screen">
+    <div className="web-wrapper">
       <div className="app-frame">
-        {!hideHeader && <Header isLoggedIn={isLoggedIn} />}
+        {/* 헤더 */}
+        {!hideChrome && <Header />}
 
-        <div className="app-content">
+        {/* 본문 영역: 헤더 높이를 뺀 나머지, 푸터가 밑에 있을 수 있게 flex:1 */}
+        <main className={`app-content ${hideChrome ? "no-chrome" : ""}`}>
           <Routes>
             {/* 비회원 */}
             <Route
@@ -128,12 +132,13 @@ function AppShell({ isLoggedIn, setIsLoggedIn }) {
               element={isLoggedIn ? <ChatTest /> : <Navigate to="/login" />}
             />
 
-            {/* 나머지 */}
+            {/* 기타 */}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
-        </div>
+        </main>
 
-        {!hideHeader && <Footer />}
+        {/* 푸터 */}
+        {!hideChrome && <Footer />}
       </div>
     </div>
   );

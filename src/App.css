@@ -1,49 +1,48 @@
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
+  background: #f3f3f3;
   height: 100%;
-  background-color: #f3f3f3;
 }
 
-/* 바깥: 브라우저 전체 회색, 가운데에 402px 앱 */
+/* 브라우저 전체에서 가운데 402px짜리 앱 보여주기 */
 .web-wrapper {
   width: 100vw;
   min-height: 100vh;
-  background-color: #f3f3f3;
   display: flex;
   justify-content: center;
-  overflow: hidden;
+  align-items: flex-start;
+  background: #f3f3f3;
 }
 
-/* 안쪽: 너가 말한 앱 화면 402px */
-.web-container {
+/* 실제 앱 캔버스 */
+.app-frame {
   width: 402px;
-  min-height: 100vh;
-  background-color: #fff;
-  box-shadow: 0 0 20px rgba(0,0,0,0.1);
-  position: relative;
+  height: 874px; /* ← 네가 말한 앱 높이 */
+  background: #fff;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* 전체는 숨기고 */
+  overflow: hidden; /* 안에서 스크롤 */
 }
 
-/* 기본 컨텐츠: 스크롤 없고 패딩도 최소화 */
-.scrollable-content {
+/* 본문: header와 footer 사이에서만 스크롤 */
+.app-content {
   flex: 1;
-  overflow-y: hidden;  /* auto → hidden 으로 */
-  padding: 0;          /* 위아래 패딩 때문에 넘치는 거 방지 */
-}
-
-/* 스크롤이 꼭 필요한 페이지에서만 이 클래스 추가해서 씀 */
-.scrollable-content.scroll {
   overflow-y: auto;
-  padding: 26px 0;
+  /* 헤더(54px) + 푸터(62px) 뺀 영역이 된다 */
+  /* padding은 각 페이지 컴포넌트에서 채움 */
 }
 
-/* 로그인/회원가입 전용: 가운데 배치용 */
-.full-content {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+/* 로그인/회원가입일 때는 헤더/푸터 없으니까 전체가 스크롤 */
+.app-content.no-chrome {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.loading {
+  width: 100%;
+  text-align: center;
+  margin-top: 30px;
 }

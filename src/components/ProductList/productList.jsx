@@ -1,10 +1,10 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import styles from './productList.module.css';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import styles from "./productList.module.css";
 
-import mapIcon from '../../assets/location_on.svg';
-import clockIcon from '../../assets/alarm.svg';
-import defaultImage from '../../assets/LOGOMAIN.png';
+import mapIcon from "../../assets/location_on.svg";
+import clockIcon from "../../assets/alarm.svg";
+import defaultImage from "../../assets/LOGOMAIN.png";
 
 function getDDay(endDate) {
   const end = new Date(endDate);
@@ -13,8 +13,8 @@ function getDDay(endDate) {
   now.setHours(0, 0, 0, 0);
   const diffTime = end - now;
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  if (diffDays < 0) return '마감';
-  if (diffDays === 0) return 'D-day';
+  if (diffDays < 0) return "마감";
+  if (diffDays === 0) return "D-day";
   return `D-${diffDays}`;
 }
 
@@ -35,34 +35,34 @@ export default function ProductList({ products: propProducts, onClickProduct }) 
       {data.map((product, index) => {
         const dDay = getDDay(product.endDate);
         const imageSrc =
-          product.image && product.image.trim() !== ''
+          product.image && product.image.trim() !== ""
             ? product.image
             : defaultImage;
 
         return (
           <div
-          key={`${product.id}-${index}`}
+            key={`${product.id}-${index}`}
             className={styles.productCard}
             onClick={() => handleClick(product)}
-            style={{ cursor: 'pointer' }}
           >
-            
             <div className={styles.imageContainer}>
-              {dDay === '마감' && (
+              {dDay === "마감" && (
                 <div className={styles.grayOverlay}>
                   <span className={styles.overlayText}>공구 마감</span>
                 </div>
               )}
+
               <div className={styles.topBadges}>
                 <span className={styles.badgeLocation}>
                   <img src={mapIcon} alt="위치" className={styles.icon} />
-                  {product.location || '위치 정보 없음'}
+                  {product.location || "위치 정보 없음"}
                 </span>
                 <span className={styles.badgeDDay}>
                   <img src={clockIcon} alt="마감" className={styles.icon} />
                   {dDay}
                 </span>
               </div>
+
               <img
                 src={imageSrc}
                 alt={product.name}
@@ -73,6 +73,7 @@ export default function ProductList({ products: propProducts, onClickProduct }) 
                 }}
               />
             </div>
+
             <div className={styles.productInfo}>
               <h3 className={styles.productName}>{product.name}</h3>
               <p className={styles.productPrice}>{product.price}</p>

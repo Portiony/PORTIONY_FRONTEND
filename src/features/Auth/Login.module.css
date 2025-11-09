@@ -1,13 +1,15 @@
 .screen {
-  min-height: 100vh;
+  height: 100%;          /* ← 부모(402x874) 높이에 맞춰 */
+  min-height: 100%;      /* 혹시 flex여도 꽉 차게 */
   display: flex;
   justify-content: center;
   background: #f1f1f1;
 }
 
 .phone {
-  width: 402px;
-  height: 874px;
+  width: 100%;
+  height: 100%;   /* 부모 높이만큼만 */
+  max-width: 402px;
   background: #ffffff;
   display: flex;
   flex-direction: column;
@@ -20,9 +22,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
   margin-top: 140px;
-  margin-bottom: 60px;
+  margin-bottom: 93px;
 }
 
 .logo {
