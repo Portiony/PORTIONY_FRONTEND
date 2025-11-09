@@ -1,31 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 
-import Header from './components/Header/Header';
-import Footer from './components/Footer/Footer';
-import Login from './features/Auth/Login';
-import KakaoRedirect from './features/Auth/KakaoRedirect';
-import SignUp from './features/Auth/SignUp';
-import Home from './features/Main/Home';
-import MyPage from './features/MyPage/MyPage';
-import Chat from './features/Chats/Chat';
-import GroupBuyNew from './features/GroupBuy/GroupBuyNew';
-import GroupBuyDetail from './features/GroupBuy/GroupBuyDetail';
-import GroupBuyEdit from './features/GroupBuy/GroupBuyEdit';
-import Community from './features/Community/Community';
-import ChatTest from './features/Chats/ChatTest';
-import Place from './features/Auth/Signup/Place';
+import Header from "./components/Header/Header";
+import Footer from "./components/Footer/Footer";
+import Login from "./features/Auth/Login";
+import SignUp from "./features/Auth/SignUp";
+import Home from "./features/Main/Home";
+import MyPage from "./features/MyPage/MyPage";
+import Chat from "./features/Chats/Chat";
+import GroupBuyNew from "./features/GroupBuy/GroupBuyNew";
+import GroupBuyDetail from "./features/GroupBuy/GroupBuyDetail";
+import GroupBuyEdit from "./features/GroupBuy/GroupBuyEdit";
+import Community from "./features/Community/Community";
+import ChatTest from "./features/Chats/ChatTest";
 
-import instance from './lib/axios';
-import './App.css';
+import instance from "./lib/axios";
+import "./App.css";
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // 토큰 기반 인증 상태 확인
   const checkAuth = async () => {
-    const accessToken = localStorage.getItem('access_token');
+    const accessToken = localStorage.getItem("access_token");
     if (!accessToken) {
       setIsLoggedIn(false);
       setIsLoading(false);
@@ -33,10 +36,10 @@ function App() {
     }
 
     try {
-      await instance.get('/api/users/');
+      await instance.get("/api/users/");
       setIsLoggedIn(true);
     } catch (error) {
-      console.error('토큰 확인 실패:', error);
+      console.error("토큰 확인 실패:", error);
       setIsLoggedIn(false);
     } finally {
       setIsLoading(false);
@@ -45,50 +48,92 @@ function App() {
 
   useEffect(() => {
     checkAuth();
-    window.addEventListener('auth-change', checkAuth);
-    return () => {
-      window.removeEventListener('auth-change', checkAuth);
-    };
+    window.addEventListener("auth-change", checkAuth);
+    return () => window.removeEventListener("auth-change", checkAuth);
   }, []);
 
   if (isLoading) return <div className="loading">로딩 중...</div>;
 
   return (
-    <div className="web-wrapper">
-      <div className="web-container">
-        <BrowserRouter>
-          <Header isLoggedIn={isLoggedIn} />
-          <div className="scrollable-content">
-            <Routes>
-              {/* 비회원용 */}
-              <Route path="/signup" element={isLoggedIn ? <Navigate to="/" /> : <SignUp />} />
-              <Route path="/signup/kakao" element={isLoggedIn ? <Navigate to="/" /> : <SignUp initialStep={3} />} />
-              <Route path="/login" element={isLoggedIn ? <Navigate to="/" /> : <Login setIsLoggedIn={setIsLoggedIn} />} />
-              <Route path="/login/oauth/kakao" element={<KakaoRedirect setIsLoggedIn={setIsLoggedIn} />} />
+    <BrowserRouter>
+      <AppShell isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+    </BrowserRouter>
+  );
+}
 
-              {/* 로그인 필수 */}
-              <Route path="/" element={isLoggedIn ? <Home /> : <Navigate to="/login" />} />
-              <Route path="/mypage" element={isLoggedIn ? <MyPage /> : <Navigate to="/login" />} />
-              <Route path="/chat" element={isLoggedIn ? <Chat /> : <Navigate to="/login" />} />
-              <Route path="/community" element={isLoggedIn ? <Community /> : <Navigate to="/login" />} />
+function AppShell({ isLoggedIn, setIsLoggedIn }) {
+  const location = useLocation();
+  // 로그인/회원가입은 헤더 없이 보여주고 싶으면 여기에 추가
+  const AUTH_PAGES = ["/login", "/signup"];
+  const hideHeader = AUTH_PAGES.includes(location.pathname);
 
-              {/* 공구 관련 */}
-              <Route path="/group-buy/new" element={<GroupBuyNew />} />
-              <Route path="/group-buy/:id" element={<GroupBuyDetail />} />
-              <Route path="/group-buy/:id/edit" element={<GroupBuyEdit />} />
+  return (
+    <div className="app-screen">
+      <div className="app-frame">
+        {!hideHeader && <Header isLoggedIn={isLoggedIn} />}
 
-              {/* 위치 기반 페이지 */}
-              <Route path="/place" element={<Place />} /> 
+        <div className="app-content">
+          <Routes>
+            {/* 비회원 */}
+            <Route
+              path="/login"
+              element={
+                isLoggedIn ? (
+                  <Navigate to="/" />
+                ) : (
+                  <Login setIsLoggedIn={setIsLoggedIn} />
+                )
+              }
+            />
+            <Route
+              path="/signup"
+              element={isLoggedIn ? <Navigate to="/" /> : <SignUp />}
+            />
 
-              {/* 테스트용 채팅 */}
-              <Route path="/chat-test" element={<ChatTest />} />
+            {/* 로그인 필요 */}
+            <Route
+              path="/"
+              element={isLoggedIn ? <Home /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/mypage"
+              element={isLoggedIn ? <MyPage /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/chat"
+              element={isLoggedIn ? <Chat /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/community"
+              element={isLoggedIn ? <Community /> : <Navigate to="/login" />}
+            />
 
-              {/* 그 외 잘못된 경로 */}
-              <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
-          </div>
-          <Footer />
-        </BrowserRouter>
+            {/* 공구 */}
+            <Route
+              path="/group-buy/new"
+              element={isLoggedIn ? <GroupBuyNew /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/group-buy/:id"
+              element={isLoggedIn ? <GroupBuyDetail /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/group-buy/:id/edit"
+              element={isLoggedIn ? <GroupBuyEdit /> : <Navigate to="/login" />}
+            />
+
+            {/* 테스트 */}
+            <Route
+              path="/chat-test"
+              element={isLoggedIn ? <ChatTest /> : <Navigate to="/login" />}
+            />
+
+            {/* 나머지 */}
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </div>
+
+        {!hideHeader && <Footer />}
       </div>
     </div>
   );

@@ -1,82 +1,304 @@
-.container {
-    padding: 86px 26px 0 26px;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    
-  }
-  .backWrapper {
-    position: absolute;
-    top: 13px;
-    left: 26px;
-    display: flex;
-    align-items: center;
-    gap: 26px; 
-  }
-  
-  .backIcon {
-    width: 25px;
-    height: 25px;
-    cursor: pointer;
-    display: inline-block;
-  }
-  
-  .backTitle {
-    color: #000;
-    font-family: Inter;
-    font-size: 20px;
-    font-style: normal;
-    font-weight: 600;
-    line-height: 20px; 
-    letter-spacing: -0.32px;
-  }
-  
-  .description {
-    color: #000;
-    font-family: Inter;
-    font-size: 20px;
-    font-style: normal;
-    font-weight: 600;
-    line-height: 20px; 
-    letter-spacing: -0.32px;
-    margin-bottom: 74px;
-  }
-  
-  .checkboxGroup {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    font-size: 15px;
-    font-weight: 500;
-    color: #000;
-  }
-  
-  .separator {
-    margin: 16px 0;
-    border: none;
-    border-top: 1px solid #e0e0e0;
-  }
-  
-  .link {
-    color: #666;
-    margin-left: 4px;
-    cursor: pointer;
-    font-size: 13px;
-    text-decoration: underline;
-  }
-  
-  .button {
-    margin-top: 74px;
-    width: 100%;
-    height: 56px;
-    background-color: #000;
-    color: #fff;
-    font-size: 18px;
-    font-weight: 600;
-    border: none;
-    border-radius: 10px;
-    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.25);
-    cursor: pointer;
-  }
-  
+.screen {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  background: #f1f1f1;
+}
+
+.phone {
+  width: 402px;
+  height: 874px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+}
+
+.inner {
+  padding: 0 20px 32px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 56px;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.backIcon {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+.topTitle {
+  color: #000;
+  font-family: Pretendard, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.descBox {
+  width: 100%;
+  max-width: 362px;
+  height: 98px;
+  border-radius: 15px;
+  background: #f7f7f8;
+  margin-top: 33px;
+  margin-bottom: 46px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 14px 16px;
+  text-align: center;
+  font-family: Pretendard, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.35;
+  box-sizing: border-box;
+}
+
+.descBox p {
+  margin: 0;
+}
+
+.descBox p + p {
+  margin-top: 4px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 33px;
+}
+
+.label {
+  color: #000;
+  font-family: Pretendard, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.input {
+  width: 100%;
+  height: 52px;
+  border-radius: 10px;
+  background: #f7f7f8;
+  border: none;
+  padding: 0 14px;
+  font-family: Pretendard, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  outline: none;
+  box-shadow: none;
+  box-sizing: border-box;
+}
+
+.input::placeholder {
+  color: #96a1a6;
+}
+
+.inputWithBtn {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.smallYellowBtn {
+  border: none;
+  border-radius: 10px;
+  background: #fecd24;
+  height: 52px;
+  padding: 0 16px;
+  color: #000;
+  font-family: Pretendard, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.infoText {
+  font-size: 12px;
+  color: #5f5f5f;
+}
+
+.bottomBtn {
+  width: 100%;
+  height: 48px;
+  border: none;
+  border-radius: 12px;
+  background: #fecd24;
+  color: #3a3e40;
+  font-size: 15px;
+  font-weight: 600;
+  margin-top: auto;
+  cursor: pointer;
+}
+
+.bottomBtn:disabled {
+  background: #dddddd;
+  cursor: not-allowed;
+}
+
+.locationTopRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.locationYellowBtn {
+  background: #fecd24;
+  border: none;
+  border-radius: 12px;
+  height: 44px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.searchBox {
+  flex: 1;
+  height: 44px;
+  background: #fff;
+  border: 1px solid #eaeaea;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+.searchInput {
+  flex: 1;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  box-shadow: none;
+  -webkit-appearance: none;
+  font-size: 13px;
+}
+
+.searchInput::placeholder {
+  color: #96a1a6;
+  font-size: 13px;
+}
+
+.searchIcon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+
+.locationListBox {
+  width: 100%;
+  border: 1px solid #e1e1e1;
+  border-radius: 12px;
+  background: #fff;
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.locationItem {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  font-size: 13px;
+  border-bottom: 1px solid #f1f1f1;
+  cursor: pointer;
+}
+
+.locationItem:last-child {
+  border-bottom: none;
+}
+
+.locationItemActive {
+  background: #fff5d5;
+}
+
+.locationConfirmBox {
+  margin-top: 12px;
+  margin-bottom: 14px;
+  background: #fffdf3;
+  border: 1px solid #ffe29a;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.locationConfirmText {
+  font-size: 13px;
+  color: #333;
+  line-height: 1.4;
+}
+
+.doneWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  justify-content: space-between;
+  align-items: center;
+  text-align: center;
+}
+
+.doneCenter {
+  display: flex;
+  flex-direction: column;
+  margin-top: 300px;
+  align-items: center;
+}
+
+.doneLogo {
+  width: 203.5px;
+  height: auto;
+}
+
+.doneMain {
+  color: #3a3e40;
+  font-family: Pretendard, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  text-align: center;
+}
+
+.doneBottom {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.doneSub {
+  color: #000;
+  font-family: Pretendard, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  text-align: center;
+}

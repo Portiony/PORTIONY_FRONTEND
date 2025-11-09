@@ -5,28 +5,45 @@ html, body {
   background-color: #f3f3f3;
 }
 
+/* 바깥: 브라우저 전체 회색, 가운데에 402px 앱 */
 .web-wrapper {
-  width: 100vw;           /* feature/product-register */
-  min-height: 100vh;      /* develop 쪽 */
+  width: 100vw;
+  min-height: 100vh;
   background-color: #f3f3f3;
   display: flex;
   justify-content: center;
-  overflow: hidden;       /* feature/product-register */
+  overflow: hidden;
 }
 
+/* 안쪽: 너가 말한 앱 화면 402px */
 .web-container {
-  width: 1280px;
-  min-height: 100vh;      /* develop 쪽 */
-  background-color: white;
+  width: 402px;
+  min-height: 100vh;
+  background-color: #fff;
   box-shadow: 0 0 20px rgba(0,0,0,0.1);
-  position: relative;     /* feature/product-register */
+  position: relative;
   display: flex;
   flex-direction: column;
-  overflow: hidden;       /* feature/product-register */
+  overflow: hidden; /* 전체는 숨기고 */
 }
 
+/* 기본 컨텐츠: 스크롤 없고 패딩도 최소화 */
 .scrollable-content {
   flex: 1;
+  overflow-y: hidden;  /* auto → hidden 으로 */
+  padding: 0;          /* 위아래 패딩 때문에 넘치는 거 방지 */
+}
+
+/* 스크롤이 꼭 필요한 페이지에서만 이 클래스 추가해서 씀 */
+.scrollable-content.scroll {
   overflow-y: auto;
   padding: 26px 0;
+}
+
+/* 로그인/회원가입 전용: 가운데 배치용 */
+.full-content {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

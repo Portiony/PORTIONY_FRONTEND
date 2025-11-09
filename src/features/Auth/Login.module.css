@@ -1,206 +1,107 @@
-.container {
-  position: relative;
+.screen {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  background: #f1f1f1;
+}
+
+.phone {
+  width: 402px;
+  height: 874px;
+  background: #ffffff;
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
-  padding-top: 86px; 
+  padding: 0 20px;
+  box-sizing: border-box;
 }
 
-/* 로고1 */
-.character {
-  width: 165px;
-  margin-bottom: 25px; 
-}
-
-/* 로고2 */
-.logoTop {
-  width: 165px;
-  margin-bottom: 96px;
-}
-
-/* 함께 사서, 함께 나누는 멘트 */
-.slogan {
-  color: #000;
-  text-shadow: 0px 0px 15px rgba(0, 0, 0, 0.25);
-  font-family: Inter;
-  font-size: 26px;
-  font-style: normal;
-  font-weight: 700;
-  line-height: 26px;
-  letter-spacing: -0.32px;
-  margin-bottom: 99px;
-}
-
-/* 로그인 후 함께 사서, 함께 나누는 */
-.slogan_dif {
-  color: #000;
-  text-shadow: 0px 0px 15px rgba(0, 0, 0, 0.25);
-  font-family: Inter;
-  font-size: 26px;
-  font-style: normal;
-  font-weight: 700;
-  line-height: 26px;
-  letter-spacing: -0.32px;
-  margin-bottom: 20px;
-}
-
-/* 카카오 로그인 버튼 */
-.kakaoButton {
-  width: 375px;
-  height: 56px;
-  border-radius: 10px;
-  background: #FEE500;
-  border: none;
-  box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.25);
-  color: #000;
-  text-align: center;
-  font-family: Inter;
-  font-size: 20px;
-  font-style: normal;
-  font-weight: 600;
-  line-height: 20px;
-  letter-spacing: -0.32px;
-  margin-bottom: 24px;
-  cursor: pointer;
-}
-
-/* 로그인 버튼 */
-.loginButton {
-  width: 375px;
-  height: 56px;
-  border: none;
-  border-radius: 10px;
-  background: #000;
-  box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.25);
-  color: #fff;
-  text-align: center;
-  font-family: Inter;
-  font-size: 20px;
-  font-style: normal;
-  font-weight: 600;
-  line-height: 20px;
-  letter-spacing: -0.32px;
-  margin-bottom: 20px;
-  cursor: pointer;
-}
-
-/* 로그인 버튼 - 비활성화 */
-.loginButton:disabled {
-  background: #d9d9d9;
-  cursor: not-allowed;
-}
-
-/* 메인홈으로 가기 */
-.loginCompleteButton {
-  width: 375px;
-  height: 56px;
-  border-radius: 10px;
-  background: #FECD24;
-  box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.25);
-  border: none;
-  color: #000000;
-  text-align: center;
-  font-family: Inter;
-  font-size: 20px;
-  font-style: normal;
-  font-weight: 600;
-  line-height: 20px;
-  letter-spacing: -0.32px;
-  cursor: pointer;
-}
-
-/* 첫 방문이신가요? */
-.signupText {
-  color: #747474;
-  text-align: center;
-  font-family: Inter;
-  font-size: 13px;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 16px;
-  letter-spacing: -0.32px;
-}
-
-/* 회원가입 */
-.signupLink {
-  color: #000;
-  text-align: center;
-  font-family: Inter;
-  font-size: 13px;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 16px;
-  letter-spacing: -0.32px;
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
-}
-
-.formGroup {
+.hero {
   display: flex;
   flex-direction: column;
-  gap: 13px;
-  margin: 30px 0 30px;
+  align-items: center;
+  gap: 16px;
+  margin-top: 140px;
+  margin-bottom: 60px;
+}
+
+.logo {
+  width: 203.5px;
+}
+
+.slogan {
+  color: #000;
+  font-family: Pretendard, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 22px;
+  text-align: center;
+}
+
+.form {
+  width: 100%;
+  max-width: 343px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .input {
-  width: 375px;
-  height: 56px;
-  border: none;
+  width: 100%;
+  height: 52px;
   border-radius: 10px;
-  background: #E7E7E7;
-  padding-left: 12px;
-  color: #000;
-  font-family: Inter;
-  font-size: 13px;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 16px;
+  background: #f7f7f8;
+  border: none;
+  padding: 0 16px;
+  font-size: 14px;
+  outline: none;
+  box-shadow: none;
+  font-family: Pretendard, sans-serif;
 }
 
 .input::placeholder {
-  color: #949494;
+  color: #96a1a6;
 }
 
-/* 로그인 완료 */
-.loginText {
-  color: #000;
-  text-shadow: 0px 0px 15px rgba(0, 0, 0, 0.25);
-  font-family: Inter;
-  font-size: 20px;
-  font-style: normal;
+.error {
+  color: #e53935;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+}
+
+.loginButton {
+  width: 100%;
+  height: 48px;
+  border: none;
+  border-radius: 12px;
+  background: #fecd24;
+  color: #3a3e40;
+  font-family: Pretendard, sans-serif;
+  font-size: 16px;
   font-weight: 600;
-  line-height: 20px;
-  letter-spacing: -0.32px;
-  margin-bottom: 50px;
-}
-
-/* 뒤로가기 + 이름 */
-.backWrapper {
-  position: absolute;
-  top: 13px;
-  left: 26px;
-  display: flex;
-  align-items: center;
-  gap: 26px; 
-}
-
-/* 뒤로가기 */
-.backIcon {
-  width: 25px;
-  height: 25px;
+  line-height: 24px;
   cursor: pointer;
-  display: inline-block;
+  margin-top: 16px;
+  transition: opacity 0.1s ease;
 }
 
-/* 페이지 이름 */
-.loginTitle {
-  color: #000;
-  font-family: Inter;
-  font-size: 20px;
-  font-style: normal;
+.loginButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.bottomText {
+  margin-top: 18px;
+  color: #7f888c;
+  font-family: Pretendard, sans-serif;
+  font-size: 12px;
   font-weight: 600;
-  line-height: 20px; 
-  letter-spacing: -0.32px;
+  line-height: 150%;
+}
+
+.link {
+  color: #3c70b5;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
