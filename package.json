@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": "18.x"
+    "node": "22.x"
   },
   "proxy": "https://port-0-portiony-backend-md4272k5c4648749.sel5.cloudtype.app/",
   "dependencies": {
