@@ -23,7 +23,6 @@
   display: block;
 }
 
-/* 화면 높이 작을 때 살짝 줄이기 */
 @media (max-height: 800px) {
   .header {
     height: 50px;

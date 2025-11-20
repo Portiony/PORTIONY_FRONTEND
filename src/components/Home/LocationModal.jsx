@@ -1,4 +1,3 @@
-// src/components/Home/LocationModal.jsx
 import React, { useState } from "react";
 import styles from "./LocationModal.module.css";
 import locationIcon from "../../assets/location_on.svg";
@@ -6,7 +5,6 @@ import closeIcon from "../../assets/x.svg";
 import searchIcon from "../../assets/search.svg";
 import axiosRaw from "axios";
 
-// 🔹 위치 전용 axios (Authorization 안 붙는 생 axios)
 const locationAxios = axiosRaw.create({
   baseURL: "https://port-0-portiony-be-md4272k5c4648749.sel5.cloudtype.app",
   timeout: 5000,
@@ -20,14 +18,11 @@ function LocationModal({ open, onClose, onSelectAddress }) {
 
   if (!open) return null;
 
-  // ✅ 결과에서 항목 선택
   const handleSelectLocation = (loc) => {
-    // 부모에서 selectedAddress / selectedAddressId 세팅
     onSelectAddress(loc.address, loc.dongId);
     onClose();
   };
 
-  // ✅ 현재 위치로 찾기 (SignUp LocationStep 로직 그대로)
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
       setMessage("브라우저에서 위치 정보를 지원하지 않아요.");
@@ -41,8 +36,6 @@ function LocationModal({ open, onClose, onSelectAddress }) {
       async (pos) => {
         try {
           const { latitude, longitude } = pos.coords;
-
-          // 1) 현재 좌표 → 법정동/주소
           const res = await locationAxios.get("/api/location/resolve", {
             params: {
               latitude,
@@ -64,7 +57,6 @@ function LocationModal({ open, onClose, onSelectAddress }) {
             return;
           }
 
-          // 예: "서울특별시 동대문구 이문동" → "이문동" → "이문"
           const parts = currentAddress.split(" ");
           const last = parts[parts.length - 1] || "";
           let dongKeyword = last.replace(/동$/, "");
@@ -78,7 +70,6 @@ function LocationModal({ open, onClose, onSelectAddress }) {
             return;
           }
 
-          // 2) 행정동 검색 API 호출
           try {
             const searchRes = await locationAxios.get("/api/location/search", {
               params: {
@@ -130,7 +121,6 @@ function LocationModal({ open, onClose, onSelectAddress }) {
     );
   };
 
-  // ✅ 검색 버튼 / 엔터 눌렀을 때
   const handleSearch = async () => {
     if (!keyword.trim()) {
       setMessage("검색어를 입력해주세요.");
@@ -174,15 +164,12 @@ function LocationModal({ open, onClose, onSelectAddress }) {
         role="dialog"
         aria-modal="true"
       >
-        {/* 상단 바 */}
         <div className={styles.topBar}>
           <button className={styles.closeBtn} onClick={onClose}>
             <img src={closeIcon} alt="닫기" />
           </button>
           <span className={styles.title}>지역 변경</span>
         </div>
-
-        {/* 현재 위치 버튼 */}
         <button
           className={styles.currentLocationBtn}
           onClick={handleUseCurrentLocation}
@@ -193,7 +180,6 @@ function LocationModal({ open, onClose, onSelectAddress }) {
           {loading ? "현재 위치 불러오는 중..." : "현재 위치로 찾기"}
         </button>
 
-        {/* 검색 박스 */}
         <div className={styles.searchBox}>
           <input
             className={styles.searchInput}
@@ -212,10 +198,8 @@ function LocationModal({ open, onClose, onSelectAddress }) {
           </button>
         </div>
 
-        {/* 안내 메시지 */}
         {message && <p className={styles.message}>{message}</p>}
-
-        {/* 검색 결과 리스트 */}
+        
         <div className={styles.resultList}>
           {results.map((item) => (
             <button

@@ -3,8 +3,8 @@ import styles from './ReviewsModal.module.css';
 import x from '../../../assets/x.svg';
 import arrowIcon from '../../../assets/chevron-down-outline.svg';
 import clearIcon from '../../../assets/x.svg';
-import starOn from '../../../assets/portiony-star-on.svg';   
-import starOff from '../../../assets/portiony-star-off.svg'; 
+import starOn from '../../../assets/portiony-star-on.svg';
+import starOff from '../../../assets/portiony-star-off.svg';
 
 const options = [
   '연락이 빨라요',
@@ -18,6 +18,8 @@ const options = [
 export default function ReviewsModal({
   onClose,
   productName,
+  chatRoomId,   
+  reviewId,    
   onRegister,
   onDelete,
   savedReview,
@@ -28,22 +30,68 @@ export default function ReviewsModal({
   const [selectedReview, setSelectedReview] = useState('');
   const [customReview, setCustomReview] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [rating, setRating] = useState(0); // ⭐ 별점 추가
+  const [rating, setRating] = useState(0);
   const containerRef = useRef(null);
 
   useEffect(() => {
+    setInternalMode(mode);
+  }, [mode]);
+
+  useEffect(() => {
+    console.log('ReviewsModal savedReview 변화:', savedReview, 'mode=', internalMode);
+
     if ((internalMode === 'edit' || internalMode === 'view') && savedReview) {
-      if (options.includes(savedReview.review)) {
-        setSelectedReview(savedReview.review);
+      const {
+        review,
+        rating: savedRating,
+        star: savedStar,
+        choice,
+      } = savedReview;
+
+      if (review && review.trim() !== '') {
+        if (options.includes(review)) {
+
+          setSelectedReview(review);
+          setCustomReview('');
+        } else {
+
+          setSelectedReview('기타(직접 입력)');
+          setCustomReview(review);
+        }
+      } else if (
+        typeof choice === 'number' &&
+        choice >= 0 &&
+        choice < options.length - 1
+      ) {
+
+        setSelectedReview(options[choice]);
         setCustomReview('');
       } else {
-        setSelectedReview('기타(직접 입력)');
-        setCustomReview(savedReview.review);
+        setSelectedReview('');
+        setCustomReview('');
       }
-      if (savedReview.rating) setRating(savedReview.rating); // 별점 불러오기
+
+      const finalStar =
+        savedRating != null
+          ? Number(savedRating)
+          : savedStar != null
+          ? Number(savedStar)
+          : 0;
+
+      console.log('⭐ savedRating / savedStar → finalStar:', {
+        savedRating,
+        savedStar,
+        finalStar,
+      });
+
+      if (!Number.isNaN(finalStar)) {
+        setRating(finalStar);
+      } else {
+        setRating(0);
+      }
     }
 
-    if (internalMode === 'write') {
+    if (internalMode === 'write' && !savedReview) {
       setSelectedReview('');
       setCustomReview('');
       setRating(0);
@@ -82,35 +130,59 @@ export default function ReviewsModal({
 
   const handleRatingClick = (index) => {
     if (internalMode === 'view') return;
-  
+
     const newRating = index + 1;
-  
     if (rating === newRating) {
-      // 같은 별을 누르면 한 단계 낮추기
       setRating(newRating - 1);
     } else {
       setRating(newRating);
     }
   };
-  
 
   const handleSubmit = () => {
-    const finalReview = selectedReview === '기타(직접 입력)' ? customReview : selectedReview;
-    if (onRegister) {
-      onRegister(productName, {
-        review: finalReview,
-        rating: rating,
-        date: new Date().toISOString(),
+    const isCustom = selectedReview === '기타(직접 입력)';
+    const finalReview = isCustom ? customReview.trim() : selectedReview;
+
+    let choiceCode = undefined;
+    let content = undefined;
+
+    if (isCustom) {
+
+      content = finalReview;
+    } else {
+
+      const idx = options.indexOf(selectedReview);
+      if (idx >= 0) {
+        choiceCode = idx;
+      }
+    }
+
+    console.log('handleSubmit chatRoomId vs productName:', {
+      chatRoomId,
+      productName,
+      choiceCode,
+      content,
+      rating,
+    });
+
+    if (onRegister && chatRoomId != null) {
+      onRegister(chatRoomId, {
+        rating,
+        choiceCode,
+        content,
       });
     }
   };
 
-  const handleDelete = () => {
-    if (onDelete) onDelete(productName);
+  const handleDeleteClick = () => {
+    console.log('🗑 handleDeleteClick reviewId:', reviewId);
+    if (onDelete && reviewId != null) {
+      onDelete(reviewId);
+    }
   };
 
   return (
-    <div className={styles.overlay}>
+    <div className={styles.overlay} onClick={onClose}>
       <div className={styles.container} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
           <span className={styles.title}>거래 후기</span>
@@ -119,7 +191,6 @@ export default function ReviewsModal({
 
         <div className={styles.productName}>{productName}</div>
 
-        {/* ⭐ 포셔니 별점 선택 블록 */}
         <div className={styles.ratingBlock}>
           <div className={styles.ratingInner}>
             {[...Array(5)].map((_, i) => (
@@ -132,15 +203,17 @@ export default function ReviewsModal({
                 style={internalMode === 'view' ? { cursor: 'default' } : {}}
               />
             ))}
-            <span className={styles.ratingScore}>{rating.toFixed(1)}</span>
+            <span className={styles.ratingScore}>
+              {Number(rating || 0).toFixed(1)}
+            </span>
           </div>
-          {/* 클릭 전 안내문구 */}
           {rating === 0 && (
-            <div className={styles.ratingGuide}>포셔니를 클릭해 별점을 남겨 주세요</div>
+            <div className={styles.ratingGuide}>
+              포셔니를 클릭해 별점을 남겨 주세요
+            </div>
           )}
         </div>
 
-        {/* 후기 선택 or 직접입력 */}
         <div className={styles.body}>
           <div className={styles.dropdownContainer} ref={containerRef}>
             <button
@@ -189,7 +262,6 @@ export default function ReviewsModal({
             )}
           </div>
 
-          {/* 직접 입력 textarea */}
           {selectedReview === '기타(직접 입력)' && (
             <div>
               <textarea
@@ -205,19 +277,29 @@ export default function ReviewsModal({
                     : {}
                 }
               />
-              <div style={{ textAlign: 'right', fontSize: '12px', color: isOver ? '#ff4444' : '#999' }}>
+              <div
+                style={{
+                  textAlign: 'right',
+                  fontSize: '12px',
+                  color: isOver ? '#ff4444' : '#999',
+                }}
+              >
                 {customReview.length} / 200자
               </div>
             </div>
           )}
         </div>
 
-        {/* 버튼 영역 */}
         {!received && internalMode === 'write' && (
-          <button className={styles.submitButton} disabled={isDisabled} onClick={handleSubmit}>
+          <button
+            className={styles.submitButton}
+            disabled={isDisabled}
+            onClick={handleSubmit}
+          >
             거래 후기 등록하기
           </button>
         )}
+
         {!received && internalMode === 'view' && (
           <div style={{ display: 'flex', gap: 10 }}>
             <button
@@ -235,14 +317,19 @@ export default function ReviewsModal({
                 border: '1px solid #ff4444',
                 flex: 1,
               }}
-              onClick={handleDelete}
+              onClick={handleDeleteClick}
             >
               삭제
             </button>
           </div>
         )}
+
         {!received && internalMode === 'edit' && (
-          <button className={styles.submitButton} disabled={isDisabled} onClick={handleSubmit}>
+          <button
+            className={styles.submitButton}
+            disabled={isDisabled}
+            onClick={handleSubmit}
+          >
             저장하기
           </button>
         )}

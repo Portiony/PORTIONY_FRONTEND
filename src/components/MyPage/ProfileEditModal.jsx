@@ -134,8 +134,6 @@ export default function ProfileEditModal({ open, onClose, currentProfile, onSave
           />
         </div>
 
-        {/* 프로필 이미지 영역 제거 */}
-
         <form className={styles.form} autoComplete="off" onSubmit={handleSubmit}>
           <label className={styles.label}>
             닉네임

@@ -3,7 +3,6 @@
   padding: 16px 16px 20px;
 }
 
-/* 상단 프로필 + 버튼 */
 .topRow {
   display: flex;
   align-items: center;
@@ -50,7 +49,6 @@
   font-weight: 500;
 }
 
-/* 프로필 편집 버튼 */
 .editBtn {
   background-color: #fff;
   border: none;
@@ -62,7 +60,6 @@
   white-space: nowrap;
 }
 
-/* 하단 지표 카드들 (구매 / 판매) */
 .statsRow {
   display: flex;
   gap: 8px;

@@ -64,20 +64,17 @@ function App() {
 function AppShell({ isLoggedIn, setIsLoggedIn }) {
   const location = useLocation();
 
-  // 헤더/푸터 숨길 페이지
   const AUTH_PAGES = ["/login", "/signup"];
   const hideChrome = AUTH_PAGES.includes(location.pathname);
 
   return (
     <div className="web-wrapper">
       <div className="app-frame">
-        {/* 헤더 */}
-        {!hideChrome && <Header />}
 
-        {/* 본문 영역: 헤더 높이를 뺀 나머지, 푸터가 밑에 있을 수 있게 flex:1 */}
+        {!hideChrome && <Header />}
         <main className={`app-content ${hideChrome ? "no-chrome" : ""}`}>
           <Routes>
-            {/* 비회원 */}
+
             <Route
               path="/login"
               element={
@@ -93,7 +90,6 @@ function AppShell({ isLoggedIn, setIsLoggedIn }) {
               element={isLoggedIn ? <Navigate to="/" /> : <SignUp />}
             />
 
-            {/* 로그인 필요 */}
             <Route
               path="/"
               element={isLoggedIn ? <Home /> : <Navigate to="/login" />}
@@ -108,7 +104,6 @@ function AppShell({ isLoggedIn, setIsLoggedIn }) {
             />
 
 
-            {/* 공구 */}
             <Route
               path="/group-buy/new"
               element={isLoggedIn ? <GroupBuyNew /> : <Navigate to="/login" />}
@@ -122,18 +117,15 @@ function AppShell({ isLoggedIn, setIsLoggedIn }) {
               element={isLoggedIn ? <GroupBuyEdit /> : <Navigate to="/login" />}
             />
 
-            {/* 테스트 */}
             <Route
               path="/chat-test"
               element={isLoggedIn ? <ChatTest /> : <Navigate to="/login" />}
             />
 
-            {/* 기타 */}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>
 
-        {/* 푸터 */}
         {!hideChrome && <Footer />}
       </div>
     </div>

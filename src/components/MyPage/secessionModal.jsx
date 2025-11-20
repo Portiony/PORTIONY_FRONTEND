@@ -32,7 +32,7 @@ export default function WithdrawModal({ open, onClose }) {
         data: { password },
       });
 
-      alert(response.data.message); // "탈퇴가 완료되었습니다."
+      alert(response.data.message); 
       localStorage.clear();
       navigate('/login');
     } catch (err) {

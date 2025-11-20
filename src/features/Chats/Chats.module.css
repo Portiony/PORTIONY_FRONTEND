@@ -1,25 +1,21 @@
-/* 전체 배경 + 페이지 래퍼 */
 .screen {
   min-height: 100vh;
   width: 100%;
-  background: #fff; /* 홈처럼 흰 배경 */
+  background: #fff; 
   display: flex;
   justify-content: center;
 }
 
-/* 실제 콘텐츠 영역 (홈 메인 래퍼 느낌) */
 .phone {
   width: 100%;
-  max-width: 402px; /* 모바일 디자인 폭 */
+  max-width: 402px; 
   margin: 0 auto;
   background: #fff;
   display: flex;
   flex-direction: column;
-  border-radius: 0; /* radius 제거 */
-  box-shadow: none; /* 프레임 그림자 제거 */
+  border-radius: 0; 
+  box-shadow: none; 
 }
-
-/* ===== 상단 앱 헤더 (목록 화면) ===== */
 
 .appHeader {
   padding: 20px 22px 14px 22px;
@@ -45,8 +41,6 @@
   margin: 0;
 }
 
-/* ===== 채팅 목록 영역 ===== */
-
 .chatListArea {
   flex: 1;
   padding: 8px 0;
@@ -66,8 +60,6 @@
   background: #f3f4f6;
   border-radius: 999px;
 }
-
-/* 빈 상태 */
 
 .emptyState {
   padding: 40px 22px 16px 22px;
@@ -133,8 +125,6 @@
 .primaryButton:active {
   box-shadow: 0 3px 8px rgba(254, 205, 36, 0.4);
 }
-
-/* ===== 채팅 목록 Row ===== */
 
 .listRow {
   width: 100%;
@@ -238,8 +228,6 @@
   flex-shrink: 0;
 }
 
-/* ===== 채팅방 헤더 (상단 앱바 + 상품 정보) ===== */
-
 .roomAppBar {
   height: 56px;
   padding: 10px 16px;
@@ -273,7 +261,6 @@
   color: #111827;
 }
 
-/* 상품 카드 */
 .roomPostCard {
   margin: 8px 16px 4px 16px;
   padding: 10px 12px;
@@ -324,7 +311,6 @@
   color: #6b7280;
 }
 
-/* D-day Badge */
 
 .ddayBadge {
   display: inline-flex;
@@ -351,8 +337,6 @@
   color: #ffffff;
 }
 
-/* ===== 메시지 영역 ===== */
-
 .messageArea {
   flex: 1;
   padding: 8px 0 4px 0;
@@ -375,8 +359,6 @@
   margin-top: 2px;
 }
 
-/* 날짜 라인 + 그룹 */
-
 .messageGroup {
   padding: 4px 0;
 }
@@ -389,8 +371,6 @@
   color: #9ca3af;
   margin: 6px 0;
 }
-
-/* ===== 메세지 버블 ===== */
 
 .messageWrapper {
   display: flex;
@@ -413,8 +393,6 @@
   flex-direction: row-reverse;
 }
 
-/* 기본 버블 */
-
 .myBubble,
 .theirBubble {
   max-width: 260px;
@@ -433,8 +411,6 @@
   background: #e5e7eb;
 }
 
-/* 텍스트 */
-
 .bubbleText {
   margin: 0;
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
@@ -442,7 +418,6 @@
   color: #111827;
 }
 
-/* 시간 */
 
 .bubbleTime {
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
@@ -451,7 +426,6 @@
   margin-bottom: 2px;
 }
 
-/* 이미지 */
 
 .bubbleImage {
   margin-top: 4px;
@@ -461,7 +435,6 @@
   object-fit: cover;
 }
 
-/* 시스템 메시지 색상 */
 
 .systemBubble {
   background: #e5e7eb;
@@ -484,8 +457,6 @@
   background: #bce9b4;
 }
 
-/* ===== 하단 인풋 영역 ===== */
-
 .bottomArea {
   padding: 8px 10px 14px 10px;
   background: #ffffff;
@@ -495,14 +466,12 @@
   gap: 6px;
 }
 
-/* 옵션 버튼 Row */
-
 .optionRow {
+  padding: 4px 10px 8px 10px;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 32px;
-  padding-bottom: 4px;
+  justify-content: space-between; 
+  align-items: flex-start;
+  gap: 8px;                    
 }
 
 .optionBtn {
@@ -512,8 +481,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
   cursor: pointer;
+
+  flex: 1 1 0;          
+  max-width: 80px;    
 }
 
 .optionIconWrap {
@@ -532,19 +503,22 @@
 }
 
 .optionBtn span {
+  margin-top: 6px;
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
   font-size: 11px;
+  font-weight: 500;
   color: #374151;
-}
+  text-align: center;
 
-/* 옵션 disabled */
+  line-height: 1.2;
+  word-break: keep-all;   
+  white-space: normal;      
+}
 
 .optionBtn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
-
-/* 인풋 Row */
 
 .inputRow {
   display: flex;
@@ -555,8 +529,6 @@
   background: #f9fafb;
   border: 1px solid #e5e7eb;
 }
-
-/* + 버튼 */
 
 .plusBtn {
   border: none;
@@ -572,8 +544,6 @@
   height: 22px;
 }
 
-/* 텍스트 인풋 */
-
 .input {
   flex: 1;
   border: none;
@@ -582,13 +552,30 @@
   min-height: 22px;
   max-height: 120px;
   overflow-y: auto;
+
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
   font-size: 13px;
   color: #111827;
+  letter-spacing: -0.02em;
+  line-height: 1.5;
+
+  padding: 0;
+  margin: 0;
+
+  outline: none;          
+  box-shadow: none;        
+}
+
+.input:focus {
+  outline: none;
+  border: none;
+  box-shadow: none;
 }
 
 .input::placeholder {
   color: #9ca3af;
+  font-size: 13px;
+  letter-spacing: -0.02em;
 }
 
 .input::-webkit-scrollbar {
@@ -603,8 +590,6 @@
 .input::-webkit-scrollbar-track {
   background: #f3f4f6;
 }
-
-/* 전송 버튼 */
 
 .sendBtn {
   border: none;

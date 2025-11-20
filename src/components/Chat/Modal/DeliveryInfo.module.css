@@ -22,8 +22,6 @@
   gap: 20px;
 }
 
-/* 헤더 */
-
 .header {
   display: flex;
   justify-content: space-between;
@@ -111,8 +109,6 @@
   font-weight: 400;
   line-height: 16px;
 }
-
-/* 하단 버튼 */
 
 .footer {
   display: flex;

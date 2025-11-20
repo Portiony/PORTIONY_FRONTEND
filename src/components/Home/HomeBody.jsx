@@ -1,4 +1,3 @@
-// src/components/Home/HomeBody.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./HomeBody.module.css";
@@ -23,8 +22,8 @@ const ALL_CATEGORIES = [
 
 function HomeBody({
   onOpenLocation,
-  selectedAddress,    // ex) "서울특별시 동대문구 이문2동" 또는 "전국"
-  selectedAddressId,  // 현재는 안 쓰지만, 일단 유지
+  selectedAddress,    
+  selectedAddressId,  
   searchKeyword,
   onSearchKeywordChange,
 }) {
@@ -45,7 +44,6 @@ function HomeBody({
     isAI: false,
   });
 
-  // 화면에 보여줄 주소 텍스트
   const displayAddress = (() => {
     if (!selectedAddress || !selectedAddress.trim()) {
       return "전국";
@@ -54,11 +52,9 @@ function HomeBody({
     if (trimmed === "전국") return "전국";
 
     const parts = trimmed.split(" ").filter(Boolean);
-    return parts[parts.length - 1]; // 마지막 덩어리만 (ex. 이문2동)
+    return parts[parts.length - 1]; 
   })();
 
-  // /api/posts 쿼리에서 사용할 address 값
-  // 예: "서울특별시 동대문구 이문2동" → "동대문구 이문2동"
   const addressQuery = (() => {
     if (!selectedAddress || !selectedAddress.trim()) return undefined;
 
@@ -67,14 +63,13 @@ function HomeBody({
 
     const parts = trimmed.split(" ").filter(Boolean);
     if (parts.length >= 2) {
-      const last = parts[parts.length - 1];       // 이문2동
-      const secondLast = parts[parts.length - 2]; // 동대문구
-      return `${secondLast} ${last}`;             // "동대문구 이문2동"
+      const last = parts[parts.length - 1];      
+      const secondLast = parts[parts.length - 2]; 
+      return `${secondLast} ${last}`;         
     }
     return trimmed;
   })();
 
-  // 실제 API 호출
   useEffect(() => {
     const fetch = async () => {
       setLoading(true);
@@ -89,7 +84,7 @@ function HomeBody({
           sort,
           keyword: searchKeyword,
           includeClosed,
-          address: addressQuery,  // ✅ 여기서 주소 필터 전달
+          address: addressQuery,  
         });
 
         const refined = (data.posts || []).map((post) => ({
@@ -124,7 +119,7 @@ function HomeBody({
     selectedAddress,
     searchKeyword,
     sort,
-    addressQuery, // 주소가 바뀌면 다시 불러오기
+    addressQuery, 
   ]);
 
   const productsPerPage = 12;
@@ -166,7 +161,7 @@ function HomeBody({
 
   return (
     <div className={styles.screen}>
-      {/* 상단 */}
+
       <div className={styles.hero}>
         <div className={styles.heroTop}>
           <div className={styles.heroText}>
@@ -199,7 +194,6 @@ function HomeBody({
           </button>
         </div>
 
-        {/* 검색 카드 */}
         <div className={styles.searchCard}>
           <div className={styles.searchBox}>
             <img src={searchIcon} alt="" className={styles.searchIcon} />
@@ -247,7 +241,6 @@ function HomeBody({
         </div>
       </div>
 
-      {/* 리스트 */}
       <div className={styles.contentArea}>
         {loading && <ProductSkeleton />}
 
@@ -275,7 +268,6 @@ function HomeBody({
         )}
       </div>
 
-      {/* 플로팅 버튼 */}
       <button
         className={styles.fab}
         onClick={() => navigate("/group-buy/new")}
@@ -283,7 +275,6 @@ function HomeBody({
         + 판매 등록
       </button>
 
-      {/* 필터 모달 */}
       {showFilterModal && (
         <div
           className={styles.modalOverlay}
@@ -298,7 +289,6 @@ function HomeBody({
               <button onClick={() => setShowFilterModal(false)}>✕</button>
             </div>
 
-            {/* 필터 모달 안, 지역 선택 부분 */}
             <div className={styles.filterSection}>
               <h4>지역</h4>
               <div

@@ -1,4 +1,3 @@
-// components/Chat/Modal/Complete.jsx
 import React from 'react';
 import styles from './Complete.module.css';
 import modalIcon from '../../../assets/modal-icon.svg';

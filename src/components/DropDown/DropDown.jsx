@@ -3,14 +3,13 @@ import styles from './DropDown.module.css';
 import arrowIcon from '../../assets/chevron-down-outline.svg';
 import clearIcon from '../../assets/x.svg';
 
-export default function Dropdown({ options, selected, setSelected, placeholder, variant = 'default', // 추가된 부분: 기본값 'default'
+export default function Dropdown({ options, selected, setSelected, placeholder, variant = 'default', 
 
 }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
 
-  // 외부 클릭 시 닫기
   useEffect(() => {
     const handleClickOutside = e => {
       if (containerRef.current && !containerRef.current.contains(e.target)) {
@@ -21,7 +20,6 @@ export default function Dropdown({ options, selected, setSelected, placeholder, 
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // 너비 자동 조정 - 제목과 옵션 모두 고려
   useEffect(() => {
     if (!containerRef.current || !buttonRef.current) return;
     
@@ -31,14 +29,12 @@ export default function Dropdown({ options, selected, setSelected, placeholder, 
     measurer.style.whiteSpace = 'nowrap';
     measurer.style.font = window.getComputedStyle(buttonRef.current).font;
     
-    // 옵션들 측정
     options.forEach(text => {
       const span = document.createElement('span');
       span.textContent = text;
       measurer.appendChild(span);
     });
     
-    // 현재 선택된 값(제목)도 측정
     const titleSpan = document.createElement('span');
     titleSpan.textContent = selected || placeholder;
     measurer.appendChild(titleSpan);
@@ -56,7 +52,7 @@ export default function Dropdown({ options, selected, setSelected, placeholder, 
     
     containerRef.current.style.width =
       Math.ceil(maxTextWidth + padding + border + gap + iconW) + 'px';
-  }, [options, selected, placeholder]); // selected와 placeholder도 의존성에 추가
+  }, [options, selected, placeholder]); 
 
   const handleSelect = option => {
     setSelected(option);

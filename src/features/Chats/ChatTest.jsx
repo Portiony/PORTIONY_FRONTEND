@@ -17,17 +17,17 @@ const ChatTest = () => {
       webSocketFactory: () => socket,
       debug: (str) => console.log(str),
       onConnect: () => {
-        console.log('✅ Connected!');
+        console.log('Connected!');
         setConnected(true);
         setSenderId(id);
         client.subscribe(`/sub/chat/room/${chatRoomId}`, (message) => {
           const body = JSON.parse(message.body);
-          console.log('[📩 받은 메시지]', body);
+          console.log('[받은 메시지]', body);
           setChatMessages((prev) => [...prev, body]);
         });
       },
       onStompError: (frame) => {
-        console.error('❌ Broker error:', frame);
+        console.error('Broker error:', frame);
       },
     });
 
@@ -55,7 +55,7 @@ const ChatTest = () => {
       const systemPayload = {
         chatRoomId,
         senderId,
-        content: '📢 시스템 메시지 테스트입니다!',
+        content: '시스템 메시지 테스트입니다!',
         isSystem: true,
         systemType: 'test',
       };
@@ -68,12 +68,12 @@ const ChatTest = () => {
 
   return (
     <div style={{ padding: '20px' }}>
-      <h2>💬 실시간 채팅 테스트</h2>
+      <h2>실시간 채팅 테스트</h2>
       {!connected && (
         <>
           <button onClick={() => connect(1)}>🔵 사용자 1 (ID: 1) 접속</button>
           <button onClick={() => connect(2)} style={{ marginLeft: '10px' }}>
-            🟢 사용자 2 (ID: 2) 접속
+            사용자 2 (ID: 2) 접속
           </button>
         </>
       )}

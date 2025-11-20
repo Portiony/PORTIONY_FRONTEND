@@ -1,4 +1,3 @@
-// src/components/GroupBuy/GroupBuyModal.jsx
 import React from 'react';
 import styles from './GroupBuyModal.module.css';
 import modalIcon from '../../assets/modal-icon.svg';

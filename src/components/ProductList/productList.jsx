@@ -7,6 +7,8 @@ import clockIcon from "../../assets/alarm.svg";
 import defaultImage from "../../assets/LOGOMAIN.png";
 
 function getDDay(endDate) {
+  if (!endDate) return null;
+
   const end = new Date(endDate);
   const now = new Date();
   end.setHours(0, 0, 0, 0);
@@ -38,6 +40,12 @@ export default function ProductList({ products: propProducts, onClickProduct }) 
           product.image && product.image.trim() !== ""
             ? product.image
             : defaultImage;
+        const hasStatus =
+          typeof product.status === "string" &&
+          product.status.trim() !== "";
+        const isClosed = hasStatus
+          ? product.status === "공구 마감"
+          : dDay === "마감";
 
         return (
           <div
@@ -46,7 +54,7 @@ export default function ProductList({ products: propProducts, onClickProduct }) 
             onClick={() => handleClick(product)}
           >
             <div className={styles.imageContainer}>
-              {dDay === "마감" && (
+              {isClosed && (
                 <div className={styles.grayOverlay}>
                   <span className={styles.overlayText}>공구 마감</span>
                 </div>
@@ -57,10 +65,12 @@ export default function ProductList({ products: propProducts, onClickProduct }) 
                   <img src={mapIcon} alt="위치" className={styles.icon} />
                   {product.location || "위치 정보 없음"}
                 </span>
-                <span className={styles.badgeDDay}>
-                  <img src={clockIcon} alt="마감" className={styles.icon} />
-                  {dDay}
-                </span>
+                {dDay && (
+                  <span className={styles.badgeDDay}>
+                    <img src={clockIcon} alt="마감" className={styles.icon} />
+                    {dDay}
+                  </span>
+                )}
               </div>
 
               <img

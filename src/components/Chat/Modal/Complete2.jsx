@@ -1,4 +1,3 @@
-// components/Chat/Modal/Complete2.jsx
 import React from 'react';
 import styles from './Complete2.module.css';
 import doneIcon from '../../../assets/complete.svg';

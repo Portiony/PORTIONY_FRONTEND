@@ -6,7 +6,6 @@ body {
   height: 100%;
 }
 
-/* 브라우저 전체에서 가운데 402px짜리 앱 보여주기 */
 .web-wrapper {
   width: 100vw;
   min-height: 100vh;
@@ -16,26 +15,22 @@ body {
   background: #f3f3f3;
 }
 
-/* 실제 앱 캔버스 */
 .app-frame {
   width: 402px;
-  height: 874px; /* ← 네가 말한 앱 높이 */
+  height: 874px; 
   background: #fff;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* 안에서 스크롤 */
+  overflow: hidden; 
 }
 
-/* 본문: header와 footer 사이에서만 스크롤 */
 .app-content {
   flex: 1;
   overflow-y: auto;
-  /* 헤더(54px) + 푸터(62px) 뺀 영역이 된다 */
-  /* padding은 각 페이지 컴포넌트에서 채움 */
+  
 }
 
-/* 로그인/회원가입일 때는 헤더/푸터 없으니까 전체가 스크롤 */
 .app-content.no-chrome {
   flex: 1;
   overflow-y: auto;

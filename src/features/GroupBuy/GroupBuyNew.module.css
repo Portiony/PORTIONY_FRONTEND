@@ -2,7 +2,6 @@
   --accent: #fecd24;
 }
 
-/* 전체 화면 – 홈과 비슷한 모바일 레이아웃 */
 .screen {
   width: 100%;
   max-width: 415px;
@@ -19,7 +18,6 @@
   overflow-x: hidden;
 }
 
-/* 상단 헤더 */
 .headerRow {
   display: flex;
   align-items: center;
@@ -75,7 +73,6 @@
   color: #f9fafb;
 }
 
-/* 가운데 카드 */
 .formCard {
   flex: 1;
   margin: 0 18px 0;
@@ -89,7 +86,6 @@
   box-sizing: border-box;
 }
 
-/* 폼 그룹 */
 .formGroup {
   display: flex;
   flex-direction: column;
@@ -102,7 +98,6 @@
   font-size: 13px;
 }
 
-/* 인풋 / 텍스트에어리어 기본 스타일 */
 input,
 textarea {
   border-radius: 14px;
@@ -137,7 +132,6 @@ textarea[name='notes'] {
   font-family: inherit;
 }
 
-/* 1단계 – 제품 총량 라인 (숫자 + 단위) */
 .amountRow {
   display: flex;
   gap: 8px;
@@ -148,18 +142,15 @@ textarea[name='notes'] {
   flex: 1;
 }
 
-/* 단위 드롭다운 래퍼 (반 줄) */
 .amountUnitSelect {
   flex: 1;
 }
 
-/* 직접 입력 단위 인풋 */
 .unitCustom {
   width: 100%;
   margin-top: 8px;
 }
 
-/* 2단계 – 인원 / 소분량 두 칸 */
 .horizontalInputs {
   display: flex;
   gap: 8px;
@@ -168,11 +159,10 @@ textarea[name='notes'] {
 
 .horizontalInputs > * {
   flex: 1;
-  min-width: 0;  /* 👉 안 넘치게 강제로 줄어들 수 있게 */
+  min-width: 0; 
 }
 
 
-/* 날짜 공통 */
 .labelRow {
   display: flex;
   justify-content: space-between;
@@ -206,7 +196,6 @@ textarea[name='notes'] {
   color: #111827;
 }
 
-/* AI 카드 */
 .aiCard {
   border-radius: 18px;
   padding: 12px 12px 14px;
@@ -281,7 +270,6 @@ textarea[name='notes'] {
   font-weight: 600;
 }
 
-/* 이미지 업로드 박스 */
 .imageUploadBox {
   border-radius: 14px;
   padding: 10px 10px 12px;
@@ -308,7 +296,6 @@ textarea[name='notes'] {
   align-self: flex-start;
 }
 
-/* 미리보기 썸네일 */
 .imagePreviewGrid {
   display: flex;
   flex-wrap: nowrap;
@@ -343,7 +330,6 @@ textarea[name='notes'] {
   cursor: pointer;
 }
 
-/* 안내 박스 + 체크 */
 .noticeBox {
   margin-top: 4px;
   margin-bottom: 8px;
@@ -378,7 +364,6 @@ textarea[name='notes'] {
   height: 18px;
 }
 
-/* 경고 문구 */
 .warningText {
   color: #e14942;
   font-size: 13px;
@@ -387,7 +372,6 @@ textarea[name='notes'] {
   margin: 8px 0 0;
 }
 
-/* 버튼 그룹 */
 .buttonGroup {
   display: flex;
   gap: 8px;
@@ -415,7 +399,6 @@ textarea[name='notes'] {
   color: #111827;
 }
 
-/* 이미지 확대 모달 */
 .imageModalOverlay {
   position: fixed;
   top: 0;

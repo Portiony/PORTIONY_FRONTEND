@@ -39,6 +39,16 @@ export default function LikesHistory() {
     }
   };
 
+  const formatCreatedAt = (isoString) => {
+    if (!isoString) return '';
+
+    const [datePart] = isoString.split('T'); 
+    if (!datePart) return '';
+
+    const [year, month, day] = datePart.split('-');
+    return `${year}.${month}.${day}`; 
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -55,18 +65,20 @@ export default function LikesHistory() {
         });
 
         const { total, page, post } = res.data;
+
         setProducts(
-          post.map(item => ({
+          post.map((item) => ({
             id: item.postId,
             name: item.title,
             price: `${Number(item.price).toLocaleString()} 원`,
-            details: `등록 일자 : ${item.createdAt}`,
+            details: `등록 일자 : ${formatCreatedAt(item.createdAt)}`,
             image: item.thumbnail,
             location: item.region,
             endDate: item.deadline,
             status: item.status,
           }))
         );
+
         setTotalPages(Math.ceil(total / productsPerPage));
       } catch (error) {
         console.error('찜 내역 불러오기 실패:', error);

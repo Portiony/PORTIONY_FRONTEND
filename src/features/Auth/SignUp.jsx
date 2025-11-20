@@ -135,7 +135,6 @@ export default function Signup() {
   );
 }
 
-/* ============== 1단계: 계정 정보 (아이디/비밀번호) ============== */
 function AccountStep({ form, setForm, onNext, checkUserId }) {
   const [idMsg, setIdMsg] = useState("");
   const [pwMsg, setPwMsg] = useState("");
@@ -270,7 +269,6 @@ function AccountStep({ form, setForm, onNext, checkUserId }) {
   );
 }
 
-/* ============== 2단계: 사용자 정보 (이름/전화번호) ============== */
 function UserInfoStep({ form, setForm, onNext, checkPhone }) {
   const [phoneMsg, setPhoneMsg] = useState("");
 
@@ -337,19 +335,15 @@ function UserInfoStep({ form, setForm, onNext, checkPhone }) {
     </>
   );
 }
-
-/* ============== 3단계: 동네 설정 (행정동으로 통일) ============== */
 function LocationStep({ form, setForm, onNext, searchIcon }) {
   const [locationList, setLocationList] = useState([]);
   const [locationMsg, setLocationMsg] = useState("");
   const [loading, setLoading] = useState(false);
-
-  // 초기 더미 리스트(아무 것도 안 했을 때 보여줄 기본값)
   const dummyList = ["노원구 공릉동", "노원구 상계동", "도봉구 창동"];
 
   const handleSelectLocation = (loc) => {
     const address = loc.address;
-    const parts = address.split(" "); // 예: ["서울특별시", "동대문구", "이문1동"]
+    const parts = address.split(" "); 
     const region = parts[0] || "";
     const subregion = parts[1] || "";
     const dong = parts[2] || parts[parts.length - 1] || "";
@@ -363,7 +357,6 @@ function LocationStep({ form, setForm, onNext, searchIcon }) {
     }));
   };
 
-  // 🔥 현재 위치로 찾기 (법정동 → 행정동 검색으로 매핑)
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
       setLocationMsg("브라우저에서 위치 정보를 지원하지 않아요.");
@@ -399,10 +392,9 @@ function LocationStep({ form, setForm, onNext, searchIcon }) {
             return;
           }
 
-          // 예: "서울특별시 동대문구 이문동" → "이문동" → "이문"
           const parts = currentAddress.split(" ");
           const last = parts[parts.length - 1] || "";
-          let dongKeyword = last.replace(/동$/, ""); // '이문동' → '이문'
+          let dongKeyword = last.replace(/동$/, ""); 
 
           if (!dongKeyword) {
             setLocationMsg(
@@ -466,7 +458,6 @@ function LocationStep({ form, setForm, onNext, searchIcon }) {
     );
   };
 
-  // 🔍 검색 (행정동 기준 API)
   const handleSearch = async () => {
     if (!form.locationKeyword.trim()) {
       setLocationMsg("검색어를 입력해주세요.");
@@ -595,7 +586,6 @@ function LocationStep({ form, setForm, onNext, searchIcon }) {
   );
 }
 
-/* ============== 4단계: 완료 ============== */
 function DoneStep({ onGoHome }) {
   return (
     <div className={styles.doneWrapper}>

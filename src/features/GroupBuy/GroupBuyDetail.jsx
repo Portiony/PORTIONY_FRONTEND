@@ -1,4 +1,3 @@
-// src/features/GroupBuy/GroupBuyDetail.jsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styles from "./GroupBuyDetail.module.css";
@@ -8,7 +7,6 @@ import Pagination from "../../components/PageNumber/Pagination";
 import clockIcon from "../../assets/clock-icon.svg";
 import axios from "../../lib/axios";
 
-// 댓글 날짜 포맷 함수
 function formatKoreanDatetime(datetimeStr) {
   if (!datetimeStr) return "";
   const date = new Date(datetimeStr);
@@ -76,7 +74,6 @@ function GroupBuyDetail() {
     ALL: "직거래 + 택배",
   };
 
-  // 초기 상품 + 댓글 가져오기
   useEffect(() => {
     const fetchProductAndComments = async () => {
       try {
@@ -105,14 +102,12 @@ function GroupBuyDetail() {
     fetchProductAndComments();
   }, [id]);
 
-  // 공구 상태 반영
   useEffect(() => {
     if (product?.status === "DONE") {
       setIsCompleted(true);
     }
   }, [product]);
 
-  // 내가 판매자인지
   useEffect(() => {
     const currentUserId = localStorage.getItem("user_id");
     if (product && currentUserId) {
@@ -120,14 +115,13 @@ function GroupBuyDetail() {
     }
   }, [product]);
 
-  // 이미지 모달
   const handleImageClick = (url) => setSelectedImage(url);
   const handleCloseImgModal = () => setSelectedImage(null);
 
-  // 댓글 페이지네이션 + 재조회 공통 함수
+
 const handlePageChange = async (page) => {
   try {
-    // ✅ 프론트는 1,2,3... / 서버는 0,1,2... 이라고 가정하고 변환
+
     const zeroBasedPage = page - 1 < 0 ? 0 : page - 1;
 
     const res = await axios.get(`/api/posts/${id}/comments`, {
@@ -139,7 +133,6 @@ const handlePageChange = async (page) => {
       },
     });
 
-    // 백엔드 응답 형태 대비: items 안에 있거나, 바로 최상단에 있거나 둘 다 커버
     const pageData = res.data.items ?? res.data;
     const content = pageData.content || [];
 
@@ -151,7 +144,7 @@ const handlePageChange = async (page) => {
         pageData.totalElements ??
         content.length,
       totalPages: pageData.totalPages ?? 1,
-      currentPage: (pageData.number ?? zeroBasedPage) + 1, // 다시 1-based로
+      currentPage: (pageData.number ?? zeroBasedPage) + 1, 
     });
 
     setCurrentPage((pageData.number ?? zeroBasedPage) + 1);
@@ -160,8 +153,6 @@ const handlePageChange = async (page) => {
   }
 };
 
-
-  // 댓글 등록: 서버에만 저장 → 이후 1페이지 다시 조회
   const handleSubmit = async () => {
     if (!input.trim()) return;
 
@@ -171,14 +162,13 @@ const handlePageChange = async (page) => {
       });
 
       setInput("");
-      await handlePageChange(1); // 최신 댓글 포함된 1페이지 다시 불러오기
+      await handlePageChange(1); 
     } catch (err) {
       console.error("댓글 등록 실패:", err.response?.data || err.message);
       alert("댓글 등록에 실패했습니다.");
     }
   };
 
-  // 마감일 기준 D-day
   const getDDay = (deadline) => {
     if (!deadline) return "";
     const now = new Date();
@@ -196,11 +186,11 @@ const handlePageChange = async (page) => {
       console.log("현재 liked 상태:", liked);
   
       if (liked) {
-        // 찜 해제: body 없이 DELETE만
+
         await axios.delete(`/api/posts/${id}/like`);
         setLikeCount((prev) => Math.max(prev - 1, 0));
       } else {
-        // 찜 하기
+       
         await axios.post(`/api/posts/${id}/like`);
         setLikeCount((prev) => prev + 1);
       }
@@ -216,8 +206,6 @@ const handlePageChange = async (page) => {
     }
   };
   
-
-  // 채팅하기
   const handleChatStart = async () => {
     try {
       const { data } = await axios.post(`/api/chats/${product.id}/room`);
@@ -232,7 +220,6 @@ const handlePageChange = async (page) => {
     }
   };
 
-  // 로딩/없음 처리
   if (loading) {
     return <div className={styles.page}>로딩 중...</div>;
   }
@@ -247,7 +234,7 @@ const handlePageChange = async (page) => {
   return (
     <div className={styles.page}>
       <div className={styles.inner}>
-        {/* 상단 뒤로가기 + 타이틀 */}
+
         <div className={styles.topBar}>
           <button
             type="button"
@@ -259,11 +246,10 @@ const handlePageChange = async (page) => {
           <span className={styles.topTitle}>공동구매 상세</span>
         </div>
 
-        {/* Hero: 이미지 + 상태 뱃지 */}
         <section className={styles.heroSection}>
           <div className={styles.heroImageWrapper}>
             <div className={styles.productImage}>
-              {/* 상태 뱃지 (이미지 우상단) */}
+
               <div
                 className={`${styles.statusChip} ${
                   isCompleted ? styles.statusCompleted : ""
@@ -334,7 +320,6 @@ const handlePageChange = async (page) => {
           </div>
         </section>
 
-        {/* 메인 정보 */}
         <section className={styles.mainInfoSection}>
           <div className={styles.titleBlock}>
             <h1 className={styles.productTitle}>{product.title}</h1>
@@ -379,7 +364,6 @@ const handlePageChange = async (page) => {
           </dl>
         </section>
 
-        {/* 판매자 */}
         <section className={styles.sectionCard}>
           <div className={styles.sectionHeaderRow}>
             <p className={styles.sectionTitle}>판매자 정보</p>
@@ -405,7 +389,6 @@ const handlePageChange = async (page) => {
           </div>
         </section>
 
-        {/* 상품 설명 */}
         <section className={styles.sectionCard}>
           <div className={styles.sectionHeaderRow}>
             <p className={styles.sectionTitle}>상품 설명</p>
@@ -413,7 +396,6 @@ const handlePageChange = async (page) => {
           <p className={styles.descriptionText}>{product.description}</p>
         </section>
 
-        {/* 액션 영역 : 상품 설명 아래에 위치 */}
         {(isSeller || !isCompleted) && (
           <section className={`${styles.sectionCard} ${styles.actionSection}`}>
             {isSeller ? (
@@ -495,7 +477,6 @@ const handlePageChange = async (page) => {
           </section>
         )}
 
-        {/* 댓글 */}
         <section className={styles.sectionCard}>
           <div className={styles.sectionHeaderRow}>
             <p className={styles.sectionTitle}>
@@ -548,7 +529,6 @@ const handlePageChange = async (page) => {
         </section>
       </div>
 
-      {/* 모달 */}
       {isGroupBuyModalOpen && (
         <GroupBuyModal
           message={
@@ -602,7 +582,6 @@ const handlePageChange = async (page) => {
         />
       )}
 
-      {/* 이미지 확대 모달 */}
       {selectedImage && (
         <div
           className={styles.imageModalOverlay}

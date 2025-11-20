@@ -1,4 +1,3 @@
-// src/features/GroupBuy/GroupBuyNew.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -43,7 +42,6 @@ const deliveryMethodMap = {
   '직거래 및 택배 배송': 'ALL',
 };
 
-// 마감기한 min/max
 const today = new Date();
 const minDeadline = today.toISOString().split('T')[0];
 const threeMonthsLater = new Date();
@@ -90,7 +88,6 @@ function GroupBuyNew() {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // 공구 인원 (1~99)
     if (name === 'capacity') {
       if (value === '') {
         setForm((prev) => ({ ...prev, capacity: '' }));
@@ -102,7 +99,6 @@ function GroupBuyNew() {
       return;
     }
 
-    // 총량 / 1인당 소분량 숫자
     if (name === 'totalAmount' || name === 'unitAmount') {
       if (value === '') {
         setForm((prev) => ({ ...prev, [name]: '' }));
@@ -114,7 +110,6 @@ function GroupBuyNew() {
       return;
     }
 
-    // 가격 숫자만
     if (name === 'price') {
       const numericStr = value.replace(/[^0-9]/g, '');
       setForm((prev) => ({ ...prev, price: numericStr }));
@@ -159,7 +154,6 @@ function GroupBuyNew() {
   const handlePreviewClick = (url) => setSelectedImage(url);
   const handleCloseImgModal = () => setSelectedImage(null);
 
-  // STEP1 완료 조건 (직접 입력이면 unitCustom 필수)
   const isStep1Complete = () => {
     if (!form.category || !form.productName || !form.totalAmount || !form.unit)
       return false;
@@ -253,10 +247,8 @@ function GroupBuyNew() {
     const unitForPost =
       form.unit === '직접 입력' ? form.unitCustom || '개' : form.unit;
 
-    // deadline: YYYY-MM-DDT00:00:00 형태로 맞춰줌
     const deadlineIso = `${form.deadline}T00:00:00`;
 
-    // 백엔드 DTO에 대응되는 JSON (이미지 URL 대신, 여기서는 서버가 파일을 직접 받음)
     const postData = {
       categoryId: categoryMap[form.category],
       title: form.title,
@@ -268,19 +260,17 @@ function GroupBuyNew() {
       deadline: deadlineIso,
       deliveryMethod: deliveryMethodMap[form.method],
       isAgree: isChecked,
-      // images는 여기선 안 보냄 (파일 파트로 따로 전송)
+
     };
 
     try {
       const formData = new FormData();
 
-      // ✅ post 부분: JSON을 Blob으로 감싸서 application/json 으로 보내기
       const postBlob = new Blob([JSON.stringify(postData)], {
         type: 'application/json',
       });
       formData.append('post', postBlob);
 
-      // ✅ images 부분: 실제 파일들
       images.forEach((file) => {
         formData.append('images', file);
       });
@@ -327,7 +317,6 @@ function GroupBuyNew() {
 
   return (
     <div className={styles.screen} data-step={currentStep}>
-      {/* 헤더 */}
       <div className={styles.headerRow}>
         <button
           type="button"
@@ -339,7 +328,6 @@ function GroupBuyNew() {
         <h1 className={styles.headerTitle}>판매 등록</h1>
       </div>
 
-      {/* 단계 탭 */}
       <div className={styles.stepTabs}>
         <div
           className={`${styles.stepTab} ${
@@ -357,13 +345,10 @@ function GroupBuyNew() {
         </div>
       </div>
 
-      {/* 가운데 카드 */}
       <div className={styles.formCard}>
         <form onSubmit={handleSubmit}>
-          {/* STEP 1 */}
           {currentStep === 1 && (
             <>
-              {/* 카테고리 */}
               <div className={styles.formGroup}>
                 <label>카테고리</label>
                 <Dropdown
@@ -381,7 +366,6 @@ function GroupBuyNew() {
                 />
               </div>
 
-              {/* 제품명 */}
               <div className={styles.formGroup}>
                 <label>제품명</label>
                 <input
@@ -393,7 +377,6 @@ function GroupBuyNew() {
                 />
               </div>
 
-              {/* 제품 총량 + 단위 (한 줄 반반) */}
               <div className={styles.formGroup}>
                 <label>제품 총량</label>
                 <div className={styles.amountRow}>
@@ -420,7 +403,6 @@ function GroupBuyNew() {
                   </div>
                 </div>
 
-                {/* '직접 입력'일 때만 커스텀 단위 인풋 노출 */}
                 {form.unit === '직접 입력' && (
                   <input
                     type="text"
@@ -433,7 +415,6 @@ function GroupBuyNew() {
                 )}
               </div>
 
-              {/* 유통기한 */}
               <div className={styles.formGroup}>
                 <div className={styles.labelRow}>
                   <label>유통기한</label>
@@ -452,7 +433,7 @@ function GroupBuyNew() {
                 />
               </div>
 
-              {/* 추가 설명 */}
+
               <div className={styles.formGroup}>
                 <label>추가 설명 (선택)</label>
                 <textarea
@@ -486,10 +467,9 @@ function GroupBuyNew() {
             </>
           )}
 
-          {/* STEP 2 */}
           {currentStep === 2 && (
             <>
-              {/* AI 카드 */}
+
               <div className={styles.aiCard}>
                 <div className={styles.aiHeaderRow}>
                   <span className={styles.aiTag}>AI 추천 결과</span>
@@ -546,7 +526,6 @@ function GroupBuyNew() {
                 </div>
               </div>
 
-              {/* 공구 제목 */}
               <div className={styles.formGroup}>
                 <label>공구 제목</label>
                 <input
@@ -558,7 +537,6 @@ function GroupBuyNew() {
                 />
               </div>
 
-              {/* 설명 */}
               <div className={styles.formGroup}>
                 <label>상품 설명</label>
                 <textarea
@@ -569,7 +547,6 @@ function GroupBuyNew() {
                 />
               </div>
 
-              {/* 공구 인원 / 1인당 소분량 */}
               <div className={styles.formGroup}>
                 <label>공구 인원 / 1인당 소분량</label>
                 <div className={styles.horizontalInputs}>
@@ -590,7 +567,6 @@ function GroupBuyNew() {
                 </div>
               </div>
 
-              {/* 가격 */}
               <div className={styles.formGroup}>
                 <label>소분당 가격</label>
                 <input
@@ -602,7 +578,6 @@ function GroupBuyNew() {
                 />
               </div>
 
-              {/* 마감 기한 */}
               <div className={styles.formGroup}>
                 <label>마감 기한</label>
                 <input
@@ -618,7 +593,6 @@ function GroupBuyNew() {
                 />
               </div>
 
-              {/* 거래 방법 */}
               <div className={styles.formGroup}>
                 <label>거래 방법</label>
                 <Dropdown
@@ -636,7 +610,6 @@ function GroupBuyNew() {
                 />
               </div>
 
-              {/* 이미지 첨부 */}
               <div className={styles.formGroup}>
                 <label>이미지 첨부 (최대 10장)</label>
                 <div className={styles.imageUploadBox}>
@@ -680,7 +653,6 @@ function GroupBuyNew() {
                 </div>
               </div>
 
-              {/* 안내 + 체크 */}
               <div className={styles.noticeBox}>
                 식품 등 관련 법령에 따라 인허가 또는 신고가 필요한 상품을
                 판매하는 경우, 해당 법적 책임은 전적으로 판매자에게 있으며,
@@ -721,7 +693,6 @@ function GroupBuyNew() {
         </form>
       </div>
 
-      {/* 작성 취소 모달 */}
       {showCancelModal && (
         <GroupBuyModal
           message="글 작성을 취소하시겠습니까?"
@@ -732,7 +703,6 @@ function GroupBuyNew() {
         />
       )}
 
-      {/* 이미지 확대 모달 */}
       {selectedImage && (
         <div
           className={styles.imageModalOverlay}

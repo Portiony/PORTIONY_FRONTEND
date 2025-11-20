@@ -15,9 +15,20 @@ export default function SellHistory() {
 
   const productsPerPage = 12;
 
-  const sortParam = dateSort === '오래된 순' ? 'oldest' : 'recent';
-  const priceParam = priceSort === '금액 높은 순' ? 'desc' : priceSort === '금액 낮은 순' ? 'asc' : undefined;
-  const statusParam = statusSort === '공구 중' ? 'ongoing' : statusSort === '공구 완료' ? 'completed' : undefined;
+  const sortParam =
+    dateSort === '오래된 순' ? 'oldest' : 'recent';
+  const priceParam =
+    priceSort === '금액 높은 순'
+      ? 'desc'
+      : priceSort === '금액 낮은 순'
+      ? 'asc'
+      : undefined;
+  const statusParam =
+    statusSort === '공구 중'
+      ? 'ongoing'
+      : statusSort === '공구 완료'
+      ? 'completed'
+      : undefined;
 
   const userId = localStorage.getItem('user_id');
 
@@ -31,31 +42,63 @@ export default function SellHistory() {
             status: statusParam,
             page: currentPage,
             size: productsPerPage,
-          }
+          },
         });
 
-        const { total, page, post } = res.data;
+        const { total, post = [] } = res.data;
 
-        const formatted = post.map(item => ({
-          id: item.postId,
-          name: item.title,
-          price: `${Number(item.price).toLocaleString()} 원`,
-          details: `등록 일자 : ${item.createdAt}`,
-          image: item.thumbnail,
-          location: item.region,
-          endDate: item.createdAt,
-          status: item.status,
-        }));
+        const formatted = post.map((item) => {
+          const createdDate = item.createdAt
+            ? item.createdAt.split('T')[0]
+            : '';
+
+          const rawDetails = item.details || '';
+          let statusLabel = '공구 중'; 
+          const match = rawDetails.match(
+            /공구인원\s*(\d+)명\s*·\s*거래완료\s*(\d+)명/
+          );
+
+          if (match) {
+            const totalCount = parseInt(match[1], 10);
+            const completedCount = parseInt(match[2], 10);
+
+            if (
+              Number.isFinite(totalCount) &&
+              Number.isFinite(completedCount) &&
+              totalCount > 0 &&
+              totalCount === completedCount
+            ) {
+              statusLabel = '공구 마감';
+            } else {
+              statusLabel = '공구 중';
+            }
+          } else {
+            if (item.status === 'completed' || item.status === '공구 마감') {
+              statusLabel = '공구 마감';
+            }
+          }
+
+          return {
+            id: item.postId,
+            name: item.title,
+            price: `${Number(item.price).toLocaleString()} 원`,
+            details: createdDate ? `등록일자 : ${createdDate}` : '',
+            image: item.thumbnail,
+            location: item.region,
+            endDate: item.createdAt,
+            status: statusLabel, 
+          };
+        });
 
         setProducts(formatted);
-        setTotalPages(Math.ceil(total / productsPerPage));
+        setTotalPages(Math.max(1, Math.ceil(total / productsPerPage)));
       } catch (err) {
         console.error('판매 내역 불러오기 실패:', err);
       }
     };
 
     if (userId) fetchData();
-  }, [dateSort, priceSort, statusSort, currentPage, userId]);
+  }, [dateSort, priceSort, statusSort, currentPage, userId, sortParam, priceParam, statusParam]);
 
   return (
     <div className={styles.container}>

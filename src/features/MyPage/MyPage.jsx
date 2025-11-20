@@ -6,7 +6,6 @@ import BuyHistory from './BuyHistory/BuyHistory';
 import SellHistory from './SellHistory/SellHistory';
 import Reviews from './Reviews/Reviews';
 import Likes from './Likes/Likes';
-import Inquiries from './Inquiries/Inquiries';
 
 function MyPage() {
   const location = useLocation();
@@ -32,8 +31,6 @@ function MyPage() {
         return <Reviews />;
       case 'like':
         return <Likes />;
-      case 'inquiry':
-        return <Inquiries />;
       default:
         return null;
     }

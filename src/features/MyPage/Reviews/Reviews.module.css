@@ -11,7 +11,6 @@
   margin: 0 0 16px 0;
 }
 
-/* 상단 토글 버튼 ("내가 남긴 후기" / "받은 후기") */
 .toggleButtons {
   display: flex;
   gap: 8px;
@@ -37,7 +36,6 @@
   border-color: #FECD24;
 }
 
-/* 드롭다운 영역 */
 .dropdownWrapper {
   display: flex;
   flex-wrap: wrap;
@@ -46,7 +44,6 @@
   margin-bottom: 12px;
 }
 
-/* 테이블 컨테이너 */
 .tableContainer {
   overflow-x: auto;
   margin-bottom: 20px;
@@ -55,14 +52,12 @@
   box-shadow: 0 0 6px rgba(0, 0, 0, 0.04);
 }
 
-/* 테이블 기본 */
 .table {
   width: 100%;
   min-width: 320px;
   border-collapse: collapse;
 }
 
-/* 헤더: 너무 검정 X, 앱 톤으로 연하게 */
 .table thead th {
   height: 40px;
   background: #F5F5F5;
@@ -74,7 +69,6 @@
   border-bottom: 1px solid #E0E0E0;
 }
 
-/* 바디 셀 */
 .table tbody td {
   height: 40px;
   color: #000;
@@ -89,7 +83,6 @@
   border-top: 1px solid #F2F2F2;
 }
 
-/* 별점 */
 .star {
   display: inline-block;
   margin: 0 1px;
@@ -97,7 +90,6 @@
   color: #FECD24;
 }
 
-/* 후기 보기/작성 버튼 */
 .reviewButton {
   padding: 4px 10px;
   border: none;
@@ -109,7 +101,6 @@
   cursor: pointer;
 }
 
-/* 페이지네이션 */
 .pagination {
   display: flex;
   justify-content: center;
@@ -150,7 +141,6 @@
   transform: rotate(180deg);
 }
 
-/* 아무 것도 선택 안 했을 때 안내 문구 */
 .content {
   margin-top: 80px;
   display: flex;

@@ -27,7 +27,7 @@ function MyPageHeader() {
         setPurchasesCount(data.purchaseCount || 0);
         setSalesCount(data.salesCount || 0);
       } catch (error) {
-        console.error('❌ 유저 정보 불러오기 실패:', error);
+        console.error('유저 정보 불러오기 실패:', error);
       }
     };
 
@@ -44,13 +44,12 @@ function MyPageHeader() {
   return (
     <>
       <div className={styles.wrapper}>
-        {/* 상단 프로필 영역 (이미지 없이 텍스트만) */}
         <div className={styles.topRow}>
           <div className={styles.profileArea}>
             <div className={styles.infoBox}>
               <p className={styles.name}>{nickname}</p>
               <p className={styles.email}>{email}</p>
-              {/* 누적 거래 문구 제거됨 */}
+
             </div>
           </div>
           <button className={styles.editBtn} onClick={() => setModalOpen(true)}>
@@ -58,7 +57,6 @@ function MyPageHeader() {
           </button>
         </div>
 
-        {/* 하단 지표 카드 영역 (구매 / 판매만) */}
         <div className={styles.statsRow}>
           <div className={styles.statCard}>
             <span className={styles.statLabel}>구매</span>

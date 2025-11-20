@@ -1,10 +1,8 @@
-/* 컨테이너 */
 .dropdownContainer {
   position: relative;
   display: inline-block;
 }
 
-/* 기본 버튼 스타일 (다른 곳에서 default로 쓸 때) */
 .dropdownButton {
   display: flex;
   align-items: center;
@@ -28,7 +26,6 @@
   box-sizing: border-box;
 }
 
-/* 열렸을 때 아래 모서리만 살짝 평평하게 */
 .dropdownButton.open {
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
@@ -39,7 +36,6 @@
   color: #888;
 }
 
-/* 아이콘들 */
 .arrow {
   width: 18px;
   height: 18px;
@@ -60,7 +56,6 @@
   cursor: pointer;
 }
 
-/* 드롭다운 메뉴 */
 .dropdownMenu {
   position: absolute;
   top: 100%;
@@ -99,15 +94,10 @@
   border-radius: 0 0 8px 8px;
 }
 
-/* ===================== */
-/*   minimal 스타일      */
-/* ===================== */
-
 .minimalContainer {
   width: 100% !important;
 }
 
-/* 홈 검색창 느낌 – 연한 회색 테두리 + 살짝 둥근 */
 .minimal {
   all: unset;
   display: flex;
@@ -133,7 +123,6 @@
   border-bottom-color: rgba(0, 0, 0, 0.06);
 }
 
-/* minimal 상태의 placeholder 색 */
 .minimal .placeholder {
   color: #9ca3af;
   font-weight: 400;
