@@ -1,206 +1,621 @@
-.container {
+/* 전체 배경 + 페이지 래퍼 */
+.screen {
+  min-height: 100vh;
+  width: 100%;
+  background: #fff; /* 홈처럼 흰 배경 */
   display: flex;
-  width: 1170px;
-  min-height: 800px;
+  justify-content: center;
+}
+
+/* 실제 콘텐츠 영역 (홈 메인 래퍼 느낌) */
+.phone {
+  width: 100%;
+  max-width: 402px; /* 모바일 디자인 폭 */
   margin: 0 auto;
-  padding: 0px;
-  justify-content: space-between;
-  align-items: flex-start; /* 헤더 포함 높이 맞춤 */
-  box-sizing: border-box;
-}
-
-/* 왼쪽 전체 영역 */
-.leftWrapper {
+  background: #fff;
   display: flex;
   flex-direction: column;
-  width: 585px;
-  height: 653px;
-  box-sizing: border-box;
+  border-radius: 0; /* radius 제거 */
+  box-shadow: none; /* 프레임 그림자 제거 */
 }
 
-/* 채팅 목록 상단 */
-.leftTop {
+/* ===== 상단 앱 헤더 (목록 화면) ===== */
+
+.appHeader {
+  padding: 20px 22px 14px 22px;
   display: flex;
-  width: 100%;
-  height: 72px;
-  padding: 25px 15px;
+  align-items: flex-end;
   justify-content: space-between;
-  align-items: center;
-  box-sizing: border-box;
+  border-bottom: 1px solid #e5e7eb;
 }
 
-/* 채팅 목록 내용 */
-.left {
-  flex: 1;
-  /* padding-top: 141px;  */
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  /* gap: 16px; */
-  background-color: #fff;
-  box-sizing: border-box;
-  align-items: center;
-
-  /* 스크롤 추가 */
-  overflow-y: auto;
-  max-height: 581px; /* = 전체 653px - 상단(leftTop) 높이 72px */
-}
-
-.left::-webkit-scrollbar {
-  width: 17px;
-}
-
-.left::-webkit-scrollbar-thumb {
-  background: #CDCCCC; /* 스크롤 손잡이 */
-  border-radius: 50px;
-}
-
-.left::-webkit-scrollbar-track {
-  background: #F3F3F3; /* 바탕 띠 색 */
-  border-radius: 50px;
-}
-
-.chatEmptyText {
-  color: #717171;
-  text-align: center;
-  font-family: 'Inter';
+.appTitle {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
   font-size: 22px;
-  font-style: normal;
   font-weight: 700;
-  line-height: 22px;
-  letter-spacing: -0.32px;
-  margin-top: 141px;
-  margin-bottom: 0px;
+  letter-spacing: -0.03em;
+  color: #111827;
+  margin: 0 0 4px 0;
 }
 
-.chatEmptyText1 {
-  color: #5F6368;
-  text-align: center;
-  /* Body/Body1 */
-  font-family: 'Inter';
-  font-size: 13px;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 16px;
-  letter-spacing: -0.32px;
-  margin-top: 39px;
-  margin-bottom: 56px;
+.appSubtitle {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
+  font-size: 11px;
+  color: #6b7280;
+  margin: 0;
 }
 
-/* 왼쪽 상품둘러보기 버튼 */
-.button {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
+/* ===== 채팅 목록 영역 ===== */
 
-  width: 177px;
-  height: 50px;
-
-  padding: 12px 30px;
-
-  border: none;
-  border-radius: 10px;
-  background: #FECD24;
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-
-  color: #000;
-  text-align: center;
-
-  /* Title/Title2 */
-  font-family: Inter;
-  font-size: 16px;
-  font-style: normal;
-  font-weight: 600;
-  line-height: 16px; /* 100% */
-  letter-spacing: -0.32px;
-}
-
-.chatTitle {
-  color: #000;
-
-  /* Title/Title1 */
-  font-family: Inter;
-  font-size: 20px;
-  font-style: normal;
-  font-weight: 600;
-  line-height: 20px; /* 100% */
-  letter-spacing: -0.32px;
-}
-
-.right {
-  display: flex;
-  box-sizing: border-box;
-  width: 585px;
-  height: 653px;
-  justify-content: center;
-  align-items: center; 
-}
-
-
-/* 오른쪽 콘텐츠 박스 */
-.contentBox {
-  width: 555px;
-  height: auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-/* 박스 이미지 */
-.image {
-  width: 115px;
-  height: 108px;
-}
-
-.chatDetail {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  width: 100%;
-}
-
-.chatMessages {
-  flex-grow: 1; /* 남은 공간을 모두 차지 */
+.chatListArea {
+  flex: 1;
+  padding: 8px 0;
   overflow-y: auto;
+}
+
+.chatListArea::-webkit-scrollbar {
+  width: 7px;
+}
+
+.chatListArea::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 999px;
+}
+
+.chatListArea::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 999px;
+}
+
+/* 빈 상태 */
+
+.emptyState {
+  padding: 40px 22px 16px 22px;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 10px;
+  text-align: center;
 }
 
-.chatMessages::-webkit-scrollbar {
-  width: 17px;
+.emptyImage {
+  width: 90px;
+  height: 84px;
+  object-fit: contain;
 }
 
-.chatMessages::-webkit-scrollbar-thumb {
-  background: #CDCCCC;
-  border-radius: 50px;
+.emptyTitle {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
+  font-size: 17px;
+  font-weight: 600;
+  color: #111827;
+  margin: 8px 0 0 0;
 }
 
-.chatMessages::-webkit-scrollbar-track {
-  background: #F3F3F3;
-  border-radius: 50px;
-  margin-top: 4px;
+.emptySub {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
+  font-size: 12px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
 }
 
-.dateLine{
-  align-self: stretch;
-  color: #B2B2B2;
-text-align: center;
-
-/* Body/Body1 */
-font-family: Inter;
-font-size: 13px;
-font-style: normal;
-font-weight: 500;
-line-height: 16px; /* 123.077% */
-letter-spacing: -0.32px;
-margin-bottom: 10px;
+.emptyDemo {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
+  font-size: 11px;
+  color: #9ca3af;
+  margin: 8px 0 0 0;
 }
+
+.primaryButton {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 168px;
+  height: 42px;
+  padding: 0 24px;
+  border-radius: 999px;
+  border: none;
+  background: #fecd24;
+  box-shadow: 0 6px 14px rgba(254, 205, 36, 0.4);
+
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  cursor: pointer;
+}
+
+.primaryButton:hover {
+  background: #ffd84e;
+}
+
+.primaryButton:active {
+  box-shadow: 0 3px 8px rgba(254, 205, 36, 0.4);
+}
+
+/* ===== 채팅 목록 Row ===== */
+
+.listRow {
+  width: 100%;
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.08s ease-out;
+}
+
+.listRow:hover {
+  background: #f9fafb;
+}
+
+.listImageWrap {
+  position: relative;
+  width: 60px;
+  height: 52px;
+  flex-shrink: 0;
+}
+
+.listPostImg {
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.listProfileImg {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 2px solid #ffffff;
+  object-fit: cover;
+}
+
+.listContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.listTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.listName {
+  max-width: 200px;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.listTime {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.listBottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+}
+
+.listLastMsg {
+  flex: 1;
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.unreadDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #f97316;
+  flex-shrink: 0;
+}
+
+/* ===== 채팅방 헤더 (상단 앱바 + 상품 정보) ===== */
+
+.roomAppBar {
+  height: 56px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.backBtn,
+.moreBtn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.backBtn img,
+.moreBtn img {
+  width: 22px;
+  height: 22px;
+}
+
+.roomTitle {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #111827;
+}
+
+/* 상품 카드 */
+.roomPostCard {
+  margin: 8px 16px 4px 16px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 14px;
+  border: none;
+  background: #f9fafb;
+  cursor: pointer;
+}
+
+.roomPostCard:hover {
+  background: #f3f4ff;
+}
+
+.roomPostImg {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.roomPostText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.roomPostTitle {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.roomPostPrice {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+/* D-day Badge */
+
+.ddayBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #111827;
+}
+
+.ddayClosing {
+  background: #9ca3af;
+}
+
+.ddayIcon {
+  width: 14px;
+  height: 14px;
+}
+
+.ddayText {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
+  font-size: 11px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* ===== 메시지 영역 ===== */
+
+.messageArea {
+  flex: 1;
+  padding: 8px 0 4px 0;
+  background: #f9fafb;
+  overflow-y: auto;
+}
+
+.messageArea::-webkit-scrollbar {
+  width: 7px;
+}
+
+.messageArea::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 999px;
+}
+
+.messageArea::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 999px;
+  margin-top: 2px;
+}
+
+/* 날짜 라인 + 그룹 */
 
 .messageGroup {
+  padding: 4px 0;
+}
+
+.dateLine {
+  text-align: center;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
+  font-size: 11px;
+  font-weight: 500;
+  color: #9ca3af;
+  margin: 6px 0;
+}
+
+/* ===== 메세지 버블 ===== */
+
+.messageWrapper {
+  display: flex;
+  justify-content: flex-start;
+  padding: 0 16px;
+  margin-bottom: 4px;
+}
+
+.messageRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.row {
+  flex-direction: row;
+}
+
+.rowReverse {
+  flex-direction: row-reverse;
+}
+
+/* 기본 버블 */
+
+.myBubble,
+.theirBubble {
+  max-width: 260px;
+  border-radius: 14px;
+  padding: 8px 11px;
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.04);
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.myBubble {
+  background: #fff0bb;
+}
+
+.theirBubble {
+  background: #e5e7eb;
+}
+
+/* 텍스트 */
+
+.bubbleText {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
+  font-size: 13px;
+  color: #111827;
+}
+
+/* 시간 */
+
+.bubbleTime {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
+  font-size: 10px;
+  color: #9ca3af;
+  margin-bottom: 2px;
+}
+
+/* 이미지 */
+
+.bubbleImage {
+  margin-top: 4px;
+  max-width: 220px;
+  max-height: 220px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+/* 시스템 메시지 색상 */
+
+.systemBubble {
+  background: #e5e7eb;
+}
+
+.promiseBubble {
+  background: #fecd24;
+}
+
+.payBubble {
+  background: #ffd5d5;
+}
+
+.addressBubble,
+.deliveryBubble {
+  background: #daefff;
+}
+
+.completedBubble {
+  background: #bce9b4;
+}
+
+/* ===== 하단 인풋 영역 ===== */
+
+.bottomArea {
+  padding: 8px 10px 14px 10px;
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 6px;
+}
+
+/* 옵션 버튼 Row */
+
+.optionRow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 32px;
+  padding-bottom: 4px;
+}
+
+.optionBtn {
+  border: none;
+  background: transparent;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.optionIconWrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  background: #f3f4ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.optionIconWrap img {
+  width: 28px;
+  height: 28px;
+}
+
+.optionBtn span {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
+  font-size: 11px;
+  color: #374151;
+}
+
+/* 옵션 disabled */
+
+.optionBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* 인풋 Row */
+
+.inputRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+}
+
+/* + 버튼 */
+
+.plusBtn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.plusBtn img {
+  width: 22px;
+  height: 22px;
+}
+
+/* 텍스트 인풋 */
+
+.input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  resize: none;
+  min-height: 22px;
+  max-height: 120px;
+  overflow-y: auto;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
+  font-size: 13px;
+  color: #111827;
+}
+
+.input::placeholder {
+  color: #9ca3af;
+}
+
+.input::-webkit-scrollbar {
+  width: 5px;
+}
+
+.input::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 999px;
+}
+
+.input::-webkit-scrollbar-track {
+  background: #f3f4f6;
+}
+
+/* 전송 버튼 */
+
+.sendBtn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.sendBtn img {
+  width: 20px;
+  height: 20px;
 }

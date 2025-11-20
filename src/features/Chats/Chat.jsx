@@ -1,564 +1,39 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate, useLocation  } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
-import boxImage from '../../assets/chat_logo.png';
+import debounce from 'lodash.debounce';
+
 import styles from './Chats.module.css';
 import Dropdown from '../../components/DropDown/DropDown';
-import ChatListItem from '../../components/Chat/ChatListItem/ChatListItem';
-import ChatHeader from '../../components/Chat/ChatHeader/ChatHeader';
-import ChatBottom from '../../components/Chat/ChatBottom/ChatBottom';
-import ChatMessage from '../../components/Chat/ChatMessage/ChatMessage';
-import debounce from 'lodash.debounce';
 import api from '../../lib/axios';
 
-import profileImg from '../../assets/profile.png';
-import postImage from '../../assets/product.png'; //상품 이미지
 import defaultProfile from '../../assets/LOGOMAIN.png';
 import defaultProduct from '../../assets/profile-image.svg';
 
-
-function Chat() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [myName, setMyName] = useState('');
-  const messagesEndRef = useRef(null);
-  const chatContainerRef = useRef(null);
-  const BASE_URL = 'https://port-0-portiony-backend-md4272k5c4648749.sel5.cloudtype.app';
-  const [dateSort, setDateSort] = useState('전체');
-  const [chatRooms, setChatRooms] = useState([]); //안에 더미값 넣었었음
-  const [myUserId, setMyUserId] = useState(null);
-
-  //const token = localStorage.getItem("accessToken");
-  const client = useRef(null); //stomp 클라이언트(stompjs)
-  const [selectedRoom, setSelectedRoom] = useState(null); //현재 클릭된 채팅방
-  const selectedRoomRef = useRef(null); //선택된 채팅방 ref
-  const subscribedRoomIdsRef = useRef(new Set()); //중복 구독 방지용
-  const hasEnteredRoomRef = useRef(false); //채팅하기 버튼 > 바로 해당 채팅룸 진입 무한루프 방지용
-
-  //채팅하기 버튼 누르고 채팅방으로 진입했을 때
-  useEffect(() => {
-    if (!location.state?.chatRoomId || hasEnteredRoomRef.current) return;
-
-    const roomId = location.state.chatRoomId;
-    const targetRoom = chatRooms.find((room) => room.id === roomId);
-    if (targetRoom) {
-      handleEnterRoom(targetRoom);//진입이 한 번만 되게
-      hasEnteredRoomRef.current = true;
-
-      navigate('/chat', { replace: true });
-    }
-  }, [chatRooms, location.state, navigate]);
-
-  //웹 소켓 연결 및 구독
-  useEffect(() => {
-    const socket = new SockJS(`${BASE_URL}/ws-chat-sockjs`);
-    client.current = new Client({
-      webSocketFactory: () => socket,
-      onConnect: () => { //웹 소켓 연결 후 모든 채팅방을 구독한다
-        console.log('✅ WebSocket connected');
-        subscribeAllRooms(chatRooms);
-      },
-      onStompError: (frame) => {
-        console.error('WebSocket error:', frame);
-      },
-    });
-
-    client.current.activate(); //소켓 연결 시작
-
-    return () => {
-      if (client.current) {
-        client.current.deactivate(); //페이지 나갈 때 소켓 종료
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    selectedRoomRef.current = selectedRoom; //현재 선택된 방 추적용, 최신값을 항상 유지함
-    console.log(selectedRoomRef.current);
-  }, [selectedRoom]);
-
-  //사용자 정보 불러옴
-  useEffect(() => {
-    const fetchMyUserInfo = async () => {
-      try {
-        const { data } = await api.get('/api/users/');
-        setMyUserId(data.userId);
-        setMyName(data.nickname);
-      } catch (err) {
-        console.error('사용자 정보 불러오기 실패:', err);
-      }
-    };
-    fetchMyUserInfo();
-  }, []);
-
-  //채팅방 목록 조회
-  useEffect(() => {
-    const fetchChatRooms = async () => {
-      try {
-        const type = getChatTypeParam(dateSort); 
-        const { data } = await api.get('/api/chats', {
-          params: { type }
-        });
-        const rooms = data.chatRoomsList.map((room) => {
-          const sellerStatus = room.status?.sellerStatus;
-          const buyerStatus = room.status?.buyerStatus;
-          const isCompleted = sellerStatus === 'COMPLETED' && buyerStatus === 'COMPLETED';
-          
-          return {
-          id: room.chatRoomId,
-          partnerName: room.partner.name,
-          lastMessage: room.lastMessage || '',
-          // time: room.lastMessageTime
-          //   ? new Date(room.lastMessageTime).toLocaleTimeString([], {
-          //       hour: '2-digit',
-          //       minute: '2-digit',
-          //     })
-          //   : '',
-          time: room.lastMessageTime ? new Date(room.lastMessageTime) : null,
-          title: room.post.title,
-          price: room.post.price.toLocaleString(),
-          ddayText: makeDdayText(room.post.deadline),
-          postId: room.post.postId,
-          postImage: room.post.imageUrl || defaultProduct,
-          profileImg: room.partner.profileImageUrl || defaultProfile,
-          isSeller: room.isSeller,
-          isRead: room.isRead,
-          lastSenderId: room.lastMessageSenderId,
-          messages: [],
-          sellerStatus,
-          buyerStatus,
-          isCompleted,
-          };
-        });
-
-        //setChatRooms(rooms);
-        setChatRooms(sortRoomsByLatestMessage(rooms));
-      } catch (err) {
-        console.error('채팅방 불러오기 실패:', err);
-      }
-    };
-    fetchChatRooms();
-  }, [dateSort]);
-
-
-  // 모든 채팅방 구독 처리 > 목록에서 수신 메시지 실시간 반영을 위함
-  useEffect(() => {
-    if (!client.current || !client.current.connected) return; //웹소켓 연결 x
-    subscribeAllRooms(chatRooms);
-
-  }, [myUserId, client.current?.connected, chatRooms]); //myuserid 바뀔 때, 웹 소켓 연결 성공했을 때, chatroom 데이터가 바뀌었을 때 해당 useeffect 실행
-
-  // 모든 채팅방 구독 처리
-  const subscribeAllRooms = () => {
-    if (!client.current?.connected) return;
-
-    chatRooms.forEach((room) => { //보유하고 있는 chatroom 리스트를 순회 각 방을 하나씩 구독 처리
-      const subId = `chat-room-${room.id}`;
-
-      // 이미 구독된 방은 무시
-      if (subscribedRoomIdsRef.current.has(room.id)) return;
-
-      console.log(`구독 시도: ${subId}`);
-
-      //구독 로직
-      client.current.subscribe(
-        `/sub/chat/room/${room.id}`,
-        async (message) => {
-          const payload = JSON.parse(message.body);
-          if (payload.senderId === myUserId) return; //내가 보낸 메시지 무시 > 이미 렌더링 처리
-          //거래 완료 시스템 메시지 확인 > 실시간 버튼 disable 처리(첫 번째로 거래 완료 처리한 사람을 위한)
-          const isFinalCompleteMessage = payload.content?.includes('🎉 소중한 거래가 최종 완료되었습니다!\n후기는 마이페이지에서 작성가능합니다 :)\n포셔니와 함께 해주셔서 감사합니다.');
-          const newMsg = {
-            content: payload.content,
-            image: payload.imageUrls?.[0] || null,
-            time: payload.createdAt,
-            isMine: false,
-            isSystem: isFinalCompleteMessage,
-            systemType: payload.senderId === 0 ? payload.systemType : null,
-          };
-
-          if (isFinalCompleteMessage) {
-            api.get('/api/chats').then(({ data }) => {
-              const updatedRoom = data.chatRoomsList.find((r) => r.chatRoomId === room.id);
-              if (!updatedRoom) return;
-
-              const sellerStatus = updatedRoom.status?.sellerStatus;
-              const buyerStatus = updatedRoom.status?.buyerStatus;
-              const isTrulyCompleted = sellerStatus === 'COMPLETED' && buyerStatus === 'COMPLETED';
-
-              if (isTrulyCompleted) {
-                if (selectedRoomRef.current?.id === room.id) {
-                  setSelectedRoom((prev) => ({
-                    ...prev,
-                    sellerStatus,
-                    buyerStatus,
-                    isCompleted: true,
-                  }));
-                }
-              }
-            });
-          }
-
-          // 실시간 읽음 처리 추가 > 내가 보고 있는 채팅방
-          // 디바운스된 읽음 처리로 대체
-        if (selectedRoomRef.current?.id === room.id) {
-          debouncedMarkAsRead(room.id);
-
-          setChatRooms((prevRooms) =>
-            prevRooms.map((r) =>
-              r.id === room.id ? { ...r, isRead: true } : r
-            )
-          );
-
-          setSelectedRoom((prev) => ({
-            ...prev,
-            isRead: true,
-          }));
-        }
-
-          // 채팅 목록 업데이트
-          setChatRooms((prevRooms) =>
-            sortRoomsByLatestMessage(
-            prevRooms.map((r) =>
-              r.id === room.id
-                ? {
-                    ...r,
-                    lastMessage: payload.content,
-                    // time: new Date(payload.createdAt).toLocaleTimeString([], {
-                    //   hour: '2-digit',
-                    //   minute: '2-digit',
-                    // }),
-                    time: new Date(payload.createdAt),
-                    isRead: selectedRoomRef.current?.id === r.id,
-                    lastSenderId: payload.senderId,
-                  }
-                : r
-                )
-            )
-          );
-
-          // 현재 선택된 방일 경우 메시지도 추가
-          if (selectedRoomRef.current?.id === room.id) {
-            setSelectedRoom((prevRoom) => ({
-              ...prevRoom,
-              messages: [...prevRoom.messages, newMsg], //내 메시지는 보내자마자 바로 렌더링 되므로 위에서 내가 보낸 메시지 무시 처리
-            }));
-            setTimeout(scrollToBottom, 0);
-          }
-        },
-        { id: subId }
-      );
-
-      // 구독 완료 표시
-      subscribedRoomIdsRef.current.add(room.id);
-    });
-};
-
-
-//채팅방 클릭 시 호출
-const handleEnterRoom = async (room) => {
-  try {
-    // 메시지 불러오기
-    const { data } = await api.get(`/api/chats/${room.id}/messages`);
-
-    const sellerStatus = room.sellerStatus;
-    const buyerStatus = room.buyerStatus;
-    const isCompleted = sellerStatus === 'COMPLETED' && buyerStatus === 'COMPLETED';
-
-    const formattedMessages = data.messageList.map((msg) => {
-      const isSystem = msg.senderId === 0;
-      return {
-        content: msg.content,
-        image: msg.imageUrls?.[0] || null,
-        time: msg.createdAt,
-        isMine: msg.senderId === myUserId,
-        isSystem,
-        systemType: isSystem ? 'completed' : null,
-      };
-    });
-
-    const updatedRoom = {
-      ...room,
-      messages: formattedMessages,
-      isCompleted,
-    };
-
-    // 읽음 처리 (내가 마지막 보낸 사람이 아닐 때만)
-    if (room.lastSenderId && room.lastSenderId !== myUserId) {
-      await api.patch(`/api/chats/${room.id}/read`);
-
-      const updatedRooms = chatRooms.map((r) =>
-        r.id === room.id ? { ...r, isRead: true } : r
-      );
-
-      setChatRooms(updatedRooms);
-      setSelectedRoom({ ...updatedRoom, isRead: true });
-    } else {
-      setSelectedRoom(updatedRoom);
-    }
-  } catch (err) {
-    console.error('채팅방 입장 또는 메시지 불러오기 실패:', err);
-  }
-};
-
-//거래완료
-const handleCompleteTrade = async () => {
-  if (!selectedRoom) return;
-
-  try {
-    const { data: result } = await api.patch(`/api/chats/${selectedRoom.id}/complete`);
-
-
-    // count 계산 > 거래 완료 여부에 따름
-    let count = 0;
-    if (result.sellerStatus === 'COMPLETED') count += 1;
-    if (result.buyerStatus === 'COMPLETED') count += 1;
-
-    const isCompletedNow = result.sellerStatus === 'COMPLETED' && result.buyerStatus === 'COMPLETED';
-
-    //  selectedRoom 즉시 반영 (=> ChatBottom이 즉시 반응)
-    setSelectedRoom((prev) => ({
-      ...prev,
-      sellerStatus: result.sellerStatus,
-      buyerStatus: result.buyerStatus,
-      isCompleted: isCompletedNow,
-    }));
-
-    // chatRooms 안에서도 상태 반영
-    setChatRooms((prevRooms) =>
-      prevRooms.map((room) =>
-        room.id === selectedRoom.id
-          ? {
-              ...room,
-              sellerStatus: result.sellerStatus,
-              buyerStatus: result.buyerStatus,
-              isCompleted: isCompletedNow,
-            }
-          : room
-      )
-    );
-
-    // 상태 반영
-    // setSelectedRoom((prev) => ({
-    //   ...prev,
-    //   completionCount: count,
-    // }));
-
-    // setChatRooms((prev) =>
-    //   prev.map((room) =>
-    //     room.id === selectedRoom.id
-    //       ? { ...room, completionCount: count }
-    //       : room
-    //   )
-    // );
-    console.log(`거래 완료 상태 업데이트 완료: ${count}`);
-    return count;
-  } catch (err) {
-    console.error(' 거래 완료 실패:', err);
-    alert('거래 완료 중 문제가 발생했습니다.');
-    return 0;
-  }
-};
-
-
-
-  const filteredRooms = chatRooms.filter((room) => {
-    if (!room.lastMessage && room.isSeller) return false;
-
-      if (dateSort === '전체') return true;
-      if (dateSort === '구매') return !room.isSeller; // 구매자일 때
-      if (dateSort === '판매') return room.isSeller;  // 판매자일 때
-      return true;
-    });
-
-    const isEmpty = filteredRooms.length === 0;
-
-  const scrollToBottom = () => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-    }
-  };
-
-  //채팅방 클릭했을 때 스크롤 하단으로 고정
-  useEffect(() => {
-    if (selectedRoom) {
-      scrollToBottom();
-    }
-  }, [selectedRoom]);
-
-  return (
-    <div className={styles.container}>
-      {/* 왼쪽: 채팅 목록 */}
-      <div className={styles.leftWrapper}>
-        <div className={styles.leftTop}>
-          <h2 className={styles.chatTitle}>채팅 목록</h2>
-          <Dropdown
-            options={['전체','구매', '판매']}
-            selected={dateSort}
-            setSelected={setDateSort}
-            placeholder="날짜"
-          />
-        </div>
-        
-        <div className={styles.left}>
-          {isEmpty ? (
-            <>
-              <p className={styles.chatEmptyText}>
-                💬 아직 시작된 채팅이 없습니다.<br /><br />
-                이웃과 함께 나누는 첫 거래를 시작해보세요!
-              </p>
-              <p className={styles.chatEmptyText1}>
-                공동구매 상품을 골라 시작할 수 있어요.
-              </p>
-              <button className={styles.button} onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>상품 둘러보기</button>
-            </>
-          ) : (
-            filteredRooms.map((room) => (
-              <ChatListItem
-                key={room.id}
-                partnerName={room.partnerName}
-                lastMessage={room.lastMessage}
-                // lastMessageTime={room.time}
-                lastMessageTime={
-                room.time instanceof Date
-                  ? room.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                  : room.time
-                    ? new Date(room.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                    : ''
-              }
-
-                postImage={room.postImage}
-                profileImg={room.profileImg}
-                hasUnread={room.lastMessage && !room.isRead && room.lastSenderId !== myUserId}
-                onClick={() => handleEnterRoom(room)}
-              />
-            ))
-          )}
-        </div>
-      </div>
-
-      {/* 오른쪽: 채팅 상세 or 기본 박스 이미지 */}
-      <div className={styles.right}>
-        {selectedRoom ? (
-          <div className={styles.chatDetail}>
-      
-          {/* 헤더 컴포넌트 추가 */}
-          <ChatHeader
-            postId = {selectedRoom.postId}
-            partnerName={selectedRoom.partnerName}
-            postImage={selectedRoom.postImage}
-            title={selectedRoom.title}
-            price={selectedRoom.price}
-            ddayText={selectedRoom.ddayText}
-          />
-
-          <div className={styles.chatMessages} ref={chatContainerRef}>
-            {Object.entries(groupMessagesByDate(selectedRoom.messages)).map(
-              ([date, msgs]) => (
-                <div key={date} className={styles.messageGroup}>
-                  <div className={styles.dateLine}>{date}</div> {/* 스타일명 맞춤 */}
-                  {msgs.map((msg, idx) => (
-                    <ChatMessage
-                      key={idx}
-                      content={msg.content}
-                      image={msg.image}
-                      time={new Date(msg.time).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                      isMine={msg.isMine}
-                      isSeller={selectedRoom.isSeller}
-                      isSystem={msg.isSystem}
-                      systemType={msg.systemType}
-                    />
-                  ))}
-                </div>
-              )
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-
-
-      <ChatBottom
-        isSeller={selectedRoom.isSeller}
-        partnerName={selectedRoom.partnerName}
-        myName={myName}
-        onCompleteTrade={handleCompleteTrade}
-        chatStatus={'active'}
-        isCompleted={selectedRoom.isCompleted}
-        onSendMessage={(newMessage) => {
-          const payload =
-            typeof newMessage === 'string'
-              ? {
-                  chatRoomId: selectedRoom.id,
-                  senderId: myUserId,
-                  content: newMessage,
-                }
-              : {
-                  ...newMessage,
-                  chatRoomId: selectedRoom.id,
-                  senderId: myUserId,
-                };
-
-          // WebSocket 메시지 전송
-          if (client.current && client.current.connected) {
-            client.current.publish({
-              destination: '/pub/chat/message',
-              body: JSON.stringify(payload),
-            });
-          }
-
-          const messageObj = {
-            content: payload.content,
-            image: payload.image || null,
-            time: new Date().toISOString(),
-            isMine: true,
-            isSystem: false,
-            systemType: null,
-          };
-
-          setSelectedRoom((prevRoom) => ({
-            ...prevRoom,
-            messages: [...prevRoom.messages, messageObj],
-          }));
-
-            // 2. 채팅 목록에 lastMessage 갱신
-          setChatRooms((prevRooms) =>
-            sortRoomsByLatestMessage(
-            prevRooms.map((room) =>
-              room.id === selectedRoom.id
-                ? {
-                    ...room,
-                    lastMessage: payload.content,
-                    // time: new Date().toLocaleTimeString([], {
-                    //   hour: '2-digit',
-                    //   minute: '2-digit',
-                    // }),
-                    time: new Date(),
-                    isRead: true
-                  }
-                : room
-            )
-            )
-          );
-
-        setTimeout(scrollToBottom, 0);
-      }}
-
-      />
-    </div>
-  ) : (
-    <img src={boxImage} alt="박스" className={styles.image} />
-  )}
-</div>
-
-    </div>
-  );
-}
-
-export default Chat;
-
+import sendIcon from '../../assets/send.svg';
+import addIcon from '../../assets/add.svg';
+import photoIcon from '../../assets/sendphoto.svg';
+import promiseIcon from '../../assets/promise.svg';
+import payIcon from '../../assets/requestpay.svg';
+import addressIcon from '../../assets/sendinfo.svg';
+import doneIcon from '../../assets/complete.svg';
+import moreIcon from '../../assets/more_vert.svg';
+import alarmWhite from '../../assets/alarmWhite.svg';
+import backIcon from '../../assets/chevron-left.svg';
+
+import DeliveryModal from '../../components/Chat/Modal/DeliveryModal';
+import PromiseModal from '../../components/Chat/Modal/Promise';
+import PayRequestModal from '../../components/Chat/Modal/PayRequest';
+import DeliveryInfoModal from '../../components/Chat/Modal/DeliveryInfo';
+import GroupBuyModal from '../../components/GroupBuy/GroupBuyModal';
+import CompleteModal from '../../components/Chat/Modal/Complete';
+import Complete2Modal from '../../components/Chat/Modal/Complete2';
+
+const BASE_URL = 'https://port-0-portiony-be-md4272k5c4648749.sel5.cloudtype.app';
+
+
+/* ================= 유틸 함수 ================= */
 
 function getFormattedDate(isoString) {
   const date = new Date(isoString);
@@ -572,14 +47,12 @@ function groupMessagesByDate(messages) {
   const grouped = {};
   messages.forEach((msg) => {
     const dateKey = getFormattedDate(msg.time);
-    if (!grouped[dateKey]) {
-      grouped[dateKey] = [];
-    }
+    if (!grouped[dateKey]) grouped[dateKey] = [];
     grouped[dateKey].push(msg);
   });
   return grouped;
 }
-       
+
 function getChatTypeParam(dateSort) {
   if (dateSort === '전체') return 'all';
   if (dateSort === '구매') return 'buy';
@@ -594,7 +67,9 @@ function makeDdayText(deadline) {
   today.setHours(0, 0, 0, 0);
   endDate.setHours(0, 0, 0, 0);
 
-  const diff = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+  const diff = Math.ceil(
+    (endDate - today) / (1000 * 60 * 60 * 24)
+  );
 
   if (diff < 0) return '공구마감';
   if (diff === 0) return '마감 D-DAY';
@@ -605,11 +80,11 @@ function sortRoomsByLatestMessage(rooms) {
   return [...rooms].sort((a, b) => {
     const timeA = new Date(a.time || 0).getTime();
     const timeB = new Date(b.time || 0).getTime();
-    return timeB - timeA; // 최신순 정렬
+    return timeB - timeA;
   });
 }
 
-//읽음 처리 api 0.5초에 1번만 호출됨 > 서버 부하 방지
+// 읽음 처리 API - 0.5초에 1번
 const debouncedMarkAsRead = debounce(async (roomId) => {
   try {
     await api.patch(`/api/chats/${roomId}/read`);
@@ -617,3 +92,1011 @@ const debouncedMarkAsRead = debounce(async (roomId) => {
     console.error('실시간 읽음 처리 실패:', err);
   }
 }, 500);
+
+/* ================= 메인 Chat 컴포넌트 ================= */
+
+function Chat() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [myName, setMyName] = useState('');
+  const [myUserId, setMyUserId] = useState(null);
+  const [dateSort, setDateSort] = useState('전체');
+  const [chatRooms, setChatRooms] = useState([]);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+
+  const clientRef = useRef(null);
+  const selectedRoomRef = useRef(null);
+  const subscribedRoomIdsRef = useRef(new Set());
+  const hasEnteredRoomRef = useRef(false);
+  const chatContainerRef = useRef(null);
+  const messagesEndRef = useRef(null);
+
+  // 선택된 방 ref 최신값 유지
+  useEffect(() => {
+    selectedRoomRef.current = selectedRoom;
+  }, [selectedRoom]);
+
+  // 내 정보
+  useEffect(() => {
+    const fetchMyUserInfo = async () => {
+      try {
+        const { data } = await api.get('/api/users/');
+        setMyUserId(data.userId);
+        setMyName(data.nickname);
+      } catch (err) {
+        console.error('사용자 정보 불러오기 실패:', err);
+      }
+    };
+    fetchMyUserInfo();
+  }, []);
+
+  // 채팅방 목록 조회
+  useEffect(() => {
+    const fetchChatRooms = async () => {
+      try {
+        const type = getChatTypeParam(dateSort);
+        const { data } = await api.get('/api/chats', { params: { type } });
+
+        const rooms = data.chatRoomsList.map((room) => {
+          const sellerStatus = room.status?.sellerStatus;
+          const buyerStatus = room.status?.buyerStatus;
+          const isCompleted =
+            sellerStatus === 'COMPLETED' && buyerStatus === 'COMPLETED';
+
+          return {
+            id: room.chatRoomId,
+            partnerName: room.partner.name,
+            lastMessage: room.lastMessage || '',
+            time: room.lastMessageTime ? new Date(room.lastMessageTime) : null,
+            title: room.post.title,
+            price: room.post.price.toLocaleString(),
+            ddayText: makeDdayText(room.post.deadline),
+            postId: room.post.postId,
+            postImage: room.post.imageUrl || defaultProduct,
+            profileImg: room.partner.profileImageUrl || defaultProfile,
+            isSeller: room.isSeller,
+            isRead: room.isRead,
+            lastSenderId: room.lastMessageSenderId,
+            messages: [],
+            sellerStatus,
+            buyerStatus,
+            isCompleted,
+          };
+        });
+
+        setChatRooms(sortRoomsByLatestMessage(rooms));
+      } catch (err) {
+        console.error('채팅방 불러오기 실패:', err);
+      }
+    };
+
+    fetchChatRooms();
+  }, [dateSort]);
+
+  // 웹소켓 연결
+  useEffect(() => {
+    const socket = new SockJS(`${BASE_URL}/ws-chat-sockjs`);
+    const client = new Client({
+      webSocketFactory: () => socket,
+      debug: () => {},
+      onConnect: () => {
+        console.log('✅ WebSocket connected');
+        subscribeAllRooms(chatRooms, client);
+      },
+      onStompError: (frame) => {
+        console.error('WebSocket error:', frame);
+      },
+    });
+
+    client.activate();
+    clientRef.current = client;
+
+    return () => {
+      if (clientRef.current) clientRef.current.deactivate();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 웹소켓 연결 후 / 목록 변경 시 구독
+  useEffect(() => {
+    if (!clientRef.current || !clientRef.current.connected) return;
+    subscribeAllRooms(chatRooms, clientRef.current);
+  }, [chatRooms, myUserId]);
+
+  // 채팅하기 버튼으로 들어온 경우
+  useEffect(() => {
+    if (!location.state?.chatRoomId || hasEnteredRoomRef.current) return;
+
+    const roomId = location.state.chatRoomId;
+    const targetRoom = chatRooms.find((room) => room.id === roomId);
+    if (targetRoom) {
+      handleEnterRoom(targetRoom);
+      hasEnteredRoomRef.current = true;
+      navigate('/chat', { replace: true });
+    }
+  }, [chatRooms, location.state, navigate]);
+
+  // 전체 방 구독
+  const subscribeAllRooms = (rooms, client) => {
+    if (!client?.connected) return;
+
+    rooms.forEach((room) => {
+      if (subscribedRoomIdsRef.current.has(room.id)) return;
+
+      const subId = `chat-room-${room.id}`;
+      console.log(`구독 시도: ${subId}`);
+
+      client.subscribe(
+        `/sub/chat/room/${room.id}`,
+        async (message) => {
+          const payload = JSON.parse(message.body);
+
+          // 내가 보낸 메시지는 무시
+          if (payload.senderId === myUserId) return;
+
+          const isFinalCompleteMessage = payload.content?.includes(
+            '🎉 소중한 거래가 최종 완료되었습니다!'
+          );
+
+          const newMsg = {
+            content: payload.content,
+            image: payload.imageUrls?.[0] || null,
+            time: payload.createdAt,
+            isMine: false,
+            isSystem: payload.senderId === 0 || isFinalCompleteMessage,
+            systemType: payload.senderId === 0 ? payload.systemType : null,
+          };
+
+          // 최종 완료 메시지면 상태 다시 확인
+          if (isFinalCompleteMessage) {
+            api.get('/api/chats').then(({ data }) => {
+              const updatedRoom = data.chatRoomsList.find(
+                (r) => r.chatRoomId === room.id
+              );
+              if (!updatedRoom) return;
+
+              const sellerStatus = updatedRoom.status?.sellerStatus;
+              const buyerStatus = updatedRoom.status?.buyerStatus;
+              const isTrulyCompleted =
+                sellerStatus === 'COMPLETED' &&
+                buyerStatus === 'COMPLETED';
+
+              if (isTrulyCompleted) {
+                if (selectedRoomRef.current?.id === room.id) {
+                  setSelectedRoom((prev) => ({
+                    ...prev,
+                    sellerStatus,
+                    buyerStatus,
+                    isCompleted: true,
+                  }));
+                }
+              }
+            });
+          }
+
+          // 내가 보고 있는 방이면 읽음 처리
+          if (selectedRoomRef.current?.id === room.id) {
+            debouncedMarkAsRead(room.id);
+
+            setChatRooms((prevRooms) =>
+              prevRooms.map((r) =>
+                r.id === room.id ? { ...r, isRead: true } : r
+              )
+            );
+
+            setSelectedRoom((prev) => ({
+              ...prev,
+              isRead: true,
+            }));
+          }
+
+          // 목록 업데이트
+          setChatRooms((prevRooms) =>
+            sortRoomsByLatestMessage(
+              prevRooms.map((r) =>
+                r.id === room.id
+                  ? {
+                      ...r,
+                      lastMessage: payload.content,
+                      time: new Date(payload.createdAt),
+                      isRead: selectedRoomRef.current?.id === r.id,
+                      lastSenderId: payload.senderId,
+                    }
+                  : r
+              )
+            )
+          );
+
+          // 현재 선택된 방이면 메시지 추가
+          if (selectedRoomRef.current?.id === room.id) {
+            setSelectedRoom((prevRoom) => ({
+              ...prevRoom,
+              messages: [...prevRoom.messages, newMsg],
+            }));
+            setTimeout(scrollToBottom, 0);
+          }
+        },
+        { id: subId }
+      );
+
+      subscribedRoomIdsRef.current.add(room.id);
+    });
+  };
+
+  const scrollToBottom = () => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
+    }
+  };
+
+  // 방 입장 (채팅 리스트 → 상세 화면 전환)
+  const handleEnterRoom = async (room) => {
+    try {
+      const { data } = await api.get(`/api/chats/${room.id}/messages`);
+
+      const sellerStatus = room.sellerStatus;
+      const buyerStatus = room.buyerStatus;
+      const isCompleted =
+        sellerStatus === 'COMPLETED' && buyerStatus === 'COMPLETED';
+
+      const formattedMessages = data.messageList.map((msg) => {
+        const isSystem = msg.senderId === 0;
+        return {
+          content: msg.content,
+          image: msg.imageUrls?.[0] || null,
+          time: msg.createdAt,
+          isMine: msg.senderId === myUserId,
+          isSystem,
+          systemType: isSystem ? 'completed' : null,
+        };
+      });
+
+      const updatedRoom = {
+        ...room,
+        messages: formattedMessages,
+        isCompleted,
+      };
+
+      if (room.lastSenderId && room.lastSenderId !== myUserId) {
+        await api.patch(`/api/chats/${room.id}/read`);
+
+        const updatedRooms = chatRooms.map((r) =>
+          r.id === room.id ? { ...r, isRead: true } : r
+        );
+
+        setChatRooms(updatedRooms);
+        setSelectedRoom({ ...updatedRoom, isRead: true });
+      } else {
+        setSelectedRoom(updatedRoom);
+      }
+
+      setTimeout(scrollToBottom, 0);
+    } catch (err) {
+      console.error('채팅방 입장 또는 메시지 불러오기 실패:', err);
+    }
+  };
+
+  const handleBackToList = () => {
+    setSelectedRoom(null);
+    selectedRoomRef.current = null;
+  };
+
+  // 거래 완료
+  const handleCompleteTrade = async () => {
+    if (!selectedRoom) return;
+
+    try {
+      const { data: result } = await api.patch(
+        `/api/chats/${selectedRoom.id}/complete`
+      );
+
+      let count = 0;
+      if (result.sellerStatus === 'COMPLETED') count += 1;
+      if (result.buyerStatus === 'COMPLETED') count += 1;
+
+      const isCompletedNow =
+        result.sellerStatus === 'COMPLETED' &&
+        result.buyerStatus === 'COMPLETED';
+
+      setSelectedRoom((prev) => ({
+        ...prev,
+        sellerStatus: result.sellerStatus,
+        buyerStatus: result.buyerStatus,
+        isCompleted: isCompletedNow,
+      }));
+
+      setChatRooms((prevRooms) =>
+        prevRooms.map((room) =>
+          room.id === selectedRoom.id
+            ? {
+                ...room,
+                sellerStatus: result.sellerStatus,
+                buyerStatus: result.buyerStatus,
+                isCompleted: isCompletedNow,
+              }
+            : room
+        )
+      );
+
+      console.log(`거래 완료 상태 업데이트 완료: ${count}`);
+      return count;
+    } catch (err) {
+      console.error(' 거래 완료 실패:', err);
+      alert('거래 완료 중 문제가 발생했습니다.');
+      return 0;
+    }
+  };
+
+  // 필터링
+  const filteredRooms = chatRooms.filter((room) => {
+    if (!room.lastMessage && room.isSeller) return false;
+    if (dateSort === '전체') return true;
+    if (dateSort === '구매') return !room.isSeller;
+    if (dateSort === '판매') return room.isSeller;
+    return true;
+  });
+
+  const isEmpty = filteredRooms.length === 0;
+
+  // 디자인용 예시 채팅 (실제 데이터가 하나도 없을 때만)
+  const demoRoom = {
+    id: 'demo-1',
+    partnerName: '동네이웃',
+    lastMessage: '포장 상태 너무 좋아요! 감사합니다 :)',
+    time: new Date(),
+    title: '[예시] 이문2동 채소 소분 공구',
+    price: '8,900',
+    ddayText: '마감 D-1',
+    postId: 0,
+    postImage: defaultProduct,
+    profileImg: defaultProfile,
+    isSeller: false,
+    isRead: true,
+    lastSenderId: 999,
+    messages: [],
+    sellerStatus: null,
+    buyerStatus: null,
+    isCompleted: false,
+  };
+
+  /* ================= 렌더 ================= */
+
+  return (
+    <div className={styles.screen}>
+      <div className={styles.phone}>
+        {/* 리스트 화면 */}
+        {!selectedRoom ? (
+          <>
+            <div className={styles.appHeader}>
+              <div>
+                <h1 className={styles.appTitle}>채팅</h1>
+                <p className={styles.appSubtitle}>
+                  이웃과 주고받는 대화를 한눈에 확인해요.
+                </p>
+              </div>
+              <Dropdown
+                options={['전체', '구매', '판매']}
+                selected={dateSort}
+                setSelected={setDateSort}
+                placeholder="전체"
+              />
+            </div>
+
+            <div className={styles.chatListArea}>
+              {isEmpty ? (
+                <>
+                  {/* 아이콘/버튼 없이 텍스트 + 예시 채팅만 */}
+                  <div className={styles.emptyState}>
+                    <p className={styles.emptyTitle}>
+                      아직 시작된 채팅이 없어요.
+                    </p>
+                    <p className={styles.emptySub}>
+                      이웃과의 첫 거래를 시작하면<br />
+                      이 화면에 채팅이 쌓여요.
+                    </p>
+                    <p className={styles.emptyDemo}>
+                      아래 채팅은 화면 미리보기를 위한 예시입니다.
+                    </p>
+                  </div>
+
+                  {/* 예시 채팅 1개 (클릭해도 아무 동작 X, 진짜 채팅 아님) */}
+                  <ChatListRow
+                    room={demoRoom}
+                    myUserId={myUserId}
+                    onClick={() => {}}
+                  />
+                </>
+              ) : (
+                filteredRooms.map((room) => (
+                  <ChatListRow
+                    key={room.id}
+                    room={room}
+                    myUserId={myUserId}
+                    onClick={() => handleEnterRoom(room)} // ✅ 클릭 시 상세 화면
+                  />
+                ))
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+            {/* 상세 화면 */}
+            <RoomHeader room={selectedRoom} onBack={handleBackToList} />
+
+            <div className={styles.messageArea} ref={chatContainerRef}>
+              {Object.entries(
+                groupMessagesByDate(selectedRoom.messages)
+              ).map(([date, msgs]) => (
+                <div key={date} className={styles.messageGroup}>
+                  <div className={styles.dateLine}>{date}</div>
+                  {msgs.map((msg, idx) => (
+                    <MessageBubble key={idx} message={msg} />
+                  ))}
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
+
+            <ChatBottom
+              selectedRoom={selectedRoom}
+              myUserId={myUserId}
+              myName={myName}
+              onSendMessage={(newMessage) => {
+                const payload =
+                  typeof newMessage === 'string'
+                    ? {
+                        chatRoomId: selectedRoom.id,
+                        senderId: myUserId,
+                        content: newMessage,
+                      }
+                    : {
+                        ...newMessage,
+                        chatRoomId: selectedRoom.id,
+                        senderId: myUserId,
+                      };
+
+                if (clientRef.current && clientRef.current.connected) {
+                  clientRef.current.publish({
+                    destination: '/pub/chat/message',
+                    body: JSON.stringify(payload),
+                  });
+                }
+
+                const messageObj = {
+                  content: payload.content,
+                  image: payload.image || null,
+                  time: new Date().toISOString(),
+                  isMine: true,
+                  isSystem: !!payload.isSystem,
+                  systemType: payload.systemType || null,
+                };
+
+                setSelectedRoom((prevRoom) => ({
+                  ...prevRoom,
+                  messages: [...prevRoom.messages, messageObj],
+                }));
+
+                setChatRooms((prevRooms) =>
+                  sortRoomsByLatestMessage(
+                    prevRooms.map((room) =>
+                      room.id === selectedRoom.id
+                        ? {
+                            ...room,
+                            lastMessage: payload.content,
+                            time: new Date(),
+                            isRead: true,
+                          }
+                        : room
+                    )
+                  )
+                );
+
+                setTimeout(scrollToBottom, 0);
+              }}
+              onCompleteTrade={handleCompleteTrade}
+            />
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default Chat;
+
+/* ================= D-day Badge ================= */
+
+function DdayBadge({ text }) {
+  const isClosing = text === '공구마감';
+  return (
+    <div
+      className={`${styles.ddayBadge} ${
+        isClosing ? styles.ddayClosing : ''
+      }`}
+    >
+      {!isClosing && (
+        <img
+          src={alarmWhite}
+          alt="알람 아이콘"
+          className={styles.ddayIcon}
+        />
+      )}
+      <span className={styles.ddayText}>{text}</span>
+    </div>
+  );
+}
+
+/* ================= 채팅 목록 Row ================= */
+
+function ChatListRow({ room, myUserId, onClick }) {
+  const {
+    partnerName,
+    lastMessage,
+    time,
+    postImage,
+    profileImg,
+    isRead,
+    lastSenderId,
+  } = room;
+
+  const lastMessageTime =
+    time instanceof Date
+      ? time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      : time
+      ? new Date(time).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      : '';
+
+  const hasUnread = lastMessage && !isRead && lastSenderId !== myUserId;
+
+  return (
+    <button type="button" className={styles.listRow} onClick={onClick}>
+      <div className={styles.listImageWrap}>
+        <img
+          src={postImage || defaultProduct}
+          alt="게시글 이미지"
+          className={styles.listPostImg}
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = defaultProduct;
+          }}
+        />
+        <img
+          src={profileImg || defaultProfile}
+          alt="프로필"
+          className={styles.listProfileImg}
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = defaultProfile;
+          }}
+        />
+      </div>
+
+      <div className={styles.listContent}>
+        <div className={styles.listTop}>
+          <span className={styles.listName}>{partnerName}</span>
+          <span className={styles.listTime}>{lastMessageTime}</span>
+        </div>
+        <div className={styles.listBottom}>
+          <p className={styles.listLastMsg}>{lastMessage}</p>
+          {hasUnread && <span className={styles.unreadDot} />}
+        </div>
+      </div>
+    </button>
+  );
+}
+
+/* ================= 채팅방 헤더 ================= */
+
+function RoomHeader({ room, onBack }) {
+  const navigate = useNavigate();
+  const { partnerName, postId, postImage, title, price, ddayText } = room;
+
+  const handleClickPost = () => {
+    if (!postId) return;
+    navigate(`/group-buy/${postId}`);
+  };
+
+  return (
+    <>
+      <div className={styles.roomAppBar}>
+        <button type="button" className={styles.backBtn} onClick={onBack}>
+          <img src={backIcon} alt="뒤로" />
+        </button>
+        <span className={styles.roomTitle}>{partnerName}</span>
+        <button type="button" className={styles.moreBtn}>
+          <img src={moreIcon} alt="더보기" />
+        </button>
+      </div>
+
+      <button
+        type="button"
+        className={styles.roomPostCard}
+        onClick={handleClickPost}
+      >
+        <img
+          src={postImage || defaultProduct}
+          alt="상품"
+          className={styles.roomPostImg}
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = defaultProduct;
+          }}
+        />
+        <div className={styles.roomPostText}>
+          <div className={styles.roomPostTitle}>
+            {title.length > 34 ? `${title.slice(0, 36)}...` : title}
+          </div>
+          <div className={styles.roomPostPrice}>{price}원</div>
+        </div>
+        <DdayBadge text={ddayText} />
+      </button>
+    </>
+  );
+}
+
+/* ================= 메시지 버블 ================= */
+
+function MessageBubble({ message }) {
+  const { content, image, time, isMine, isSystem, systemType } = message;
+
+  const bubbleClass = isMine ? styles.myBubble : styles.theirBubble;
+  const rowClass = isMine ? styles.rowReverse : styles.row;
+
+  const systemClass = isSystem
+    ? ({
+        promise: styles.promiseBubble,
+        pay: styles.payBubble,
+        address: styles.addressBubble,
+        delivery: styles.deliveryBubble,
+        completed: styles.completedBubble,
+      }[systemType] || styles.systemBubble)
+    : '';
+
+  const displayTime = new Date(time).toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+  return (
+    <div
+      className={styles.messageWrapper}
+      style={{ justifyContent: isMine ? 'flex-end' : 'flex-start' }}
+    >
+      <div className={`${styles.messageRow} ${rowClass}`}>
+        <div className={`${bubbleClass} ${isSystem ? systemClass : ''}`}>
+          {content && (
+            <p className={styles.bubbleText}>
+              {content.split('\n').map((line, idx) => (
+                <span key={idx}>
+                  {line}
+                  <br />
+                </span>
+              ))}
+            </p>
+          )}
+          {image && (
+            <img src={image} alt="보낸 이미지" className={styles.bubbleImage} />
+          )}
+        </div>
+        <span className={styles.bubbleTime}>{displayTime}</span>
+      </div>
+    </div>
+  );
+}
+
+/* ================= 하단 인풋 + 모달 ================= */
+
+function ChatBottom({ selectedRoom, myUserId, myName, onSendMessage, onCompleteTrade }) {
+  const [message, setMessage] = useState('');
+  const [showOptions, setShowOptions] = useState(false);
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [showPromiseModal, setShowPromiseModal] = useState(false);
+  const [showPayRequestModal, setShowPayRequestModal] = useState(false);
+  const [showDeliveryInfoModal, setShowDeliveryInfoModal] = useState(false);
+  const [showGroupBuyModal, setShowGroupBuyModal] = useState(false);
+  const [lastOpenedModal, setLastOpenedModal] = useState(null);
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [showComplete2Modal, setShowComplete2Modal] = useState(false);
+  const [isComposing, setIsComposing] = useState(false);
+
+  const [promiseData, setPromiseData] = useState({
+    date: '',
+    time: '',
+    location: '',
+  });
+
+  const [payData, setPayData] = useState({
+    accountHolder: '',
+    phoneNumber: '',
+    accountNumber: '',
+    amount: '',
+  });
+
+  const [addressData, setAddressData] = useState({
+    name: '',
+    phone: '',
+    address: '',
+  });
+
+  const [deliveryData, setDeliveryData] = useState({
+    courier: '',
+    tracking: '',
+  });
+
+  const isSeller = selectedRoom?.isSeller;
+  const partnerName = selectedRoom?.partnerName;
+  const isCompleted = selectedRoom?.isCompleted;
+
+  const handleSend = () => {
+    if (message.trim()) {
+      onSendMessage(message);
+      setMessage('');
+    }
+  };
+
+  const toggleOptions = () => {
+    setShowOptions((prev) => !prev);
+  };
+
+  return (
+    <>
+      <div className={styles.bottomArea}>
+        {showOptions && (
+          <div className={styles.optionRow}>
+            {/* 사진 전송 (UI만) */}
+            <button type="button" className={styles.optionBtn}>
+              <div className={styles.optionIconWrap}>
+                <img src={photoIcon} alt="사진 전송" />
+              </div>
+              <span>사진 전송</span>
+            </button>
+
+            {/* 판매자 전용 옵션 */}
+            {isSeller && (
+              <>
+                <button
+                  type="button"
+                  className={styles.optionBtn}
+                  onClick={() => setShowPromiseModal(true)}
+                  disabled={isCompleted}
+                >
+                  <div className={styles.optionIconWrap}>
+                    <img src={promiseIcon} alt="약속 잡기" />
+                  </div>
+                  <span>약속 잡기</span>
+                </button>
+
+                <button
+                  type="button"
+                  className={styles.optionBtn}
+                  onClick={() => setShowPayRequestModal(true)}
+                  disabled={isCompleted}
+                >
+                  <div className={styles.optionIconWrap}>
+                    <img src={payIcon} alt="송금 요청" />
+                  </div>
+                  <span>송금 요청</span>
+                </button>
+              </>
+            )}
+
+            {/* 배송지 / 배송정보 */}
+            <button
+              type="button"
+              className={styles.optionBtn}
+              onClick={() => {
+                if (!isSeller) setShowAddressModal(true);
+                else setShowDeliveryInfoModal(true);
+              }}
+              disabled={isCompleted}
+            >
+              <div className={styles.optionIconWrap}>
+                <img src={addressIcon} alt="배송" />
+              </div>
+              <span>{isSeller ? '배송 정보 전송' : '배송지 전송'}</span>
+            </button>
+
+            {/* 거래완료 */}
+            <button
+              type="button"
+              className={styles.optionBtn}
+              onClick={() => setShowCompleteModal(true)}
+              disabled={isCompleted}
+            >
+              <div className={styles.optionIconWrap}>
+                <img src={doneIcon} alt="거래완료" />
+              </div>
+              <span>거래 완료</span>
+            </button>
+          </div>
+        )}
+
+        <div className={styles.inputRow}>
+          <button
+            type="button"
+            className={styles.plusBtn}
+            onClick={toggleOptions}
+          >
+            <img src={addIcon} alt="plus" />
+          </button>
+
+          <textarea
+            className={styles.input}
+            placeholder="메시지를 입력하세요."
+            value={message}
+            onChange={(e) => {
+              setMessage(e.target.value);
+              e.target.style.height = 'auto';
+              e.target.style.height = `${e.target.scrollHeight}px`;
+            }}
+            onCompositionStart={() => setIsComposing(true)}
+            onCompositionEnd={() => setIsComposing(false)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
+            rows={1}
+          />
+
+          <button
+            type="button"
+            className={styles.sendBtn}
+            onClick={handleSend}
+          >
+            <img src={sendIcon} alt="send" />
+          </button>
+        </div>
+      </div>
+
+      {/* ===== 모달들 ===== */}
+
+      {showAddressModal && (
+        <DeliveryModal
+          onClose={() => setShowAddressModal(false)}
+          onNext={() => {
+            setShowAddressModal(false);
+            setLastOpenedModal('address');
+            setShowGroupBuyModal(true);
+          }}
+          data={addressData}
+          setData={setAddressData}
+        />
+      )}
+
+      {showPromiseModal && (
+        <PromiseModal
+          onClose={() => setShowPromiseModal(false)}
+          onSubmit={() => {
+            setShowPromiseModal(false);
+            setLastOpenedModal('promise');
+            setShowGroupBuyModal(true);
+          }}
+          data={promiseData}
+          setData={setPromiseData}
+        />
+      )}
+
+      {showPayRequestModal && (
+        <PayRequestModal
+          onClose={() => setShowPayRequestModal(false)}
+          onSubmit={() => {
+            setShowPayRequestModal(false);
+            setLastOpenedModal('pay');
+            setShowGroupBuyModal(true);
+          }}
+          data={payData}
+          setData={setPayData}
+        />
+      )}
+
+      {showDeliveryInfoModal && (
+        <DeliveryInfoModal
+          onClose={() => setShowDeliveryInfoModal(false)}
+          onNext={() => {
+            setShowDeliveryInfoModal(false);
+            setLastOpenedModal('delivery');
+            setShowGroupBuyModal(true);
+          }}
+          data={deliveryData}
+          setData={setDeliveryData}
+        />
+      )}
+
+      {showGroupBuyModal && (
+        <GroupBuyModal
+          message="작성 내용을 전송하시겠어요?"
+          confirmText="보내기"
+          cancelText="취소"
+          onConfirm={() => {
+            setShowGroupBuyModal(false);
+
+            let systemMessage = '';
+            let systemType = '';
+
+            switch (lastOpenedModal) {
+              case 'promise':
+                systemMessage = `📍 ${partnerName}님과의 직거래 약속\n날짜 : ${promiseData.date}\n시간 : ${promiseData.time}\n장소 : ${promiseData.location}`;
+                systemType = 'promise';
+                break;
+              case 'pay':
+                systemMessage = `💸 송금 요청이 도착했어요!\n예금주: ${payData.accountHolder}\n은행명: ${payData.phoneNumber}\n계좌번호: ${payData.accountNumber}\n금액: ${payData.amount}`;
+                systemType = 'pay';
+                break;
+              case 'address':
+                systemMessage = `🚚 배송지 입력이 완료되었습니다!\n수령인: ${addressData.name}\n전화번호: ${addressData.phone}\n배송지: ${addressData.address}\n${partnerName}님은 '+'버튼을 통해 배송 접수 정보를 알려주세요!`;
+                systemType = 'address';
+                break;
+              case 'delivery':
+                systemMessage = `🚚 배송 접수가 완료되었습니다!\n택배사: ${deliveryData.courier}\n운송장 번호: ${deliveryData.tracking}\n${partnerName}님은 택배를 수령하신 후, '+'버튼을 통해 거래를 완료해주세요!`;
+                systemType = 'delivery';
+                break;
+              default:
+                return;
+            }
+
+            onSendMessage({
+              content: systemMessage,
+              isMine: true,
+              isSystem: true,
+              systemType,
+            });
+          }}
+          onCancel={() => {
+            setShowGroupBuyModal(false);
+            if (lastOpenedModal === 'promise') setShowPromiseModal(true);
+            else if (lastOpenedModal === 'pay') setShowPayRequestModal(true);
+            else if (lastOpenedModal === 'address') setShowAddressModal(true);
+            else if (lastOpenedModal === 'delivery') setShowDeliveryInfoModal(true);
+          }}
+        />
+      )}
+
+      {showCompleteModal && (
+        <CompleteModal
+          onCancel={() => setShowCompleteModal(false)}
+          onConfirm={async () => {
+            setShowCompleteModal(false);
+            setShowComplete2Modal(true);
+
+            const count = await onCompleteTrade();
+
+            let systemMessage = '';
+            if (count === 1) {
+              systemMessage =
+                '🎉 거래가 완료되었어요!\n판매자/구매자님 모두 [거래완료] 버튼을 눌러주셔야 거래가 ‘최종 완료’됩니다.';
+            } else if (count === 2) {
+              systemMessage =
+                '🎉 소중한 거래가 최종 완료되었습니다!\n후기는 마이페이지에서 작성가능합니다 :)\n포셔니와 함께 해주셔서 감사합니다.';
+            }
+
+            onSendMessage({
+              content: systemMessage,
+              isMine: true,
+              isSystem: true,
+              systemType: 'completed',
+            });
+          }}
+        />
+      )}
+
+      {showComplete2Modal && (
+        <Complete2Modal
+          onClose={() => setShowComplete2Modal(false)}
+          onReview={() => {
+            setShowComplete2Modal(false);
+          }}
+          onHome={() => {
+            setShowComplete2Modal(false);
+          }}
+        />
+      )}
+    </>
+  );
+}

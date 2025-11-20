@@ -14,6 +14,7 @@ export default function WithdrawModal({ open, onClose }) {
     if (open) {
       setPassword('');
       setError('');
+      setLoading(false);
     }
   }, [open]);
 
@@ -47,23 +48,22 @@ export default function WithdrawModal({ open, onClose }) {
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
-        <div style={{ textAlign: 'center', marginBottom: 16 }}>
+        <div className={styles.headerArea}>
           <img
             src={warningIcon}
             alt="경고"
-            style={{ width: 38, height: 38, marginBottom: 10 }}
+            className={styles.icon}
           />
-          <div className={styles.title} style={{ fontSize: 18, fontWeight: 700, marginBottom: 7 }}>
-            정말 탈퇴하시겠습니까?
-          </div>
-          <div className={styles.desc} style={{ marginBottom: 18 }}>
+          <div className={styles.title}>정말 탈퇴하시겠습니까?</div>
+          <div className={styles.desc}>
             탈퇴 시 1개월간 재가입이 불가능합니다.
           </div>
         </div>
+
         <input
           className={styles.input}
           type="password"
-          placeholder="비밀번호 입력해주세요."
+          placeholder="비밀번호를 입력해주세요"
           value={password}
           onChange={e => {
             setPassword(e.target.value);
@@ -71,7 +71,8 @@ export default function WithdrawModal({ open, onClose }) {
           }}
         />
         {error && <div className={styles.errorMsg}>{error}</div>}
-        <div className={styles.buttonRow} style={{ gap: 10, marginTop: 14 }}>
+
+        <div className={styles.buttonRow}>
           <button
             className={styles.cancelBtn}
             onClick={onClose}

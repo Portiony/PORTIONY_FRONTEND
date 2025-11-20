@@ -1,170 +1,338 @@
-.selectCustom {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 16px 16px;
-  padding-right: 36px;
-  cursor: pointer;
-  color: inherit; /* 색상은 JSX에서 제어 */
+:root {
+  --accent: #fecd24;
 }
 
-.product-form-wrapper {
-  width: 1140px;
+/* 전체 화면 – 홈과 비슷한 모바일 레이아웃 */
+.screen {
+  width: 100%;
+  max-width: 415px;
   margin: 0 auto;
-}
-
-.form-group {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(255, 246, 219, 0.6) 0%, transparent 40%),
+    radial-gradient(circle at 80% 85%, rgba(254, 205, 36, 0.08) 0%, transparent 50%),
+    linear-gradient(180deg, #fffbf0 0%, #f6f7fb 60%, #ffffff 100%);
   display: flex;
   flex-direction: column;
-  margin-bottom: 35px;
+  box-sizing: border-box;
+  padding-bottom: 24px;
+  overflow-x: hidden;
 }
 
-.form-group label {
-  margin-bottom: 14px;
-  font-weight: 500;  /* medium -> 500 */
-  font-size: 13px;
-}
-
-.form-group textarea[name="description"] {
-  height: 175px;
-  font-family: inherit;
-  resize: none;
-}
-
-input[type="date"] {
-  font-family: inherit;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  height: 38px; /* 다른 input과 통일 */
-  padding: 10px;
-  font-size: 13px;
-}
-
-select option[value=""] {
-  color: black;
-}
-
-.horizontal-inputs {
+/* 상단 헤더 */
+.headerRow {
   display: flex;
-  gap: 42px;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 18px 20px;
 }
 
-.horizontal-inputs input{
-  width: 352px;
+.backBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }
 
-.dropdownWrapper{
-  width : 352px;
+.backBtn img {
+  width: 18px;
+  height: 18px;
 }
 
-input,
-select,
-textarea {
-  border-radius: 10px;
-  padding: 10px;
-  border: 1px solid #000000;
+.headerTitle {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* 단계 탭 */
+.stepTabs {
+  display: flex;
+  padding: 0 18px 8px;
+  gap: 6px;
+}
+
+.stepTab {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 10px;
+  border-radius: 999px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.7);
+  color: #6b7280;
+  margin-bottom: 16px;
+}
+
+.activeStep {
+  background: #111827;
+  color: #f9fafb;
+}
+
+/* 가운데 카드 */
+.formCard {
+  flex: 1;
+  margin: 0 18px 0;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 22px;
+  padding: 16px 16px 18px;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.04),
+    0 2px 8px rgba(0, 0, 0, 0.02),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  box-sizing: border-box;
+}
+
+/* 폼 그룹 */
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 18px;
+}
+
+.formGroup label {
+  margin-bottom: 8px;
+  font-weight: 500;
   font-size: 13px;
-  box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* 인풋 / 텍스트에어리어 기본 스타일 */
+input,
+textarea {
+  border-radius: 14px;
+  padding: 10px 12px;
+  border: 1.5px solid rgba(0, 0, 0, 0.06);
+  font-size: 13px;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.02),
+    inset 0 1px 1px rgba(255, 255, 255, 0.4);
+  box-sizing: border-box;
+  outline: none;
+  background: #ffffff;
+}
+
+input:focus,
+textarea:focus {
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 3px rgba(254, 205, 36, 0.12),
+    0 3px 10px rgba(0, 0, 0, 0.04);
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: #949494;
+  color: #9ca3af;
 }
 
-.form-header {
+textarea[name='description'],
+textarea[name='notes'] {
+  height: 120px;
+  resize: none;
+  font-family: inherit;
+}
+
+/* 1단계 – 제품 총량 라인 (숫자 + 단위) */
+.amountRow {
   display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.amountRow input {
+  flex: 1;
+}
+
+/* 단위 드롭다운 래퍼 (반 줄) */
+.amountUnitSelect {
+  flex: 1;
+}
+
+/* 직접 입력 단위 인풋 */
+.unitCustom {
+  width: 100%;
+  margin-top: 8px;
+}
+
+/* 2단계 – 인원 / 소분량 두 칸 */
+.horizontalInputs {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.horizontalInputs > * {
+  flex: 1;
+  min-width: 0;  /* 👉 안 넘치게 강제로 줄어들 수 있게 */
+}
+
+
+/* 날짜 공통 */
+.labelRow {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  margin-left: 35px;
-  margin-bottom: 47px;
-  gap: 26px;
 }
 
-.back-button {
-  width: 24px;
-  height: 24px;
-  cursor: pointer;
+.dateInfoText {
+  font-size: 11px;
+  color: #888;
+  white-space: nowrap;
 }
 
-.form-title {
-  font-size: 20px;
-  font-weight: bold;
-}
-
-.info-text {
-  margin: 50px 0;
+.dateInput {
+  width: 100%;
+  margin-top: 4px;
+  padding: 10px 12px;
   font-size: 13px;
-  line-height: 1.3;
-  text-align: center;
+  border-radius: 14px;
+  border: 1.5px solid rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.02),
+    inset 0 1px 1px rgba(255, 255, 255, 0.4);
+  font-family: inherit;
+  color: #9ca3af;
+  box-sizing: border-box;
+  background: #ffffff;
 }
 
-.info-text label input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  vertical-align: middle;
+.dateInput.hasValue,
+.hasValue {
+  color: #111827;
 }
 
-/*  ---------이미지----------- */
-.image-preview-grid {
+/* AI 카드 */
+.aiCard {
+  border-radius: 18px;
+  padding: 12px 12px 14px;
+  background: #fefce8;
+  border: 1px solid #ffe9a8;
+  margin-bottom: 16px;
+  box-sizing: border-box;
+}
+
+.aiHeaderRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 19.5px;
-  margin-bottom: 14px;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
 }
 
-/* 이미지 첨부 전체 박스 */
-.image-upload-box {
-  border-radius: 10px;
-  padding: 10px;
-  border: 1px solid #000000;
+.aiTag {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #111827;
+  color: #fefce8;
+}
+
+.aiSmall {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.aiErrorText {
+  font-size: 11px;
+  color: #e14942;
+}
+
+.aiTitle {
+  margin: 4px 0 4px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.aiDescription {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.aiSummaryGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.aiItem {
+  padding: 6px 8px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #f3f4f6;
+}
+
+.aiLabel {
+  display: block;
+  font-size: 10.5px;
+  color: #6b7280;
+  margin-bottom: 2px;
+}
+
+.aiValue {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* 이미지 업로드 박스 */
+.imageUploadBox {
+  border-radius: 14px;
+  padding: 10px 10px 12px;
+  border: 1.5px solid rgba(0, 0, 0, 0.06);
   font-size: 13px;
-  box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.3);
-  background-color: white;
+  background-color: #ffffff;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
 }
 
-.hidden-file-input {
+.hiddenFileInput {
   display: none;
 }
 
-.upload-label {
+.uploadLabel {
   display: inline-block;
-  color: #000;
-  font-size: 13px;
+  color: #111827;
+  font-size: 12px;
   padding: 6px 12px;
   border-radius: 10px;
-  background-color: #d9d9d9;
+  background-color: #f3f4f6;
   cursor: pointer;
   align-self: flex-start;
 }
 
-.image-preview-grid {
+/* 미리보기 썸네일 */
+.imagePreviewGrid {
   display: flex;
   flex-wrap: nowrap;
   overflow-x: auto;
-  gap: 12px;
+  gap: 8px;
+  margin-top: 10px;
 }
 
-.image-thumbnail {
+.imageThumbnail {
   position: relative;
-  width: 100px;
-  height: 100px;
+  width: 80px;
+  height: 80px;
   flex-shrink: 0;
-  border-radius: 6px;
+  border-radius: 8px;
   overflow: hidden;
 }
 
-.image-thumbnail img {
+.imageThumbnail img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.remove-button {
+.removeButton {
   position: absolute;
   top: 4px;
   right: 4px;
@@ -175,118 +343,116 @@ textarea::placeholder {
   cursor: pointer;
 }
 
-.price-wrapper {
-  position: relative;
-  width: 1140px;
+/* 안내 박스 + 체크 */
+.noticeBox {
+  margin-top: 4px;
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: left;
+  color: #444;
+  background: #fffbea;
+  border-radius: 14px;
+  border: 1px solid #ffe09b;
+  box-sizing: border-box;
 }
 
-.price-wrapper input {
-  width: 100%;
-  padding-right: 30px; /* '원' 들어갈 공간 확보 */
-}
-
-.price-wrapper .unit {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 13px;
-  color: #000;
-}
-
-.label-row {
+.agreeRow {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-}
-
-.label-row label {
-  font-weight: 500;
-  font-size: 13px;
-}
-
-.date-info-text {
+  justify-content: flex-start;
+  gap: 8px;
   font-size: 12px;
-  color: #888;
-  white-space: nowrap; /* 줄 바꿈 방지 */
+  cursor: pointer;
+  user-select: none;
+  margin-top: 6px;
 }
 
-.date-input {
-  width: 100%;
-  padding: 10px;
+.agreeRow span {
+  flex: 1;
+}
+
+.agreeRow img {
+  width: 18px;
+  height: 18px;
+}
+
+/* 경고 문구 */
+.warningText {
+  color: #e14942;
   font-size: 13px;
-  border-radius: 10px;
-  border: 1px solid #000;
-  box-shadow: 0 0 4px rgba(0,0,0,0.3);
-  font-family: inherit;
-  color: #888; /* 선택 후 텍스트는 검정 */
-}
-.date-input.has-value {
-  color: black; /* 값 있으면 검정 */
+  font-weight: 600;
+  text-align: center;
+  margin: 8px 0 0;
 }
 
-.groupbuynewButton {
-  border-radius: 10px;
+/* 버튼 그룹 */
+.buttonGroup {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.formButton {
+  flex: 1;
+  border-radius: 14px;
   font-weight: 600;
-  font-size: 16px;
-  width: 120px;
-  height: 50px;
+  font-size: 14px;
+  height: 44px;
   cursor: pointer;
   border: none;
 }
 
 .cancel {
-  background-color: #d9d9d9;
-  color: #000;
+  background-color: #e5e7eb;
+  color: #111827;
 }
 
 .submit {
-  background-color: #FECD24;
-  color: #000;
+  background-color: var(--accent);
+  color: #111827;
 }
 
-.button-group {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-}
-
-.image-modal-overlay {
+/* 이미지 확대 모달 */
+.imageModalOverlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.4); /* 배경 흐림 */
+  background-color: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
 }
 
-.image-modal {
+.imageModal {
   position: relative;
-  width: 500px;
-  height: 500px;
-  background-color: white;
+  width: 320px;
+  height: 320px;
+  background-color: #ffffff;
   padding: 10px;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
 }
 
-.image-modal img {
+.imageModal img {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
 }
 
-.close-button {
+.closeButton {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 8px;
+  right: 8px;
   font-size: 16px;
   font-weight: 700;
   background: none;

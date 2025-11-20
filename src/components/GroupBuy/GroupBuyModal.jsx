@@ -1,34 +1,34 @@
+// src/components/GroupBuy/GroupBuyModal.jsx
 import React from 'react';
 import styles from './GroupBuyModal.module.css';
 import modalIcon from '../../assets/modal-icon.svg';
 
-
 function GroupBuyModal({ message, confirmText, cancelText, onConfirm, onCancel }) {
   return (
-    <div className={styles['gbm-overlay']}>
-      <div className={styles['gbm-content']}>
-        <img src={modalIcon} alt="모달 아이콘" />
-        <p className={styles['gbm-message']}>{message}</p>
+    <div className={styles.overlay}>
+      <div className={styles.modal}>
+        <img src={modalIcon} alt="알림" className={styles.icon} />
+        <p className={styles.message}>{message}</p>
 
-        <div className={styles['gbm-buttons']}>
+        <div className={styles.buttonRow}>
           <button
-            className={`${styles['gbm-button']} ${styles.cancel}`}
+            type="button"
+            className={`${styles.button} ${styles.cancel}`}
             onClick={onCancel}
           >
             {cancelText}
           </button>
           <button
-            className={`${styles['gbm-button']} ${styles.confirm}`}
+            type="button"
+            className={`${styles.button} ${styles.confirm}`}
             onClick={onConfirm}
           >
             {confirmText}
           </button>
         </div>
-
       </div>
     </div>
   );
 }
-
 
 export default GroupBuyModal;

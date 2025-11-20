@@ -1,147 +1,94 @@
-.container {
+.wrapper {
+  background-color: #FECD24;
+  padding: 16px 16px 20px;
+}
+
+/* 상단 프로필 + 버튼 */
+.topRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 161px;
-  padding: 0 40px;
-  background-color: #FECD24;
 }
 
-.leftBox {
-  display: flex;
-  align-items: center;
-}
 
 .profile {
-  width: 127px;
-  height: 127px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   object-fit: cover;
-  margin-right: 24px;
-  background-color: #D9D9D9; 
+  background-color: #d9d9d9;
 }
-
 
 .infoBox {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 .name {
-  color: #000;
-  font-family: Inter;
-  font-size: 16px;
-  font-style: normal;
-  font-weight: 600;
-  line-height: 16px; 
-  letter-spacing: -0.32px;
   margin: 0;
+  color: #000;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.email {
+  margin: 0;
+  color: #555;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .history {
-  color: #000;
-  font-family: Inter;
-  font-size: 13px;
-  font-style: normal;
+  margin: 0;
+  color: #222;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-size: 12px;
   font-weight: 500;
-  line-height: 16px; 
-  letter-spacing: -0.32px;
-  margin-top: 0px;
-  margin-bottom: 10px;
 }
 
-.potionyWrapper {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.potionyBox {
-  display: flex;
-  align-items: center;
-  background-color: #000;
-  color: #fff;
-  padding: 10px 20px;
-  border-radius: 12px;
-  font-size: 14px;
-  gap: 11px;
-  width: fit-content;
-}
-
-.progressCircle {
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-}
-
-.percent {
-  color: #FFF;
-  font-family: Inter;
-  font-size: 16px;
-  font-style: normal;
-  font-weight: 600;
-  line-height: 16px; 
-  letter-spacing: -0.32px;
-}
-
-.tooltipImg {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-  cursor: pointer;
-}
-
+/* 프로필 편집 버튼 */
 .editBtn {
   background-color: #fff;
   border: none;
-  border-radius: 10px;
-  padding: 10px 16px;
+  border-radius: 999px;
+  padding: 8px 14px;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 12px;
   cursor: pointer;
+  white-space: nowrap;
 }
 
-.tooltipBubble {
-  position: absolute;
-  top: 50%;
-  left: 38px; 
-  transform: translateY(-50%);
-  background: #fff;
-  border-radius: 10px;
+/* 하단 지표 카드들 (구매 / 판매) */
+.statsRow {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.statCard {
+  flex: 1;
+  background: #ffffff;
+  border-radius: 12px;
   padding: 10px 12px;
-  color: #000;
-  font-family: Inter;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.statLabel {
   font-size: 11px;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 15px; 
-  letter-spacing: -0.32px;
-  z-index: 30;
-  min-width: 193px;;
-  line-height: 1.45;
-  white-space: pre-line;
+  color: #777;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
 }
 
-.tooltipBubble::before {
-  content: '';
-  position: absolute;
-  left: -18px;
-  top: 50%;
-  transform: translateY(-50%);
-  border-width: 12px 18px 12px 0;
-  border-style: solid;
-  border-color: transparent  #FECD24 transparent transparent;
+.statValue {
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #000;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
 }
-
-.tooltipBubble::after {
-  content: '';
-  position: absolute;
-  left: -14px;
-  top: 50%;
-  transform: translateY(-50%);
-  border-width: 10px 15px 10px 0;
-  border-style: solid;
-  border-color: transparent #fff transparent transparent;
-}
-

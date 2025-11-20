@@ -18,7 +18,6 @@ import Chat from "./features/Chats/Chat";
 import GroupBuyNew from "./features/GroupBuy/GroupBuyNew";
 import GroupBuyDetail from "./features/GroupBuy/GroupBuyDetail";
 import GroupBuyEdit from "./features/GroupBuy/GroupBuyEdit";
-import Community from "./features/Community/Community";
 import ChatTest from "./features/Chats/ChatTest";
 
 import instance from "./lib/axios";
@@ -107,10 +106,7 @@ function AppShell({ isLoggedIn, setIsLoggedIn }) {
               path="/chat"
               element={isLoggedIn ? <Chat /> : <Navigate to="/login" />}
             />
-            <Route
-              path="/community"
-              element={isLoggedIn ? <Community /> : <Navigate to="/login" />}
-            />
+
 
             {/* 공구 */}
             <Route

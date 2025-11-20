@@ -1,81 +1,67 @@
-/* GroupBuyModal.module.css */
+/* GroupBuyModal.module.css - 앱 버전 공통 모달 */
 
-.gbm-overlay {
+.overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5); /*흐림창*/
+  inset: 0;
+  background: rgba(217, 217, 217, 0.59);
+  z-index: 2000;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 999;
 }
 
-.gbm-content {
-  display: flex;
-  flex-direction: column;   /*세로로나열*/
-  align-items: center;      /*가운데정렬*/
-  justify-content: center;  /*세로 중앙 정렬*/
-  text-align: center;
-  width: 400px;
-  height: 250px;
-  padding: 20px;
-  background: white;
-  border-radius: 10px;
+.modal {
   position: relative;
+  background: #fff;
+  border-radius: 16px;
+  width: 320px;
+  padding: 24px 20px 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.13);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
-.gbm-message {
-  font-size: 16px;
-  font-weight: 600;
-  margin-top: 25px;
-  margin-bottom: 40px;
+.icon {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 12px;
+}
 
+.message {
+  margin: 0 0 22px 0;
   color: #000;
-text-align: center;
-
-/* Title/Title2 */
-font-family: Inter;
-font-size: 16px;
-font-style: normal;
-font-weight: 600;
-line-height: 16px; /* 100% */
-letter-spacing: -0.32px;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.3px;
 }
 
-.gbm-button {
-  margin: 0 10px;
-  padding: 9px 25px;
-  font-weight: 500;
-  font-size: 13px;
-  color: black;
+.buttonRow {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.button {
+  min-width: 116px;
+  height: 40px;
+  border-radius: 10px;
   border: none;
   cursor: pointer;
-  border-radius: 10px;
-  width: 116px;
-  height: 40px;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+}
 
+.cancel {
+  background: #d9d9d9;
   color: #000;
-
-/* Title/Title2 */
-font-family: Inter;
-font-size: 16px;
-font-style: normal;
-font-weight: 600;
-line-height: 16px; /* 100% */
-letter-spacing: -0.32px;
 }
 
-
-
-/*취소버튼(계속작성버튼)*/
-.gbm-buttons .cancel {
-  background-color: #d9d9d9;
-}
-
-/*ok버튼(삭제, 수정, 공구완료, 재개시)*/
-.gbm-buttons .confirm {
-  background-color: #fecd24;
+.confirm {
+  background: #fecd24;
+  color: #000;
 }

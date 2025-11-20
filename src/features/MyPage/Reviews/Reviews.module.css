@@ -1,158 +1,129 @@
 .container {
   position: relative;
-  margin: 20px 65px 0 65px;
-  min-height: 600px;
+  padding: 16px 16px 24px;
+  min-height: 400px;
+  background: #F8F8F8;
 }
 
 .title {
-  font-size: 20px;
-  font-weight: bold;
-  margin: 0 0 20px 0;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
 }
 
+/* 상단 토글 버튼 ("내가 남긴 후기" / "받은 후기") */
 .toggleButtons {
   display: flex;
-  gap: 10px;
-  margin-bottom: 35px;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
 .toggleButtons button {
-  width: 109px;
-  height: 35px;
-  border: 1px solid #000;
+  flex: 1;
+  height: 32px;
   border-radius: 10px;
-  background: #fff;
-  font-family: Inter;
-  font-size: 13px;
+  border: 1px solid #E0E0E0;
+  background: #FFFFFF;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
+  color: #333;
 }
+
 .toggleButtons button.active {
-  background: #000;
-  color: #fff;
-  border: none;
-}
-
-.dropdownWrapper {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.selectionBar {
-  position: absolute;
-  top: 100px;              
-  left: 0;
-  right: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #000;
-  color: #fff;
-  padding: 7px 20px;
-  border-radius: 10px;
-  z-index: 100;
-}
-
-.clearButton {
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-.clearButton img {
-  width: 24px;
-  height: 24px;
-}
-
-.selectionText {
-  color: #FFF; 
-  font-family: Inter;
-  font-size: 14px;
-  font-style: normal;
-  font-weight: 700;
-  line-height: 20px; 
-  letter-spacing: 0.1px;
-}
-
-.deleteButton {
   background: #FECD24;
   color: #000;
-  border: none;
-  border-radius: 10px;
-  padding: 6px 12px;
-  font-family: Inter, sans-serif;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
+  border-color: #FECD24;
 }
 
+/* 드롭다운 영역 */
+.dropdownWrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+/* 테이블 컨테이너 */
 .tableContainer {
   overflow-x: auto;
-  margin-bottom: 35px;
+  margin-bottom: 20px;
+  border-radius: 12px;
+  background: #FFFFFF;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.04);
 }
 
+/* 테이블 기본 */
 .table {
-  width: 1150px;
+  width: 100%;
+  min-width: 320px;
   border-collapse: collapse;
 }
 
+/* 헤더: 너무 검정 X, 앱 톤으로 연하게 */
 .table thead th {
-  height: 65px;
-  background: #000;
-  color: #FFF;
-  font-family: Inter;
-  font-size: 16px;
+  height: 40px;
+  background: #F5F5F5;
+  color: #333;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-size: 13px;
   font-weight: 600;
   text-align: center;
+  border-bottom: 1px solid #E0E0E0;
 }
 
+/* 바디 셀 */
 .table tbody td {
-  height: 65px;
+  height: 40px;
   color: #000;
-  font-family: Inter;
-  font-size: 13px;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-size: 12px;
   font-weight: 500;
   text-align: center;
+  padding: 6px 4px;
 }
 
 .table tbody tr + tr {
-  border-top: 1px solid #E0E0E0;
+  border-top: 1px solid #F2F2F2;
 }
 
+/* 별점 */
 .star {
   display: inline-block;
-  margin: 0 2px;
-  font-size: 16px;
+  margin: 0 1px;
+  font-size: 14px;
   color: #FECD24;
 }
 
+/* 후기 보기/작성 버튼 */
 .reviewButton {
-  padding: 5px 10px;
+  padding: 4px 10px;
   border: none;
-  border-radius: 10px;
+  border-radius: 999px;
   background: #FECD24;
   color: #000;
-  font-family: Inter;
-  font-size: 13px;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-size: 12px;
   cursor: pointer;
 }
 
+/* 페이지네이션 */
 .pagination {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 35px;
+  gap: 4px;
+  margin-bottom: 20px;
 }
 
 .pageNumber {
   background: none;
   border: none;
   color: #000;
-  font-family: Inter;
-  font-size: 13px;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
 }
@@ -160,7 +131,7 @@
   text-decoration: underline;
 }
 .activePage {
-  font-weight: bold;
+  font-weight: 700;
 }
 
 .arrowButton {
@@ -172,36 +143,25 @@
   align-items: center;
 }
 .arrowButton img {
-  width: 18px;
-  height: 20px;
+  width: 16px;
+  height: 18px;
 }
 .nextArrow img {
   transform: rotate(180deg);
 }
 
-.hiddenCheckbox {
-  display: none;
-}
-.checkboxLabel {
-  cursor: pointer;
-  display: inline-block;
-}
-.checkboxImage {
-  width: 24px;
-  height: 24px;
-}
-
+/* 아무 것도 선택 안 했을 때 안내 문구 */
 .content {
-  margin-top: 200px;
+  margin-top: 80px;
   display: flex;
   justify-content: center;
 }
 
 .empty {
   color: #9C9C9C;
-  font-family: Inter, sans-serif;
-  font-size: 30px;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-size: 16px;
   font-weight: 700;
-  line-height: 40px;
+  line-height: 22px;
   letter-spacing: -0.32px;
 }

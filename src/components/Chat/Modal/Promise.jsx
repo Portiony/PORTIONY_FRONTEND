@@ -1,5 +1,3 @@
-// components/Chat/Modal/PromiseModal.jsx
-
 import React from 'react';
 import styles from './Promise.module.css';
 import xIxon from '../../../assets/x(black).svg';
@@ -10,13 +8,25 @@ function PromiseModal({ onClose, onSubmit, data, setData }) {
     setData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleNext = () => {
+    onSubmit?.(data);
+  };
+
+  const handleOverlayClick = () => {
+    onClose?.();
+  };
+
+  const stopPropagation = (e) => {
+    e.stopPropagation();
+  };
+
   return (
-    <div className={styles.backdrop} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+    <div className={styles.backdrop} onClick={handleOverlayClick}>
+      <div className={styles.modal} onClick={stopPropagation}>
         <div className={styles.header}>
           <h2 className={styles.title}>약속 잡기</h2>
           <button className={styles.closeBtn} onClick={onClose}>
-            <img src={xIxon} alt="사진 전송"/>
+            <img src={xIxon} alt="닫기" />
           </button>
         </div>
 
@@ -49,15 +59,17 @@ function PromiseModal({ onClose, onSubmit, data, setData }) {
               className={styles.input}
               type="text"
               name="location"
-              value={data.location}
               placeholder="장소를 입력해주세요."
+              value={data.location}
               onChange={handleChange}
             />
           </label>
         </div>
 
         <div className={styles.footer}>
-          <button className={styles.nextButton} onClick={() => onSubmit(data)}>다음</button>
+          <button className={styles.nextButton} onClick={handleNext}>
+            다음
+          </button>
         </div>
       </div>
     </div>

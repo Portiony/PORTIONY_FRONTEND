@@ -1,12 +1,18 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "../../lib/axios";
+import axios from "../../lib/axios";        
+import axiosRaw from "axios";               
 import styles from "./SignUp.module.css";
 import back from "../../assets/chevron-left.svg";
 import logo from "../../assets/logo.svg";
 import searchIcon from "../../assets/search.svg";
 
 const STEP_ORDER = ["account", "userInfo", "location", "done"];
+
+const locationAxios = axiosRaw.create({
+  baseURL: "https://port-0-portiony-be-md4272k5c4648749.sel5.cloudtype.app",
+  timeout: 5000,
+});
 
 export default function Signup() {
   const [step, setStep] = useState("account");
@@ -19,9 +25,13 @@ export default function Signup() {
     phone: "",
     phoneOk: false,
     locationKeyword: "",
-    selectedDong: "",
+    selectedAddress: "",
+    region: "",
+    subregion: "",
+    dong: "",
   });
 
+  const [submitError, setSubmitError] = useState("");
   const navigate = useNavigate();
 
   const goNext = () => {
@@ -35,12 +45,38 @@ export default function Signup() {
   };
 
   const checkUserId = (userId) =>
-    axios.get("/api/users/signup/check-id", { params: { userId } });
+    axios.get("/api/users/signup/check-id", {
+      params: { id: userId },
+    });
 
   const checkPhone = (phone) =>
     axios.get("/api/users/signup/check-phone", { params: { phone } });
 
-  const handleSignup = () => setStep("done");
+  const handleSignup = async () => {
+    try {
+      setSubmitError("");
+
+      const body = {
+        email: form.userId,
+        password: form.password,
+        nickname: form.name,
+        phone: form.phone,
+        region: form.region,
+        subregion: form.subregion,
+        dong: form.dong,
+      };
+
+      await axios.post("/api/users/signup", body);
+
+      setStep("done");
+    } catch (error) {
+      console.error("회원가입 실패:", error.response?.data || error.message);
+      const msg =
+        error.response?.data?.message ||
+        "회원가입 중 오류가 발생했어요. 잠시 후 다시 시도해주세요.";
+      setSubmitError(msg);
+    }
+  };
 
   return (
     <div className={styles.screen}>
@@ -89,13 +125,17 @@ export default function Signup() {
           )}
 
           {step === "done" && <DoneStep onGoHome={() => navigate("/")} />}
+
+          {submitError && step !== "done" && (
+            <p className={styles.submitError}>{submitError}</p>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-/* ============== 1단계 ============== */
+/* ============== 1단계: 계정 정보 (아이디/비밀번호) ============== */
 function AccountStep({ form, setForm, onNext, checkUserId }) {
   const [idMsg, setIdMsg] = useState("");
   const [pwMsg, setPwMsg] = useState("");
@@ -111,21 +151,29 @@ function AccountStep({ form, setForm, onNext, checkUserId }) {
       setIdMsg("아이디를 입력해주세요.");
       return;
     }
-    if (!idRegex.test(form.userId)) {
+    if (!idRegex.test(form.userId.trim())) {
       setIdMsg("아이디는 5~20자의 영문 대소문자만 가능합니다.");
       setForm((p) => ({ ...p, userIdOk: false }));
       return;
     }
+
     try {
       const res = await checkUserId(form.userId.trim());
-      if (res.data.exists) {
+      console.log("check-id response:", res.data);
+
+      const data = res.data || {};
+      const values = Object.values(data);
+      const exists = values.some((v) => v === true);
+
+      if (exists) {
         setIdMsg("이미 사용 중인 아이디입니다.");
         setForm((p) => ({ ...p, userIdOk: false }));
       } else {
         setIdMsg("사용 가능한 아이디입니다.");
         setForm((p) => ({ ...p, userIdOk: true }));
       }
-    } catch {
+    } catch (error) {
+      console.error("아이디 중복 확인 실패:", error.response?.data || error);
       setIdMsg("지금은 확인이 어려워요. 계속 진행할 수 있어요.");
       setForm((p) => ({ ...p, userIdOk: true }));
     }
@@ -151,8 +199,6 @@ function AccountStep({ form, setForm, onNext, checkUserId }) {
     form.passwordCheck &&
     form.password === form.passwordCheck;
 
-  // 🔥 여기만 느슨하게 바꿨어!
-  // 아이디에 뭐가 있고, 비번 두 칸이 다 차면 다음으로 가능하게
   const canNext =
     form.userId.trim() !== "" &&
     form.password.trim() !== "" &&
@@ -224,6 +270,7 @@ function AccountStep({ form, setForm, onNext, checkUserId }) {
   );
 }
 
+/* ============== 2단계: 사용자 정보 (이름/전화번호) ============== */
 function UserInfoStep({ form, setForm, onNext, checkPhone }) {
   const [phoneMsg, setPhoneMsg] = useState("");
 
@@ -258,7 +305,9 @@ function UserInfoStep({ form, setForm, onNext, checkPhone }) {
           className={styles.input}
           placeholder="이름"
           value={form.name}
-          onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+          onChange={(e) =>
+            setForm((p) => ({ ...p, name: e.target.value }))
+          }
         />
       </div>
 
@@ -289,14 +338,181 @@ function UserInfoStep({ form, setForm, onNext, checkPhone }) {
   );
 }
 
-/* ============== 3단계 ============== */
+/* ============== 3단계: 동네 설정 (행정동으로 통일) ============== */
 function LocationStep({ form, setForm, onNext, searchIcon }) {
-  const dummyList = form.locationKeyword
-    ? [`${form.locationKeyword} 1동`, `${form.locationKeyword} 2동`]
-    : ["노원구 공릉동", "노원구 상계동", "도봉구 창동"];
+  const [locationList, setLocationList] = useState([]);
+  const [locationMsg, setLocationMsg] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSelectDong = (dong) =>
-    setForm((p) => ({ ...p, selectedDong: dong }));
+  // 초기 더미 리스트(아무 것도 안 했을 때 보여줄 기본값)
+  const dummyList = ["노원구 공릉동", "노원구 상계동", "도봉구 창동"];
+
+  const handleSelectLocation = (loc) => {
+    const address = loc.address;
+    const parts = address.split(" "); // 예: ["서울특별시", "동대문구", "이문1동"]
+    const region = parts[0] || "";
+    const subregion = parts[1] || "";
+    const dong = parts[2] || parts[parts.length - 1] || "";
+
+    setForm((p) => ({
+      ...p,
+      selectedAddress: address,
+      region,
+      subregion,
+      dong,
+    }));
+  };
+
+  // 🔥 현재 위치로 찾기 (법정동 → 행정동 검색으로 매핑)
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationMsg("브라우저에서 위치 정보를 지원하지 않아요.");
+      return;
+    }
+
+    setLoading(true);
+    setLocationMsg("");
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+
+          const res = await locationAxios.get("/api/location/resolve", {
+            params: {
+              latitude,
+              longitude,
+              page: 1,
+              size: 10,
+            },
+          });
+
+          const data = res.data || {};
+          const currentAddress = data.currentAddress || "";
+
+          if (!currentAddress) {
+            setLocationMsg(
+              "현재 위치 정보를 가져오지 못했어요. 검색으로 동네를 선택해 주세요."
+            );
+            setLocationList([]);
+            setLoading(false);
+            return;
+          }
+
+          // 예: "서울특별시 동대문구 이문동" → "이문동" → "이문"
+          const parts = currentAddress.split(" ");
+          const last = parts[parts.length - 1] || "";
+          let dongKeyword = last.replace(/동$/, ""); // '이문동' → '이문'
+
+          if (!dongKeyword) {
+            setLocationMsg(
+              "현재 위치 기준으로 찾을 수 있는 동네가 없어요. 검색으로 동네를 선택해 주세요."
+            );
+            setLocationList([]);
+            setLoading(false);
+            return;
+          }
+
+          try {
+            const searchRes = await locationAxios.get("/api/location/search", {
+              params: {
+                keyword: dongKeyword,
+                page: 1,
+                size: 10,
+              },
+            });
+
+            const searchList = searchRes.data || [];
+            if (searchList.length > 0) {
+              setLocationMsg(`현재 위치: ${currentAddress}`);
+              setLocationList(searchList);
+            } else {
+              setLocationMsg(
+                "현재 위치 기준으로 행정동 정보를 찾지 못했어요. 검색으로 동네를 선택해 주세요."
+              );
+              setLocationList([]);
+            }
+          } catch (e) {
+            console.error(
+              "현재 위치 기반 행정동 검색 실패:",
+              e.response?.data || e
+            );
+            setLocationMsg(
+              "현재 위치 기준 행정동 검색 중 오류가 발생했어요. 검색으로 동네를 선택해 주세요."
+            );
+            setLocationList([]);
+          } finally {
+            setLoading(false);
+          }
+        } catch (error) {
+          console.error(
+            "현재 위치 동네 조회 실패:",
+            error.response?.data || error
+          );
+          setLocationMsg(
+            "현재 위치를 불러오지 못했어요. 검색으로 동네를 선택해 주세요."
+          );
+          setLocationList([]);
+          setLoading(false);
+        }
+      },
+      (err) => {
+        console.error("geolocation error:", err);
+        setLocationMsg(
+          "위치 권한이 거부되었어요. 검색으로 동네를 선택해 주세요."
+        );
+        setLoading(false);
+      }
+    );
+  };
+
+  // 🔍 검색 (행정동 기준 API)
+  const handleSearch = async () => {
+    if (!form.locationKeyword.trim()) {
+      setLocationMsg("검색어를 입력해주세요.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setLocationMsg("");
+
+      const res = await locationAxios.get("/api/location/search", {
+        params: {
+          keyword: form.locationKeyword.trim(),
+          page: 1,
+          size: 10,
+        },
+      });
+
+      const list = res.data || [];
+      if (list.length === 0) {
+        setLocationMsg("검색 결과가 없어요. 다른 검색어를 시도해 주세요.");
+      } else {
+        setLocationMsg(`검색 결과 ${list.length}개를 불러왔어요.`);
+      }
+      setLocationList(list);
+    } catch (error) {
+      console.error("동네 검색 실패:", error.response?.data || error);
+      setLocationMsg(
+        "검색 중 오류가 발생했어요. 잠시 후 다시 시도해주세요."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderedList =
+    locationList.length > 0
+      ? locationList
+      : dummyList.map((address, idx) => ({
+          address,
+          dongId: idx,
+          regionId: null,
+          subregionId: null,
+        }));
+
+  const canComplete = !!form.selectedAddress;
 
   return (
     <>
@@ -305,7 +521,15 @@ function LocationStep({ form, setForm, onNext, searchIcon }) {
       </div>
 
       <div className={styles.locationTopRow}>
-        <button className={styles.locationYellowBtn}>현재 위치로 찾기</button>
+        <button
+          className={styles.locationYellowBtn}
+          type="button"
+          onClick={handleUseCurrentLocation}
+          disabled={loading}
+        >
+          {loading ? "불러오는 중..." : "현재 위치로 찾기"}
+        </button>
+
         <div className={styles.searchBox}>
           <input
             className={styles.searchInput}
@@ -314,29 +538,48 @@ function LocationStep({ form, setForm, onNext, searchIcon }) {
             onChange={(e) =>
               setForm((p) => ({ ...p, locationKeyword: e.target.value }))
             }
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleSearch();
+              }
+            }}
           />
-          <img src={searchIcon} alt="검색" className={styles.searchIcon} />
+          <img
+            src={searchIcon}
+            alt="검색"
+            className={styles.searchIcon}
+            onClick={handleSearch}
+          />
         </div>
       </div>
 
+      {locationMsg && (
+        <p className={styles.infoText} style={{ marginTop: "8px" }}>
+          {locationMsg}
+        </p>
+      )}
+
       <div className={styles.locationListBox}>
-        {dummyList.map((dong) => (
+        {renderedList.map((loc) => (
           <div
-            key={dong}
+            key={`${loc.address}-${loc.dongId}`}
             className={`${styles.locationItem} ${
-              form.selectedDong === dong ? styles.locationItemActive : ""
+              form.selectedAddress === loc.address
+                ? styles.locationItemActive
+                : ""
             }`}
-            onClick={() => handleSelectDong(dong)}
+            onClick={() => handleSelectLocation(loc)}
           >
-            {dong}
+            {loc.address}
           </div>
         ))}
       </div>
 
-      {form.selectedDong && (
+      {form.selectedAddress && (
         <div className={styles.locationConfirmBox}>
           <span className={styles.locationConfirmText}>
-            {form.selectedDong} 으로 시작하시겠어요?
+            {form.selectedAddress} 으로 시작하시겠어요?
           </span>
         </div>
       )}
@@ -344,15 +587,15 @@ function LocationStep({ form, setForm, onNext, searchIcon }) {
       <button
         className={styles.bottomBtn}
         onClick={onNext}
-        disabled={!form.selectedDong}
+        disabled={!canComplete}
       >
-        다음으로
+        완료하기
       </button>
     </>
   );
 }
 
-/* ============== 4단계 ============== */
+/* ============== 4단계: 완료 ============== */
 function DoneStep({ onGoHome }) {
   return (
     <div className={styles.doneWrapper}>

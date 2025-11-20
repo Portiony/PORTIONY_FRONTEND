@@ -1,50 +1,66 @@
-import React, { useState } from 'react';
-import styles from './DeliveryInfo.module.css';
-import xIcon from '../../../assets/x(black).svg';
+import React from 'react';
+import styles from './DeliveryModal.module.css';
+import xIxon from '../../../assets/x(black).svg';
 
-function DeliveryInfoModal({ onClose, onNext, data, setData }) {
-
+function DeliveryModal({ onClose, onNext, data, setData }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setData((prev) => ({ ...prev, [name]: value }));
   };
 
-
   const handleSubmit = () => {
-    // 여기에 데이터 처리 로직 넣어도 됨 (예: 서버 전송)
-    onNext?.(data); // 콜백 있으면 넘겨주기
+    onNext?.(data);
     onClose();
   };
 
+  const handleOverlayClick = () => {
+    onClose?.();
+  };
+
+  const stopPropagation = (e) => {
+    e.stopPropagation();
+  };
+
   return (
-    <div className={styles.backdrop} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+    <div className={styles.backdrop} onClick={handleOverlayClick}>
+      <div className={styles.modal} onClick={stopPropagation}>
         <div className={styles.header}>
-          <p className={styles.title}>배송 정보</p>
+          <h2 className={styles.title}>배송지 정보</h2>
           <button className={styles.closeBtn} onClick={onClose}>
-            <img src={xIcon} alt="닫기" />
+            <img src={xIxon} alt="닫기" />
           </button>
         </div>
 
         <div className={styles.form}>
           <label className={styles.label}>
-            <span>택배사</span>
+            <span>수령인명</span>
             <input
               className={styles.input}
-              name="courier"
-              placeholder="택배사를 입력해주세요."
-              value={data.courier}
+              name="name"
+              placeholder="수령인명을 입력해주세요."
+              value={data.name}
               onChange={handleChange}
             />
           </label>
 
           <label className={styles.label}>
-            <span>운송장번호</span>
+            <span>전화번호</span>
             <input
               className={styles.input}
-              name="tracking"
-              placeholder="운송장번호를 입력해주세요."
-              value={data.tracking}
+              name="phone"
+              placeholder="전화번호를 입력해주세요."
+              value={data.phone}
+              onChange={handleChange}
+            />
+          </label>
+
+          <label className={styles.label}>
+            <span>배송지</span>
+            <textarea
+              className={styles.textarea}
+              name="address"
+              placeholder="배송지를 입력해주세요."
+              value={data.address}
               onChange={handleChange}
             />
           </label>
@@ -60,4 +76,4 @@ function DeliveryInfoModal({ onClose, onNext, data, setData }) {
   );
 }
 
-export default DeliveryInfoModal;
+export default DeliveryModal;

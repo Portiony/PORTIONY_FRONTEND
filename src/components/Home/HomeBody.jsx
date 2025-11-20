@@ -1,9 +1,10 @@
+// src/components/Home/HomeBody.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./HomeBody.module.css";
 
 import searchIcon from "../../assets/search.svg";
-// import { fetchPosts } from "../../api/postApi"; // 실제 API 쓰면 주석 해제
+import { fetchPosts } from "../../api/postApi";
 
 import ProductList from "../ProductList/productList";
 import ProductSkeleton from "../ProductList/ProductSkeleton";
@@ -20,87 +21,10 @@ const ALL_CATEGORIES = [
   "잡화/기타",
 ];
 
-// 데모용 더미 데이터 (8개)
-const DUMMY_POSTS = [
-  {
-    id: 1,
-    name: "키친타올 12롤 나눔",
-    price: "9,900원 / 12롤",
-    image: "",
-    endDate: "2025-11-30",
-    details: "공구 인원 12명 · 거래 완료 3명",
-    location: "이문2동",
-  },
-  {
-    id: 2,
-    name: "강아지 간식 대용량",
-    price: "6,500원 / 1봉",
-    image: "",
-    endDate: "2025-12-01",
-    details: "공구 인원 8명 · 거래 완료 5명",
-    location: "이문2동",
-  },
-  {
-    id: 3,
-    name: "A4 복사용지 3팩 공동구매",
-    price: "14,000원 / 3팩",
-    image: "",
-    endDate: "2025-12-05",
-    details: "공구 인원 10명 · 거래 완료 1명",
-    location: "이문2동",
-  },
-  {
-    id: 4,
-    name: "건조기 시트 160매",
-    price: "11,000원 / 160매",
-    image: "",
-    endDate: "2025-12-10",
-    details: "공구 인원 6명 · 거래 완료 2명",
-    location: "이문2동",
-  },
-  {
-    id: 5,
-    name: "유아 물티슈 10팩 대용량",
-    price: "7,900원 / 10팩",
-    image: "",
-    endDate: "2025-12-03",
-    details: "공구 인원 15명 · 거래 완료 4명",
-    location: "이문2동",
-  },
-  {
-    id: 6,
-    name: "겨울 니트 장갑 3컬러 세트",
-    price: "5,500원 / 1세트",
-    image: "",
-    endDate: "2025-12-08",
-    details: "공구 인원 9명 · 거래 완료 2명",
-    location: "이문2동",
-  },
-  {
-    id: 7,
-    name: "반려묘 캣타워 소형",
-    price: "29,000원 / 1개",
-    image: "",
-    endDate: "2025-12-12",
-    details: "공구 인원 5명 · 거래 완료 1명",
-    location: "이문2동",
-  },
-  {
-    id: 8,
-    name: "생활세제 리필 4개입",
-    price: "12,500원 / 4개",
-    image: "",
-    endDate: "2025-12-15",
-    details: "공구 인원 11명 · 거래 완료 6명",
-    location: "이문2동",
-  },
-];
-
-
 function HomeBody({
   onOpenLocation,
-  selectedAddress,
-  selectedAddressId,
+  selectedAddress,    // ex) "서울특별시 동대문구 이문2동" 또는 "전국"
+  selectedAddressId,  // 현재는 안 쓰지만, 일단 유지
   searchKeyword,
   onSearchKeywordChange,
 }) {
@@ -121,35 +45,37 @@ function HomeBody({
     isAI: false,
   });
 
-  // 밖에 보여줄 주소 (전국 -> 이문2동)
+  // 화면에 보여줄 주소 텍스트
   const displayAddress = (() => {
-    if (
-      !selectedAddress ||
-      !selectedAddress.trim() ||
-      selectedAddress.trim() === "전국"
-    ) {
-      return "이문2동";
+    if (!selectedAddress || !selectedAddress.trim()) {
+      return "전국";
     }
-    const parts = selectedAddress.trim().split(" ").filter(Boolean);
-    if (parts.length === 1) return parts[0];
-    if (parts.length === 2) return parts.slice(-2).join(" ");
-    return parts.slice(-2).join(" ");
+    const trimmed = selectedAddress.trim();
+    if (trimmed === "전국") return "전국";
+
+    const parts = trimmed.split(" ").filter(Boolean);
+    return parts[parts.length - 1]; // 마지막 덩어리만 (ex. 이문2동)
   })();
 
-  // 데이터 불러오기 (지금은 더미)
-  useEffect(() => {
-    setLoading(true);
-    setTimeout(() => {
-      setProducts({
-        posts: DUMMY_POSTS,
-        total: DUMMY_POSTS.length,
-        isAI: false,
-      });
-      setLoading(false);
-    }, 250);
+  // /api/posts 쿼리에서 사용할 address 값
+  // 예: "서울특별시 동대문구 이문2동" → "동대문구 이문2동"
+  const addressQuery = (() => {
+    if (!selectedAddress || !selectedAddress.trim()) return undefined;
 
-    // 실제 API 쓰려면 위를 지우고 이걸 복구하면 됨
-    /*
+    const trimmed = selectedAddress.trim();
+    if (trimmed === "전국") return undefined;
+
+    const parts = trimmed.split(" ").filter(Boolean);
+    if (parts.length >= 2) {
+      const last = parts[parts.length - 1];       // 이문2동
+      const secondLast = parts[parts.length - 2]; // 동대문구
+      return `${secondLast} ${last}`;             // "동대문구 이문2동"
+    }
+    return trimmed;
+  })();
+
+  // 실제 API 호출
+  useEffect(() => {
     const fetch = async () => {
       setLoading(true);
       try {
@@ -160,35 +86,37 @@ function HomeBody({
         const data = await fetchPosts({
           selectedCategory: categoryParam,
           page: currentPage,
-          status: includeClosed ? "" : "PROGRESS",
-          dongId: selectedAddressId,
           sort,
           keyword: searchKeyword,
+          includeClosed,
+          address: addressQuery,  // ✅ 여기서 주소 필터 전달
         });
 
-        const refined = data.posts.map((post) => ({
+        const refined = (data.posts || []).map((post) => ({
           id: post.id,
           name: post.title,
           price: `${post.price.toLocaleString()}원 / ${post.capacity}${post.unit}`,
           image: post.thumbnail,
           endDate: post.deadline,
           details: `공구 인원 ${post.capacity}명 · 거래 완료 ${post.completedCount}명`,
-          location: selectedAddress?.trim()?.split(" ").at(-1),
+          location:
+            selectedAddress?.trim()?.split(" ").filter(Boolean).at(-1) ?? "",
         }));
 
         setProducts({
           posts: refined,
-          total: data.total,
-          isAI: data.isAI,
+          total: data.total ?? refined.length,
+          isAI: data.isAI ?? false,
         });
       } catch (err) {
         console.error("[상품 불러오기 실패]", err);
+        setProducts({ posts: [], total: 0, isAI: false });
       } finally {
         setLoading(false);
       }
     };
+
     fetch();
-    */
   }, [
     selectedCategories,
     currentPage,
@@ -196,11 +124,11 @@ function HomeBody({
     selectedAddress,
     searchKeyword,
     sort,
-    selectedAddressId,
+    addressQuery, // 주소가 바뀌면 다시 불러오기
   ]);
 
   const productsPerPage = 12;
-  const totalPages = Math.ceil(products.total / productsPerPage);
+  const totalPages = Math.ceil(products.total / productsPerPage) || 1;
 
   const handleOpenFilter = () => {
     setTempCategories(selectedCategories);
@@ -281,7 +209,7 @@ function HomeBody({
               className={styles.searchInput}
               placeholder="어떤 상품을 찾으시나요?"
             />
-            {!!searchKeyword && (
+          {!!searchKeyword && (
               <button
                 className={styles.clearBtn}
                 onClick={() => onSearchKeywordChange("")}
@@ -331,23 +259,23 @@ function HomeBody({
         )}
 
         {!loading && products.total > 0 && (
-          <div className={styles.list}>
-            <ProductList products={products.posts} context="home" />
-          </div>
-        )}
+          <>
+            <div className={styles.list}>
+              <ProductList products={products.posts} context="home" />
+            </div>
 
-        {!loading && products.total > 0 && (
-          <div className={styles.pagination}>
-            <Pagination
-              totalPages={totalPages}
-              currentPage={currentPage}
-              onPageChange={setCurrentPage}
-            />
-          </div>
+            <div className={styles.pagination}>
+              <Pagination
+                totalPages={totalPages}
+                currentPage={currentPage}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          </>
         )}
       </div>
 
-      {/* 플로팅 버튼 (조금 위로) */}
+      {/* 플로팅 버튼 */}
       <button
         className={styles.fab}
         onClick={() => navigate("/group-buy/new")}
@@ -370,17 +298,19 @@ function HomeBody({
               <button onClick={() => setShowFilterModal(false)}>✕</button>
             </div>
 
+            {/* 필터 모달 안, 지역 선택 부분 */}
             <div className={styles.filterSection}>
               <h4>지역</h4>
               <div
                 className={styles.locationSelectBox}
-                onClick={onOpenLocation}
+                onClick={() => {
+                  setShowFilterModal(false);
+                  onOpenLocation();
+                }}
               >
                 <div>
                   <p className={styles.locationSelectLabel}>현재 선택된 지역</p>
-                  <p className={styles.locationSelectValue}>
-                    {selectedAddress || "이문2동"}
-                  </p>
+                  <p className={styles.locationSelectValue}>{displayAddress}</p>
                 </div>
                 <span className={styles.locationSelectRight}>변경</span>
               </div>

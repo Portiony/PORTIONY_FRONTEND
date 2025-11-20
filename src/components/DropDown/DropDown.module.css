@@ -1,110 +1,140 @@
+/* 컨테이너 */
 .dropdownContainer {
-    position: relative;
-    display: inline-block;
-  }
-  
-  .dropdownButton {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    padding: 4px 10px;
-    color: #000;
-    font-family: Inter;
-    font-size: 13px;
-    font-weight: 500;
-    line-height: 16px;
-    letter-spacing: -0.32px;
-    background: #fff;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    box-shadow: 0 0 4px rgba(0,0,0,0.25);
-    transition: 0.2s;
-    white-space: nowrap;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  
-  /* 열렸을 때 아래 모서리만 평평하게 */
-  .dropdownButton.open {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    border-bottom: 1px solid #000;
-  }
-  
-  .placeholder {
-    color: #888;
-  }
-  
-  .arrow{
-    width: 18px;
-    height: 18px;
-    transition: transform 0.2s, opacity 0.2s;
-    flex-shrink: 0;
-    cursor: pointer;
-  }
+  position: relative;
+  display: inline-block;
+}
 
-  .clearIcon {
-    width: 10px;
-    height: 10px;
-    transition: transform 0.2s, opacity 0.2s;
-    flex-shrink: 0;
-    cursor: pointer;
-  }
-  
-  .dropdownMenu {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    background: #fff;
-    border-top: none;
-    border-radius: 0 0 10px 10px;
-    box-shadow: 0 0 4px rgba(0,0,0,0.25);
-    z-index: 1000;
-    overflow-y: auto;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  
-  .menuItem {
-    padding: 4px 10px;
-    color: #000;
-    font-family: Inter;
-    font-size: 13px;
-    font-weight: 500;
-    line-height: 16px;
-    letter-spacing: -0.32px;
-    cursor: pointer;
-    white-space: nowrap;
-  }
-  
-  .menuItem:last-child {
-    border-radius: 0 0 8px 8px;
-  }
+/* 기본 버튼 스타일 (다른 곳에서 default로 쓸 때) */
+.dropdownButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 10px;
+  color: #000;
+  font-family: Inter;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: -0.32px;
+  background: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 0 4px rgba(0,0,0,0.25);
+  transition: 0.2s;
+  white-space: nowrap;
+  width: 100%;
+  box-sizing: border-box;
+}
 
+/* 열렸을 때 아래 모서리만 살짝 평평하게 */
+.dropdownButton.open {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom: 1.5px solid rgba(0, 0, 0, 0.06);
+}
 
-  /* minimal 스타일을 위한 오버라이드 */
-  .minimal {
-    all: unset;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    font-size: 13px;
-    width: 100%;
-    box-sizing: border-box;
-    cursor: pointer;
-    padding: 10px;
-    border: 1px solid #000;
-    border-radius: 10px;
-    box-shadow: 0 0 4px rgba(0,0,0,0.3);
-    background: #fff;
-  }
+.placeholder {
+  color: #888;
+}
 
-  .minimalContainer {
-    width: 100% !important;
-  }
+/* 아이콘들 */
+.arrow {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.2s, opacity 0.2s;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.rotated {
+  transform: rotate(180deg);
+}
+
+.clearIcon {
+  width: 10px;
+  height: 10px;
+  transition: transform 0.2s, opacity 0.2s;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+/* 드롭다운 메뉴 */
+.dropdownMenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: #fff;
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+  z-index: 1000;
+  overflow-y: auto;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1.5px solid rgba(0, 0, 0, 0.06);
+  border-top: none;
+}
+
+.menuItem {
+  padding: 6px 10px;
+  color: #000;
+  font-family: Inter;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: -0.32px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.menuItem:hover {
+  background: #f9fafb;
+}
+
+.menuItem:last-child {
+  border-radius: 0 0 8px 8px;
+}
+
+/* ===================== */
+/*   minimal 스타일      */
+/* ===================== */
+
+.minimalContainer {
+  width: 100% !important;
+}
+
+/* 홈 검색창 느낌 – 연한 회색 테두리 + 살짝 둥근 */
+.minimal {
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+  width: 100%;
+  box-sizing: border-box;
+  cursor: pointer;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(0, 0, 0, 0.06);
+  background: #ffffff;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.02),
+    inset 0 1px 1px rgba(0, 0, 0, 0.02);
+}
+
+.minimal.open {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+/* minimal 상태의 placeholder 색 */
+.minimal .placeholder {
+  color: #9ca3af;
+  font-weight: 400;
+}
